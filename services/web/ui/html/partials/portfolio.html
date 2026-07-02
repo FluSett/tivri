@@ -1,0 +1,37 @@
+{{define "portfolio.html"}}
+<div class="border border-white/[0.08] backdrop-blur-md bg-white/[0.02] p-6 rounded-2xl space-y-4 hover:border-white/[0.15] hover:bg-white/[0.04] transition-all duration-300">
+    <div x-data="{ activeIndex: 0, media: [{{range $i, $m := .Media}}{{if $i}},{{end}}'{{$m}}'{{end}}] }" class="space-y-4">
+        <template x-if="media.length > 0">
+            <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-black/40 border border-white/[0.08]">
+                <template x-for="(item, index) in media" :key="index">
+                    <div x-show="activeIndex === index" class="absolute inset-0 w-full h-full">
+                        <template x-if="item.endsWith('.mp4') || item.endsWith('.webm')">
+                            <video :src="item" class="w-full h-full object-cover" controls muted playsinline></video>
+                        </template>
+                        <template x-if="!(item.endsWith('.mp4') || item.endsWith('.webm'))">
+                            <img :src="item" class="w-full h-full object-cover" alt="Portfolio media">
+                        </template>
+                    </div>
+                </template>
+                <template x-if="media.length > 1">
+                    <div class="absolute inset-x-0 bottom-2 flex justify-center space-x-1.5 z-10">
+                        <template x-for="(item, index) in media" :key="index">
+                            <button @click="activeIndex = index"
+                                    :class="activeIndex === index ? 'bg-[#FF3366] w-4' : 'bg-white/40 w-1.5'"
+                                    class="h-1.5 rounded-full transition-all duration-300 focus:outline-none"></button>
+                        </template>
+                    </div>
+                </template>
+            </div>
+        </template>
+
+        <div class="flex justify-between items-start gap-4">
+            <h3 class="text-base font-bold text-white tracking-tight leading-tight">{{.Title}}</h3>
+        </div>
+        <p class="text-neutral-400 text-sm leading-relaxed tracking-tight">{{.Description}}</p>
+        <div class="flex flex-wrap gap-2">
+            <span class="bg-white/[0.04] text-neutral-300 text-xs px-2.5 py-1 rounded-lg border border-white/[0.06] tracking-tight font-medium">{{.TechStack}}</span>
+        </div>
+    </div>
+</div>
+{{end}}

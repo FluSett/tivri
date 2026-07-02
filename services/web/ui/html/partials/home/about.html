@@ -1,0 +1,47 @@
+{{define "section.about.html"}}
+<section id="about" class="relative min-h-[80vh] flex flex-col justify-between py-8 md:py-12 scroll-mt-16 md:scroll-mt-28">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center my-auto flex-grow">
+        <div class="hidden lg:block lg:col-span-1 text-left">
+            <div class="flex flex-col items-center space-y-4">
+                <span class="text-xs font-bold tracking-widest text-[#FF3366] rotate-90 my-4">01</span>
+                <div class="w-px h-24 bg-white/20"></div>
+            </div>
+        </div>
+        
+        <div class="lg:col-span-8 space-y-8 border-l-4 border-[#FF3366] pl-6 md:pl-10">
+            <div class="flex items-center space-x-4">
+                <div class="w-8 h-px bg-[#FF3366]"></div>
+                <h2 class="text-xs font-bold uppercase tracking-widest text-[#FF3366]">{{.T.Get "AboutNav"}}</h2>
+            </div>
+            <h1 class="text-4xl md:text-6xl lg:text-7xl font-black tracking-tighter text-white leading-none">
+                {{.T.Get "AboutHeading"}}
+            </h1>
+            <p class="max-w-2xl text-neutral-400 text-base md:text-lg tracking-tight leading-relaxed">
+                {{.T.Get "PortfolioIntro"}}
+            </p>
+        </div>
+
+        <div class="lg:col-span-3 flex justify-start lg:justify-end items-center">
+            <a href="#contact" @click="openStepper = true" class="flex items-center space-x-3 bg-transparent text-white border border-[#FF3366] hover:bg-[#FF3366] hover:text-white hover:shadow-[0_0_15px_rgba(255,51,102,0.4)] px-4 py-2.5 rounded-lg transition-all duration-300">
+                <span class="w-3 h-3 bg-[#FF3366] animate-pulse"></span>
+                <span class="text-xs font-bold tracking-wider uppercase text-neutral-200">{{.T.Get "MakeItHappen"}}</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="flex justify-end items-center mt-auto pt-8 w-full">
+        <div class="flex items-center space-x-4">
+            <span class="w-10 h-10 rounded-full border border-white/[0.04] bg-white/[0.01] flex items-center justify-center text-neutral-700 cursor-not-allowed opacity-40 select-none">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path>
+                </svg>
+            </span>
+            <a href="/#benefits" class="w-10 h-10 rounded-full border border-white/[0.08] bg-white/[0.02] hover:bg-[#FF3366] hover:border-[#FF3366] hover:shadow-[0_0_15px_rgba(255,51,102,0.4)] flex items-center justify-center text-neutral-400 hover:text-white transition-all duration-300 hover:scale-110">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+        </div>
+    </div>
+</section>
+{{end}}
