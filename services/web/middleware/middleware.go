@@ -113,6 +113,7 @@ func (sm *SecurityManager) CookieAuth(adminUsername, adminPassword string, next 
 			w.WriteHeader(http.StatusTooManyRequests)
 			return
 		}
+
 		cookie, err := r.Cookie("admin_session")
 		if err != nil {
 			if r.Method == http.MethodGet {
@@ -120,8 +121,10 @@ func (sm *SecurityManager) CookieAuth(adminUsername, adminPassword string, next 
 			} else {
 				w.WriteHeader(http.StatusUnauthorized)
 			}
+
 			return
 		}
+
 		sm.mu.Lock()
 		expiry, exists := sm.activeSessions[cookie.Value]
 		if exists && time.Now().After(expiry) {
@@ -129,14 +132,17 @@ func (sm *SecurityManager) CookieAuth(adminUsername, adminPassword string, next 
 			exists = false
 		}
 		sm.mu.Unlock()
+
 		if !exists {
 			if r.Method == http.MethodGet {
 				http.Redirect(w, r, "/admin/login", http.StatusSeeOther)
 			} else {
 				w.WriteHeader(http.StatusUnauthorized)
 			}
+
 			return
 		}
+
 		next(w, r)
 	}
 }
@@ -148,15 +154,19 @@ func (sm *SecurityManager) BasicAuth(adminUsername, adminPassword string, next h
 			if _, err := w.Write([]byte("Too many failed login attempts. Please try again later.")); err != nil {
 				sm.logger.Error("failed to write response", slog.Any("error", err))
 			}
+
 			return
 		}
+
 		username, password, ok := r.BasicAuth()
 		if !ok || username != adminUsername || password != adminPassword {
 			sm.RecordFailedAttempt(r)
 			w.Header().Set("WWW-Authenticate", `Basic realm="Admin"`)
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+
 			return
 		}
+
 		sm.RecordSuccessfulAttempt(r)
 		next(w, r)
 	}

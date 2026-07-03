@@ -10,7 +10,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to initialize application: %v", err)
 	}
+
 	defer server.Close()
+
 	err = server.Start()
 	if err != nil {
 		log.Fatalf("application error: %v", err)
