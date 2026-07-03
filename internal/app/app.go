@@ -10,19 +10,16 @@ import (
 	"os"
 	"time"
 
-	_ "github.com/glebarez/go-sqlite"
 	_ "github.com/jackc/pgx/v5/stdlib"
 
 	"tivri"
 	"tivri/internal/config"
 	"tivri/internal/domain/contact"
-	contactpg "tivri/internal/domain/contact/postgres"
 	"tivri/internal/domain/lead"
-	leadpg "tivri/internal/domain/lead/postgres"
 	"tivri/internal/domain/portfolio"
-	portfoliopg "tivri/internal/domain/portfolio/postgres"
 	"tivri/internal/i18n"
 	webhandler "tivri/services/web/handler"
+	"tivri/services/web/middleware"
 )
 
 type PageData struct {
@@ -50,6 +47,7 @@ type App struct {
 	contactSvc       *contact.Service
 	logger           *slog.Logger
 	webFS            fs.FS
+	securityMgr      *middleware.SecurityManager
 }
 
 func New() (*App, error) {
@@ -82,12 +80,7 @@ func New() (*App, error) {
 		)
 	}
 
-	driverName := "sqlite"
-	if cfg.Env == "production" {
-		driverName = "pgx"
-	}
-
-	db, err := sql.Open(driverName, cfg.DBDSN)
+	db, err := sql.Open("pgx", cfg.DBDSN)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +89,7 @@ func New() (*App, error) {
 	db.SetMaxIdleConns(25)
 	db.SetConnMaxLifetime(5 * time.Minute)
 
-	if err = migrate(db, driverName); err != nil {
+	if err = migrate(db); err != nil {
 		db.Close()
 		return nil, err
 	}
@@ -107,9 +100,9 @@ func New() (*App, error) {
 		return nil, err
 	}
 
-	portfolioRepo := portfoliopg.NewSQLRepository(db, driverName)
-	leadRepo := leadpg.NewSQLRepository(db, driverName)
-	contactRepo := contactpg.NewSQLRepository(db, driverName)
+	portfolioRepo := portfolio.NewSQLRepository(db)
+	leadRepo := lead.NewSQLRepository(db)
+	contactRepo := contact.NewSQLRepository(db)
 
 	portfolioSvc := portfolio.NewService(portfolioRepo)
 	leadSvc := lead.NewService(leadRepo)
@@ -194,6 +187,8 @@ func New() (*App, error) {
 	leadHandler := webhandler.NewLeadHandler(leadSvc, homeTmpl, translator)
 	contactHandler := webhandler.NewContactHandler(contactSvc, homeTmpl, translator)
 
+	securityMgr := middleware.NewSecurityManager(logger)
+
 	return &App{
 		cfg:              cfg,
 		db:               db,
@@ -207,6 +202,7 @@ func New() (*App, error) {
 		contactSvc:       contactSvc,
 		logger:           logger,
 		webFS:            webUIFS,
+		securityMgr:      securityMgr,
 	}, nil
 }
 
@@ -234,70 +230,9 @@ func (a *App) Start() error {
 	return server.ListenAndServe()
 }
 
-func migrate(db *sql.DB, driverName string) error {
-	migrations := map[string]string{
-		"pgx":    postgresMigrationSQL,
-		"sqlite": sqliteMigrationSQL,
-	}
-
-	sqlStr, ok := migrations[driverName]
-	if !ok {
-		sqlStr = migrations["sqlite"]
-	}
-	_, err := db.Exec(sqlStr)
-	if err != nil {
-		return err
-	}
-
-	if driverName != "pgx" {
-		var count int
-		err = db.QueryRow("SELECT count(*) FROM pragma_table_info('portfolio_items') WHERE name='media'").Scan(&count)
-		if err != nil {
-			return err
-		}
-		if count == 0 {
-			_, err = db.Exec("ALTER TABLE portfolio_items ADD COLUMN media TEXT NOT NULL DEFAULT '[]'")
-			if err != nil {
-				return err
-			}
-		}
-		err = db.QueryRow("SELECT count(*) FROM pragma_table_info('intake_leads') WHERE name='client_status'").Scan(&count)
-		if err != nil {
-			return err
-		}
-		if count == 0 {
-			_, err = db.Exec("ALTER TABLE intake_leads ADD COLUMN client_status TEXT NOT NULL DEFAULT 'pending'")
-			if err != nil {
-				return err
-			}
-			_, err = db.Exec("ALTER TABLE intake_leads ADD COLUMN internal_status TEXT NOT NULL DEFAULT 'pending'")
-			if err != nil {
-				return err
-			}
-		}
-		err = db.QueryRow("SELECT count(*) FROM pragma_table_info('intake_leads') WHERE name='updated_at'").Scan(&count)
-		if err != nil {
-			return err
-		}
-		if count == 0 {
-			_, err = db.Exec("ALTER TABLE intake_leads ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP")
-			if err != nil {
-				return err
-			}
-		}
-		err = db.QueryRow("SELECT count(*) FROM pragma_table_info('contact_messages') WHERE name='status'").Scan(&count)
-		if err != nil {
-			return err
-		}
-		if count == 0 {
-			_, err = db.Exec("ALTER TABLE contact_messages ADD COLUMN status TEXT NOT NULL DEFAULT 'new'")
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
+func migrate(db *sql.DB) error {
+	_, err := db.Exec(postgresMigrationSQL)
+	return err
 }
 
 func ensureStaticDirectories() error {

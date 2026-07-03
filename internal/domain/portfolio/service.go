@@ -4,10 +4,14 @@ import (
 	"context"
 	"errors"
 	"strings"
+	"sync"
 )
 
 type Service struct {
-	repo Repository
+	repo        Repository
+	mu          sync.RWMutex
+	cache       []PortfolioItem
+	initialized bool
 }
 
 func NewService(repo Repository) *Service {
@@ -39,9 +43,41 @@ func (s *Service) CreatePortfolioItem(ctx context.Context, title, description st
 		return nil, err
 	}
 
+	s.mu.Lock()
+	if s.initialized {
+		s.cache = append([]PortfolioItem{*item}, s.cache...)
+	}
+	s.mu.Unlock()
+
 	return item, nil
 }
 
 func (s *Service) ListPortfolioItems(ctx context.Context) ([]PortfolioItem, error) {
-	return s.repo.List(ctx)
+	s.mu.RLock()
+	if s.initialized {
+		items := make([]PortfolioItem, len(s.cache))
+		copy(items, s.cache)
+		s.mu.RUnlock()
+		return items, nil
+	}
+	s.mu.RUnlock()
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.initialized {
+		items := make([]PortfolioItem, len(s.cache))
+		copy(items, s.cache)
+		return items, nil
+	}
+
+	items, err := s.repo.List(ctx)
+	if err != nil {
+		return nil, err
+	}
+	s.cache = items
+	s.initialized = true
+
+	copiedItems := make([]PortfolioItem, len(items))
+	copy(copiedItems, items)
+	return copiedItems, nil
 }
