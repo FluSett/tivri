@@ -14,6 +14,27 @@
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/intersect@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="/static/js/main.js" defer></script>
+    <script>
+        if (!window.__initialized) {
+            window.__initialized = true;
+            if (window.performance && window.performance.navigation && window.performance.navigation.type === 1) {
+                sessionStorage.removeItem('intake_step');
+                sessionStorage.removeItem('intake_budget');
+                sessionStorage.removeItem('intake_customBudget');
+                sessionStorage.removeItem('intake_scopeText');
+                sessionStorage.removeItem('intake_nameText');
+                sessionStorage.removeItem('intake_contactEmail');
+                sessionStorage.removeItem('intake_contactPhone');
+                sessionStorage.removeItem('intake_submitted');
+                sessionStorage.removeItem('openStepper');
+                sessionStorage.removeItem('contact_email');
+                sessionStorage.removeItem('contact_topic');
+                sessionStorage.removeItem('contact_message');
+                sessionStorage.removeItem('contact_submitted');
+            }
+        }
+    </script>
     <script>
         tailwind.config = {
             theme: {
@@ -25,109 +46,11 @@
             }
         }
     </script>
-    <style>
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0A0A0A;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 51, 102, 0.3);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 51, 102, 0.6);
-        }
-
-        body {
-            background-color: #0A0A0A;
-            background-image: radial-gradient(circle at 50% -20%, rgba(255, 51, 102, 0.15) 0%, transparent 65%), url('/static/img/backgrounds/bg-sm.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-            color: #F3F4F6;
-        }
-        @media (min-width: 768px) {
-            body {
-                background-image: radial-gradient(circle at 50% -20%, rgba(255, 51, 102, 0.15) 0%, transparent 65%), url('/static/img/backgrounds/bg-md.jpg');
-            }
-        }
-        @media (min-width: 1200px) {
-            body {
-                background-image: radial-gradient(circle at 50% -20%, rgba(255, 51, 102, 0.15) 0%, transparent 65%), url('/static/img/backgrounds/bg-lg.jpg');
-            }
-        }
-
-        [x-cloak] { display: none !important; }
-
-        @keyframes progress-shimmer {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        .animate-shimmer {
-            background-size: 200% auto;
-            animation: progress-shimmer 3s ease infinite;
-        }
-
-        @keyframes blink-animation {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        .nav-active-dot {
-            opacity: 0;
-            pointer-events: none;
-            display: inline-block;
-            width: 0;
-            height: 5px;
-            background: #FF3366;
-            border-radius: 50%;
-            animation: blink-animation 1.6s ease-in-out infinite;
-            vertical-align: middle;
-            margin-left: 0;
-            margin-bottom: 1px;
-            transition: all 0.2s ease;
-        }
-        a.nav-active .nav-active-dot {
-            opacity: 1;
-            width: 5px;
-            margin-left: 5px;
-        }
-        a.nav-active {
-            color: #ffffff !important;
-        }
-        a.nav-active::after {
-            width: 100% !important;
-        }
-        .contact-blink {
-            color: #FF3366 !important;
-            animation: blink-animation 1.6s ease-in-out infinite;
-        }
-        a.nav-link {
-            position: relative;
-        }
-        @keyframes nav-link-ping {
-            0% { opacity: 1; transform: scaleX(1); }
-            50% { opacity: 0.5; transform: scaleX(0.85); }
-            100% { opacity: 1; transform: scaleX(1); }
-        }
-         @keyframes logo-glow {
-             0%, 100% { filter: drop-shadow(0 0 2px rgba(255, 51, 102, 0.4)); }
-             50% { filter: drop-shadow(0 0 8px rgba(255, 51, 102, 0.8)); }
-         }
-          .logo-glow-anim {
-              animation: logo-glow 3s infinite ease-in-out;
-          }
-      </style>
+    <link rel="stylesheet" href="/static/css/theme.css">
 </head>
 <body class="min-h-screen flex flex-col justify-between font-sans selection:bg-[#FF3366] selection:text-white relative"
       :class="mobileMenuOpen ? 'overflow-hidden' : ''"
-      x-data="{ mobileMenuOpen: false, scrolled: false, footerScrolled: false, openStepper: sessionStorage.getItem('openStepper') === 'true', init() { this.$watch('openStepper', val => sessionStorage.setItem('openStepper', val)) } }"
-      x-on:scroll.window="scrolled = (window.pageYOffset > 50); footerScrolled = (window.innerHeight + window.pageYOffset >= document.documentElement.scrollHeight - 150)"
+      x-data="{ mobileMenuOpen: false, openStepper: sessionStorage.getItem('openStepper') === 'true', init() { this.$watch('openStepper', val => sessionStorage.setItem('openStepper', val)) } }"
       x-on:resize.window="if (window.innerWidth >= 768) mobileMenuOpen = false">
     <div class="fixed inset-0 pointer-events-none z-0 flex justify-between w-full px-4 md:px-16 lg:px-24">
         <div class="w-px h-full bg-white/[0.03]"></div>
@@ -137,21 +60,11 @@
         <div class="w-px h-full bg-white/[0.03]"></div>
     </div>
 
-    <header id="site-header" class="fixed top-0 left-0 w-full z-50 transition-all duration-500 py-10 px-6 md:px-16 lg:px-24"
-            :class="(scrolled && !mobileMenuOpen) ? 'backdrop-blur-lg bg-black/90 border-b border-white/[0.08] py-5 shadow-[0_4px_30px_rgba(0,0,0,0.8)]' : 'bg-transparent border-transparent py-10'">
-        <script>
-            (function() {
-                var el = document.getElementById('site-header');
-                if (window.scrollY > 10) {
-                    el.classList.add('backdrop-blur-lg', 'bg-black/90', 'border-b', 'border-white/[0.08]', 'py-5', 'shadow-[0_4px_30px_rgba(0,0,0,0.8)]');
-                    el.classList.remove('bg-transparent', 'border-transparent', 'py-10');
-                }
-            })();
-        </script>
+    <header id="site-header" class="fixed top-0 left-0 w-full z-50 transition-all duration-500 py-10 px-6 md:px-16 lg:px-24 bg-transparent border-transparent">
         <div class="max-w-[1600px] mx-auto w-full flex justify-between items-center gap-4 relative z-10">
             {{if .IsAdmin}}
             <div class="flex items-center space-x-2"
-                 :class="mobileMenuOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 transition-opacity duration-300'">
+                  :class="mobileMenuOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 transition-opacity duration-300'">
                 <a href="/admin" onclick="if (window.location.pathname === '/' || window.location.pathname === '/admin') { event.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }" class="flex items-center space-x-3 group">
                     <div class="relative w-6 h-6 flex items-center justify-center flex-shrink-0 logo-glow-anim">
                         <div class="absolute inset-0 bg-[#FF3366] rounded-sm transform rotate-45 group-hover:rotate-90 transition-transform duration-500"></div>
@@ -227,8 +140,7 @@
                     </svg>
                 </button>
                 {{end}}
-            </div>
-
+        </div>
     </header>
 
     <!-- Mobile Slide Menu Container -->
@@ -304,9 +216,9 @@
                  <div class="pb-2 text-center">
                      <div class="h-px w-full bg-white/10 mb-8"></div>
                      <div class="flex items-center justify-center space-x-5">
-                         <button type="button" {{if eq .Lang "en"}}disabled class="text-xs font-bold uppercase tracking-wider text-[#FF3366] pointer-events-none cursor-default"{{else}}hx-get="/api/lang?lang=en" hx-target="body" hx-swap="outerHTML" @click="mobileMenuOpen = false" class="text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white hover:scale-105 transition-all duration-200"{{end}}>EN</button>
-                         <button type="button" {{if eq .Lang "uk"}}disabled class="text-xs font-bold uppercase tracking-wider text-[#FF3366] pointer-events-none cursor-default"{{else}}hx-get="/api/lang?lang=uk" hx-target="body" hx-swap="outerHTML" @click="mobileMenuOpen = false" class="text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white hover:scale-105 transition-all duration-200"{{end}}>UA</button>
-                         <button type="button" {{if eq .Lang "ru"}}disabled class="text-xs font-bold uppercase tracking-wider text-[#FF3366] pointer-events-none cursor-default"{{else}}hx-get="/api/lang?lang=ru" hx-target="body" hx-swap="outerHTML" @click="mobileMenuOpen = false" class="text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white hover:scale-105 transition-all duration-200"{{end}}>RU</button>
+                          <button type="button" {{if eq .Lang "en"}}disabled class="text-xs font-bold uppercase tracking-wider text-[#FF3366] pointer-events-none cursor-default"{{else}}hx-get="/api/lang?lang=en" hx-target="body" hx-swap="outerHTML" @click="mobileMenuOpen = false" class="text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white hover:scale-105 transition-all duration-200"{{end}}>EN</button>
+                          <button type="button" {{if eq .Lang "uk"}}disabled class="text-xs font-bold uppercase tracking-wider text-[#FF3366] pointer-events-none cursor-default"{{else}}hx-get="/api/lang?lang=uk" hx-target="body" hx-swap="outerHTML" @click="mobileMenuOpen = false" class="text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white hover:scale-105 transition-all duration-200"{{end}}>UA</button>
+                          <button type="button" {{if eq .Lang "ru"}}disabled class="text-xs font-bold uppercase tracking-wider text-[#FF3366] pointer-events-none cursor-default"{{else}}hx-get="/api/lang?lang=ru" hx-target="body" hx-swap="outerHTML" @click="mobileMenuOpen = false" class="text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white hover:scale-105 transition-all duration-200"{{end}}>RU</button>
                      </div>
                      <p class="text-xs text-neutral-500 tracking-wider mt-12 pb-1">&copy; 2026 TIVRI. {{.T.Get "RightsReserved"}}</p>
                  </div>
@@ -318,8 +230,7 @@
         {{template "content" .}}
     </main>
 
-    <footer id="site-footer" class="w-full border-t transition-all duration-700 ease-out px-6 md:px-16 lg:px-24 relative z-10"
-            :class="footerScrolled ? 'backdrop-blur-lg bg-black/90 border-white/[0.08] py-6 shadow-[0_-4px_30px_rgba(0,0,0,0.8)]' : 'bg-transparent border-transparent py-12'">
+    <footer id="site-footer" class="w-full border-t transition-all duration-700 ease-out px-6 md:px-16 lg:px-24 relative z-10 bg-transparent border-transparent py-12">
         <div class="max-w-[1600px] mx-auto w-full grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
             <div class="md:col-span-5 space-y-4">
                 <div class="flex items-center space-x-3">
@@ -400,71 +311,5 @@
             <p class="tracking-tight">{{.T.Get "CraftedWith"}}</p>
         </div>
     </footer>
-
-    <script>
-        (function() {
-            function initNavObserver() {
-                var sections = ['about', 'benefits', 'skills', 'portfolio', 'contact'];
-                var navLinks = document.querySelectorAll('#main-nav .nav-link');
-
-                function clearActive() {
-                    navLinks.forEach(function(link) {
-                        link.classList.remove('nav-active');
-                    });
-                }
-
-                function setActive(sectionId) {
-                    clearActive();
-                    navLinks.forEach(function(link) {
-                        if (link.getAttribute('href') === '/#' + sectionId) {
-                            link.classList.add('nav-active');
-                        }
-                    });
-                }
-
-                var observerOptions = {
-                    root: null,
-                    rootMargin: '-20% 0px -60% 0px',
-                    threshold: 0
-                };
-
-                var observer = new IntersectionObserver(function(entries) {
-                    entries.forEach(function(entry) {
-                        if (entry.isIntersecting) {
-                            setActive(entry.target.id);
-                        }
-                    });
-                }, observerOptions);
-
-                sections.forEach(function(id) {
-                    var el = document.getElementById(id);
-                    if (el) { observer.observe(el); }
-                });
-            }
-
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initNavObserver);
-            } else {
-                initNavObserver();
-            }
-        })();
-    </script>
-    <script>
-        if (window.performance && window.performance.navigation && window.performance.navigation.type === 1) {
-            sessionStorage.removeItem('intake_step');
-            sessionStorage.removeItem('intake_budget');
-            sessionStorage.removeItem('intake_customBudget');
-            sessionStorage.removeItem('intake_scopeText');
-            sessionStorage.removeItem('intake_nameText');
-            sessionStorage.removeItem('intake_contactEmail');
-            sessionStorage.removeItem('intake_contactPhone');
-            sessionStorage.removeItem('intake_submitted');
-            sessionStorage.removeItem('openStepper');
-            sessionStorage.removeItem('contact_email');
-            sessionStorage.removeItem('contact_topic');
-            sessionStorage.removeItem('contact_message');
-            sessionStorage.removeItem('contact_submitted');
-        }
-    </script>
 </body>
 </html>

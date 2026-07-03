@@ -122,8 +122,7 @@ Budget values are converted to and evaluated as integer cents in `intake_leads.b
 ## 10. Docker & Deployment Rules
 
 **Database:**
-- Development (non-Docker): SQLite via `glebarez/go-sqlite`. Driver selected by `APP_ENV != production`.
-- Production (Docker): PostgreSQL 16 via `jackc/pgx/v5`. `APP_ENV=production` activates pgx driver.
+- Use PostgreSQL 16 via `jackc/pgx/v5` exclusively for both development and production to eliminate environment discrepancy and database syntax translation layer.
 - The `db` service must declare a `healthcheck` and `web` must declare `depends_on: db: condition: service_healthy`.
 
 **Dockerfile:**
