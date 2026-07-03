@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"html/template"
 	"net/http"
 	"strconv"
 	"strings"
@@ -11,11 +10,11 @@ import (
 
 type LeadHandler struct {
 	service    *lead.Service
-	templates  *template.Template
+	templates  HTMLRenderer
 	translator *i18n.Translator
 }
 
-func NewLeadHandler(service *lead.Service, templates *template.Template, translator *i18n.Translator) *LeadHandler {
+func NewLeadHandler(service *lead.Service, templates HTMLRenderer, translator *i18n.Translator) *LeadHandler {
 	return &LeadHandler{
 		service:    service,
 		templates:  templates,
