@@ -19,8 +19,10 @@ func (r *SQLRepository) Save(ctx context.Context, item *PortfolioItem) error {
 	if err != nil {
 		return err
 	}
+
 	mediaStr := string(mediaBytes)
 	query := "INSERT INTO portfolio_items (title, description, budget, tech_stack, media) VALUES ($1, $2, $3, $4, $5) RETURNING id"
+
 	return r.db.QueryRowContext(ctx, query, item.Title, item.Description, item.Budget, item.TechStack, mediaStr).Scan(&item.ID)
 }
 
@@ -30,24 +32,32 @@ func (r *SQLRepository) List(ctx context.Context) ([]PortfolioItem, error) {
 		return nil, err
 	}
 	defer rows.Close()
+
 	var list []PortfolioItem
+
 	for rows.Next() {
 		var item PortfolioItem
 		var mediaJSON string
+
 		if err := rows.Scan(&item.ID, &item.Title, &item.Description, &item.Budget, &item.TechStack, &mediaJSON); err != nil {
 			return nil, err
 		}
+
 		var media []string
+
 		if mediaJSON != "" {
 			if err := json.Unmarshal([]byte(mediaJSON), &media); err != nil {
 				return nil, err
 			}
 		}
+
 		item.Media = media
 		list = append(list, item)
 	}
+
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
+
 	return list, nil
 }
