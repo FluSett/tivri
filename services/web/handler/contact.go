@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"html/template"
 	"net/http"
 	"strconv"
 	"strings"
@@ -11,11 +10,11 @@ import (
 
 type ContactHandler struct {
 	service    *contact.Service
-	templates  *template.Template
+	templates  HTMLRenderer
 	translator *i18n.Translator
 }
 
-func NewContactHandler(service *contact.Service, templates *template.Template, translator *i18n.Translator) *ContactHandler {
+func NewContactHandler(service *contact.Service, templates HTMLRenderer, translator *i18n.Translator) *ContactHandler {
 	return &ContactHandler{
 		service:    service,
 		templates:  templates,

@@ -96,15 +96,15 @@ func (a *App) newRouter() (http.Handler, error) {
 	mux.HandleFunc("/api/contact", a.contactHandler.Create)
 
 	mux.HandleFunc("/admin/portfolio", func(w http.ResponseWriter, r *http.Request) {
-		webmw.CookieAuth(a.cfg.AdminUsername, a.cfg.AdminPassword, a.portfolioHandler.Create)(w, r)
+		a.securityMgr.CookieAuth(a.cfg.AdminUsername, a.cfg.AdminPassword, a.portfolioHandler.Create)(w, r)
 	})
 
 	mux.HandleFunc("/admin/leads/status", func(w http.ResponseWriter, r *http.Request) {
-		webmw.CookieAuth(a.cfg.AdminUsername, a.cfg.AdminPassword, a.leadHandler.UpdateStatus)(w, r)
+		a.securityMgr.CookieAuth(a.cfg.AdminUsername, a.cfg.AdminPassword, a.leadHandler.UpdateStatus)(w, r)
 	})
 
 	mux.HandleFunc("/admin/messages/status", func(w http.ResponseWriter, r *http.Request) {
-		webmw.CookieAuth(a.cfg.AdminUsername, a.cfg.AdminPassword, a.contactHandler.UpdateStatus)(w, r)
+		a.securityMgr.CookieAuth(a.cfg.AdminUsername, a.cfg.AdminPassword, a.contactHandler.UpdateStatus)(w, r)
 	})
 
 	mux.HandleFunc("/admin/login", func(w http.ResponseWriter, r *http.Request) {
@@ -123,7 +123,7 @@ func (a *App) newRouter() (http.Handler, error) {
 			return
 		}
 		if r.Method == http.MethodPost {
-			if webmw.IsLockedOut(r) {
+			if a.securityMgr.IsLockedOut(r) {
 				lang := webmw.ResolveLocale(r)
 				data := PageData{
 					Lang:         lang,
@@ -142,7 +142,7 @@ func (a *App) newRouter() (http.Handler, error) {
 			username := r.FormValue("username")
 			password := r.FormValue("password")
 			if username != a.cfg.AdminUsername || password != a.cfg.AdminPassword {
-				webmw.RecordFailedAttempt(r)
+				a.securityMgr.RecordFailedAttempt(r)
 				lang := webmw.ResolveLocale(r)
 				data := PageData{
 					Lang:         lang,
@@ -158,8 +158,8 @@ func (a *App) newRouter() (http.Handler, error) {
 				}
 				return
 			}
-			webmw.RecordSuccessfulAttempt(r)
-			token, err := webmw.GenerateToken()
+			a.securityMgr.RecordSuccessfulAttempt(r)
+			token, err := a.securityMgr.GenerateToken()
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -178,7 +178,7 @@ func (a *App) newRouter() (http.Handler, error) {
 	})
 
 	mux.HandleFunc("/admin", func(w http.ResponseWriter, r *http.Request) {
-		webmw.CookieAuth(a.cfg.AdminUsername, a.cfg.AdminPassword, func(w http.ResponseWriter, r *http.Request) {
+		a.securityMgr.CookieAuth(a.cfg.AdminUsername, a.cfg.AdminPassword, func(w http.ResponseWriter, r *http.Request) {
 			lang := webmw.ResolveLocale(r)
 			items, err := a.portfolioSvc.ListPortfolioItems(r.Context())
 			if err != nil {

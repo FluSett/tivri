@@ -1,23 +1,17 @@
 package handler
 
 import (
-	"fmt"
-	"html/template"
-	"io"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strconv"
-	"time"
 	"tivri/internal/domain/portfolio"
 )
 
 type PortfolioHandler struct {
 	service   *portfolio.Service
-	templates *template.Template
+	templates HTMLRenderer
 }
 
-func NewPortfolioHandler(service *portfolio.Service, templates *template.Template) *PortfolioHandler {
+func NewPortfolioHandler(service *portfolio.Service, templates HTMLRenderer) *PortfolioHandler {
 	return &PortfolioHandler{
 		service:   service,
 		templates: templates,
@@ -44,49 +38,15 @@ func (h *PortfolioHandler) Create(w http.ResponseWriter, r *http.Request) {
 	techStack := r.FormValue("tech_stack")
 
 	var media []string
-
 	if r.MultipartForm != nil && r.MultipartForm.File != nil {
 		files := r.MultipartForm.File["media"]
-
-		for _, fileHeader := range files {
-			if fileHeader.Size > 5*1024*1024 {
-				http.Error(w, "File "+fileHeader.Filename+" exceeds maximum size of 5MB", http.StatusBadRequest)
-				return
-			}
-
-			file, err := fileHeader.Open()
+		if len(files) > 0 {
+			uploadPaths, err := SaveUploadedFiles(files, "services/web/ui/static/uploads")
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			defer file.Close()
-
-			uploadDir := "services/web/ui/static/uploads"
-
-			err = os.MkdirAll(uploadDir, 0755)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-
-			ext := filepath.Ext(fileHeader.Filename)
-			uniqueName := fmt.Sprintf("%d_%s%s", time.Now().UnixNano(), "media", ext)
-			filePath := filepath.Join(uploadDir, uniqueName)
-
-			out, err := os.Create(filePath)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			defer out.Close()
-
-			_, err = io.Copy(out, file)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-
-			media = append(media, "/static/uploads/"+uniqueName)
+			media = uploadPaths
 		}
 	}
 
