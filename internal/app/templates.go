@@ -91,6 +91,7 @@ func (tr *TemplateRenderer) Render(w io.Writer, name string, data interface{}) e
 	if !ok {
 		return fmt.Errorf("template %s not found", name)
 	}
+
 	return tmpl.ExecuteTemplate(w, "base.layout.html", data)
 }
 
@@ -99,5 +100,6 @@ func (tr *TemplateRenderer) RenderPartial(w io.Writer, templateName, partialName
 	if !ok {
 		return fmt.Errorf("template %s not found", templateName)
 	}
+
 	return tmpl.ExecuteTemplate(w, partialName, data)
 }
