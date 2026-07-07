@@ -9,7 +9,7 @@ This file establishes the absolute runtime behavior, technical constraints, stru
 To accelerate vocabulary acquisition and polish grammatical structures to native fluency, the Agent operates under a strict dual-role mechanism: **Software Architect & Advanced English Coach**.
 
 ### The Correction Engine
-* **Pre-Flight Inspection:** The Agent must analyze the user’s prompt for syntax errors, misaligned prepositions, awkward phrasing, or non-idiomatic engineering expressions before generating any technical output.
+* **Pre-Flight Inspection:** The Agent must analyze the user's prompt for syntax errors, misaligned prepositions, awkward phrasing, or non-idiomatic engineering expressions before generating any technical output.
 * **Inline Feedback Block:** If an optimization window is detected, prepend or append a scannable `[English Coach]` block. Avoid generic praises ("Your English is great!"). Focus strictly on high-impact corrections.
 * **Lexical Upgrades:** Actively replace casual verbs with precise technical verbs.
 
@@ -24,7 +24,7 @@ To accelerate vocabulary acquisition and polish grammatical structures to native
 
 ## 2. 🤫 Self-Documenting Code Mandate (No Code Comments)
 
-The code must be so expressive, clean, and architecturally precise that it explains itself without requiring text annotations. 
+The code must be so expressive, clean, and architecturally precise that it explains itself without requiring text annotations.
 
 ### The Rules of Silence
 * **Absolute Ban on Obvious Comments:** Do not write comments that restate what the code does. Inline descriptions like `// increment counter` or `// handle HTTP request` are strictly categorized as technical debt.
@@ -39,7 +39,7 @@ The code must be so expressive, clean, and architecturally precise that it expla
 
 ## 3. 🏗️ Architectural Blueprint: Event-Driven Modular Monolith
 
-This project strictly rejects both traditional multi-process microservices (due to high network latency, distributed systems friction, and deployment overhead) and structural use-case layers (to eliminate boilerplate bloat). 
+This project strictly rejects both traditional multi-process microservices (due to high network latency, distributed systems friction, and deployment overhead) and structural use-case layers (to eliminate boilerplate bloat).
 
 Instead, the system relies on an **In-Memory Event-Driven Architecture (EDA)** bound within a **Feature-Layered (Feature-Sliced) Modular Monolith**. All components compile into a single high-performance binary, but communicate exclusively via an asynchronous, thread-safe memory event highway using Go channels.
 
@@ -155,6 +155,16 @@ Instead, the system relies on an **In-Memory Event-Driven Architecture (EDA)** b
 * **No Build Step Dependency:** All modern frontend interactions must use native Go `html/template` generation backed by Alpine.js declarative bindings.
 * **Component Encapsulation:** Inline script tag pollution inside template bodies is forbidden. Global scope contamination must be prevented by packing behavior into distinct components via `Alpine.data()` inside code-split asset sheets.
 
+### HTMX Navigation & Client-Side State Lifecycle
+This project uses HTMX body swaps (`hx-target="body" hx-swap="outerHTML"`) for locale changes and in-page navigation. Because the server returns a full HTML document and the `htmx:beforeSwap` handler replaces the response with `doc.documentElement.outerHTML`, inline `<script>` tags from the `<head>` re-execute inside the swapped content. This creates a critical distinction between two navigation types that must be handled correctly:
+
+* **HTMX-Driven Navigation (Locale Switch, Tab Change):** An HTMX body swap must preserve `sessionStorage` form states. The `htmx:beforeSwap` handler in `app.js` sets `sessionStorage.setItem('tivri_htmx_nav', 'true')` before the swap occurs. The inline `<head>` script checks for this flag; if present, it clears the flag and skips the storage wipe.
+* **Full Page Load (Browser Refresh, Address Bar Navigation, New Tab):** A fresh page load must clear all `sessionStorage` form states to reset forms. The inline `<head>` script runs inside an IIFE (no `window.__initialized` guard) and, finding no `tivri_htmx_nav` flag, removes all tracked form state keys.
+* **Prohibited Patterns:**
+  * Never use `window.__initialized` or similar global variable guards to prevent re-execution of the inline state-clearing script. These persist across HTMX swaps (same `window` context) and fail on bfcache restorations, causing the script to be skipped when it should run.
+  * Never scatter `sessionStorage.setItem('preserve_state', ...)` across individual `onclick` or `@click` handlers on buttons and links. The preservation signal must originate exclusively from the centralized `htmx:beforeSwap` event handler in `app.js`.
+* **Adding New Form State Keys:** When a new Alpine.js component introduces `sessionStorage`-backed fields, the corresponding key names must be added to the inline `<head>` clearing script in `base.layout.html` alongside the existing keys.
+
 ### CSS & Styling Standards
 * **Inline Style Ban:** Direct use of inline style attributes (`style="..."`) inside HTML/template files is strictly forbidden. Any layout spacing, custom colors, sizing adjustments, or animations must be defined using Tailwind utility classes or custom class declarations in `web/assets/css/theme.css`.
 * **Theme Customization:** Custom design tokens, complex CSS animations (e.g., keyframes), and non-standard vendor overrides must be written in `web/assets/css/theme.css` instead of being injected directly into templates.
@@ -170,7 +180,7 @@ Instead, the system relies on an **In-Memory Event-Driven Architecture (EDA)** b
 
 ### Injection & Cross-Site Scripting Mitigation
 * **Parameterized Query Enforcement:** Raw string construction or concatenation of variables within SQL executions is explicitly categorized as an architectural violation. Parameter placeholders (`$1`, `$2`) must always be used.
-* **XSS Defenses:** Go’s contextual auto-escaping mechanism within `html/template` must handle front-facing data renders. For data payloads output dynamically into Alpine.js initialization state data-attributes, safely encode values into JSON structures passing through `html/template.JS` or specialized structural escape functions.
+* **XSS Defenses:** Go's contextual auto-escaping mechanism within `html/template` must handle front-facing data renders. For data payloads output dynamically into Alpine.js initialization state data-attributes, safely encode values into JSON structures passing through `html/template.JS` or specialized structural escape functions.
 * **Session and Auth Parameters:** High-security dashboard routes require absolute protection. Access tokens must be stored in HTTP-Only, Secure, SameSite=Strict cookies to defend against client-side script inspection.
 
 ### Database Safety & Resilience
@@ -210,7 +220,7 @@ The Agent is forbidden from silently dropping feature edge-cases. Every time a c
 * **Dependency Inversion Principle (DIP):** Enforce loose coupling using minimalist, target-focused interfaces. Handlers must accept interface boundaries for repositories and brokers rather than concrete structures.
 
 ### Operational Simplicity (KISS & DRY Guardrails)
-* **No Abstraction Loops:** Reject multi-layered abstraction layers. Restructuring should not introduce "usecase", "service-interfaces", or duplicate mapping code. 
+* **No Abstraction Loops:** Reject multi-layered abstraction layers. Restructuring should not introduce "usecase", "service-interfaces", or duplicate mapping code.
 * **Loose Coupling Duplication Allowance:** Minor structural data duplication (e.g., entity structs or helper constants) is permitted across separate features (`internal/features/`) if it directly prevents cross-feature importing and runtime coupling.
 
 ### Go-Idiomatic GoF Patterns
