@@ -105,11 +105,11 @@
         </button>
     </div>
 
-    <header id="site-header" class="fixed top-0 left-0 w-full z-50 transition-all duration-500 py-10 px-6 md:px-16 lg:px-24 bg-transparent border-transparent">
+    <header id="site-header" class="fixed top-0 left-0 w-full z-50 py-10 px-6 md:px-16 lg:px-24 bg-transparent border-transparent"
+            :class="mobileMenuOpen ? 'header-hidden' : ''">
         <div class="max-w-[1600px] mx-auto w-full flex justify-between items-center gap-4 relative z-10">
             {{if .IsAdmin}}
-            <div class="flex items-center space-x-2"
-                  :class="mobileMenuOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 transition-opacity duration-300'">
+            <div class="flex items-center space-x-2">
                 <a href="/admin" onclick="if (window.location.pathname === '/admin') { event.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); } else { window.location.href = '/admin'; }" class="flex items-center space-x-3 group">
                     <div class="relative w-6 h-6 flex items-center justify-center flex-shrink-0 logo-glow-anim">
                         <div class="absolute inset-0 bg-[#FF3366] rounded-sm transform rotate-45 group-hover:rotate-90 transition-transform duration-500"></div>
@@ -120,7 +120,7 @@
                 <span class="bg-[#FF3366]/20 border border-[#FF3366]/40 text-[#FF3366] font-mono text-[10px] font-black px-2 py-0.5 rounded tracking-widest uppercase">{{.T.Get "AdminMark"}}</span>
             </div>
             {{else}}
-            <div :class="mobileMenuOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 transition-opacity duration-300'">
+            <div>
                 <a href="/" onclick="if (window.location.pathname === '/') { event.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); } else { window.location.href = '/'; }" class="flex items-center space-x-3 group">
                     <div class="relative w-6 h-6 flex items-center justify-center flex-shrink-0 logo-glow-anim">
                         <div class="absolute inset-0 bg-[#FF3366] rounded-sm transform rotate-45 group-hover:rotate-90 transition-transform duration-500"></div>
@@ -261,9 +261,9 @@
                  <div class="pb-2 text-center">
                      <div class="h-px w-full bg-white/10 mb-8"></div>
                      <div class="flex items-center justify-center space-x-5">
-                          <button type="button" {{if eq .Lang "en"}}disabled class="text-xs font-bold uppercase tracking-wider text-[#FF3366] pointer-events-none cursor-default"{{else}}hx-get="/api/lang?lang=en" hx-target="body" hx-swap="outerHTML" @click="mobileMenuOpen = false" class="text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white hover:scale-105 transition-all duration-200"{{end}}>EN</button>
-                          <button type="button" {{if eq .Lang "uk"}}disabled class="text-xs font-bold uppercase tracking-wider text-[#FF3366] pointer-events-none cursor-default"{{else}}hx-get="/api/lang?lang=uk" hx-target="body" hx-swap="outerHTML" @click="mobileMenuOpen = false" class="text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white hover:scale-105 transition-all duration-200"{{end}}>UA</button>
-                          <button type="button" {{if eq .Lang "ru"}}disabled class="text-xs font-bold uppercase tracking-wider text-[#FF3366] pointer-events-none cursor-default"{{else}}hx-get="/api/lang?lang=ru" hx-target="body" hx-swap="outerHTML" @click="mobileMenuOpen = false" class="text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white hover:scale-105 transition-all duration-200"{{end}}>RU</button>
+                          <button type="button" {{if eq .Lang "en"}}disabled class="text-xs font-bold uppercase tracking-wider text-[#FF3366] pointer-events-none cursor-default"{{else}}@click="mobileMenuOpen = false; setTimeout(() => htmx.ajax('GET', '/api/lang?lang=en', {target: 'body', swap: 'outerHTML'}), 350)" class="text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white hover:scale-105 transition-all duration-200"{{end}}>EN</button>
+                          <button type="button" {{if eq .Lang "uk"}}disabled class="text-xs font-bold uppercase tracking-wider text-[#FF3366] pointer-events-none cursor-default"{{else}}@click="mobileMenuOpen = false; setTimeout(() => htmx.ajax('GET', '/api/lang?lang=uk', {target: 'body', swap: 'outerHTML'}), 350)" class="text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white hover:scale-105 transition-all duration-200"{{end}}>UA</button>
+                          <button type="button" {{if eq .Lang "ru"}}disabled class="text-xs font-bold uppercase tracking-wider text-[#FF3366] pointer-events-none cursor-default"{{else}}@click="mobileMenuOpen = false; setTimeout(() => htmx.ajax('GET', '/api/lang?lang=ru', {target: 'body', swap: 'outerHTML'}), 350)" class="text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white hover:scale-105 transition-all duration-200"{{end}}>RU</button>
                      </div>
                      <p class="text-xs text-neutral-500 tracking-wider mt-12 pb-1">&copy; 2026 TIVRI. {{.T.Get "RightsReserved"}}</p>
                  </div>
