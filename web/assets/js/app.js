@@ -38,6 +38,7 @@ if ('scrollRestoration' in history) {
 
     document.addEventListener('htmx:beforeSwap', function(evt) {
         document.documentElement.classList.add('no-transition');
+        sessionStorage.setItem('tivri_htmx_nav', 'true');
 
         if (evt.detail.serverResponse) {
             try {
