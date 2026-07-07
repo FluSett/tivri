@@ -51,6 +51,9 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	budgetStr := r.FormValue("budget")
 	contactEmail := strings.TrimSpace(r.FormValue("contact_email"))
 	contactPhone := strings.TrimSpace(r.FormValue("contact_phone"))
+	deadlineNeededStr := r.FormValue("deadline_needed")
+	deadlineNeeded := deadlineNeededStr == "true" || deadlineNeededStr == "on" || deadlineNeededStr == "1"
+	deadlineSpec := strings.TrimSpace(r.FormValue("deadline_spec"))
 
 	if len(companyName) < 2 || len(companyName) > 150 {
 		http.Error(w, "Name/company must be between 2 and 150 characters", http.StatusBadRequest)
@@ -90,6 +93,8 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		Budget:         budget,
 		ContactEmail:   contactEmail,
 		ContactPhone:   contactPhone,
+		DeadlineNeeded: deadlineNeeded,
+		DeadlineSpec:   deadlineSpec,
 		ClientStatus:   "pending",
 		InternalStatus: "pending",
 		CreatedAt:      time.Now(),

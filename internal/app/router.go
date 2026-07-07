@@ -46,11 +46,13 @@ func (a *App) newRouter() (http.Handler, error) {
 			}
 		}
 
+		highQueueActive, _ := a.getHighQueueSetting(r.Context())
 		pageData := PageData{
-			Lang:     lang,
-			T:        a.translator.Get(lang),
-			IsAdmin:  false,
-			AdminTab: tab,
+			Lang:            lang,
+			T:               a.translator.Get(lang),
+			IsAdmin:         false,
+			AdminTab:        tab,
+			HighQueueActive: highQueueActive,
 		}
 
 		var tmplKey string
@@ -233,6 +235,7 @@ func (a *App) newRouter() (http.Handler, error) {
 				msgsJSON = string(raw)
 			}
 
+			highQueueActive, _ := a.getHighQueueSetting(r.Context())
 			data := PageData{
 				Lang:            lang,
 				T:               a.translator.Get(lang),
@@ -243,12 +246,34 @@ func (a *App) newRouter() (http.Handler, error) {
 				MessagesJSON:    msgsJSON,
 				IsAdmin:         true,
 				AdminTab:        tab,
+				HighQueueActive: highQueueActive,
 			}
 
 			err = a.templates["admin"].ExecuteTemplate(w, "base.layout.html", data)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
+		})(w, r)
+	})
+
+	mux.HandleFunc("/admin/settings/high-queue", func(w http.ResponseWriter, r *http.Request) {
+		a.securityMgr.CookieAuth(a.cfg.AdminUsername, a.cfg.AdminPassword, func(w http.ResponseWriter, r *http.Request) {
+			if r.Method != http.MethodPost {
+				http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+				return
+			}
+			err := r.ParseForm()
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			enabled := r.FormValue("high_queue") == "true" || r.FormValue("high_queue") == "on" || r.FormValue("high_queue") == "1"
+			err = a.setHighQueueSetting(r.Context(), enabled)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			w.WriteHeader(http.StatusOK)
 		})(w, r)
 	})
 
@@ -276,10 +301,12 @@ func (a *App) newRouter() (http.Handler, error) {
 			return
 		}
 
+		highQueueActive, _ := a.getHighQueueSetting(r.Context())
 		data := PageData{
-			Lang:           lang,
-			T:              a.translator.Get(lang),
-			PortfolioItems: items,
+			Lang:            lang,
+			T:               a.translator.Get(lang),
+			PortfolioItems:  items,
+			HighQueueActive: highQueueActive,
 		}
 
 		err = a.templates["home"].ExecuteTemplate(w, "base.layout.html", data)
