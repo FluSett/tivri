@@ -44,9 +44,6 @@ func Load() (*Config, error) {
 
 	adminPassword := os.Getenv("ADMIN_PASSWORD")
 	if adminPassword == "" {
-		adminPassword = os.Getenv("ADMIN_SECRET")
-	}
-	if adminPassword == "" {
 		adminPassword = "secret"
 	}
 

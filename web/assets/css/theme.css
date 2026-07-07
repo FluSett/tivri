@@ -65,7 +65,9 @@ body {
     animation: blink-animation 1.6s ease-in-out infinite;
     vertical-align: middle;
     margin-left: 0;
-    margin-bottom: 1px;
+    margin-bottom: 0px;
+    display: inline-flex;
+    align-self: center;
     transition: all 0.2s ease;
 }
 a.nav-active .nav-active-dot {
@@ -75,6 +77,8 @@ a.nav-active .nav-active-dot {
 }
 a.nav-active {
     color: #ffffff !important;
+    display: inline-flex;
+    align-items: center;
 }
 a.nav-active::after {
     width: 100% !important;

@@ -3,24 +3,69 @@
      x-data="portfolioForm()">
     <div class="lg:col-span-7 space-y-6">
         <h3 class="text-lg font-bold text-neutral-200 tracking-tight">{{.T.Get "AddPortfolio"}}</h3>
-        <form hx-post="/admin/portfolio" hx-encoding="multipart/form-data" hx-target="#portfolio-grid" hx-swap="beforeend" class="space-y-4" @submit="setTimeout(() => { title = ''; description = ''; techStack = ''; mediaPreviews = []; $el.reset() }, 50)">
+        
+        <!-- Form submits via custom JS submit handler to package reordered files correctly -->
+        <form @submit.prevent="submitForm($el)" class="space-y-4">
             <div class="space-y-2">
                 <label class="form-label-admin">{{.T.Get "PortfolioFormTitle"}}</label>
                 <input type="text" name="title" required x-model="title" placeholder="Cloud Integration API" class="form-input">
             </div>
+            
             <div class="space-y-2">
                 <label class="form-label-admin">{{.T.Get "PortfolioFormDescription"}}</label>
                 <textarea name="description" required rows="3" x-model="description" placeholder="Serverless pipeline for data replication..." class="form-input"></textarea>
             </div>
+            
             <div class="space-y-2">
                 <label class="form-label-admin">{{.T.Get "PortfolioFormTechStack"}}</label>
                 <input type="text" name="tech_stack" required x-model="techStack" placeholder="Go, SQLite, AWS Lambda" class="form-input">
             </div>
+            
             <div class="space-y-2">
                 <label class="form-label-admin">Media Files (Images/Videos, Max 5MB per file)</label>
-                <input type="file" name="media" multiple accept="image/*,video/*" @change="handleFiles($el)" class="form-input file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-white/[0.08] file:text-white hover:file:bg-white/[0.15] text-xs">
+                <div class="relative group">
+                    <input type="file" multiple accept="image/*,video/*" @change="handleFiles($el)" class="form-input file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-white/[0.08] file:text-white hover:file:bg-white/[0.15] text-xs">
+                </div>
             </div>
-            <button type="submit" class="w-full bg-[#FF3366] text-white font-bold py-3 rounded-xl hover:bg-[#FF3366]/80 transition-colors text-sm tracking-tight">
+
+            <!-- Interactive File Row / Reordering / Removing List -->
+            <template x-if="mediaPreviews.length > 0">
+                <div class="space-y-3 bg-black/30 border border-white/[0.08] p-4 rounded-xl">
+                    <h4 class="text-xs font-bold text-neutral-400 uppercase tracking-wider">Arrange Upload Media</h4>
+                    <div class="space-y-2">
+                        <template x-for="(item, index) in mediaPreviews" :key="item.id">
+                            <div class="flex items-center justify-between bg-white/[0.02] border border-white/[0.05] p-2.5 rounded-lg gap-3">
+                                <div class="flex items-center space-x-3 min-w-0">
+                                    <div class="w-12 h-12 rounded bg-black/40 overflow-hidden flex-shrink-0 border border-white/[0.08] relative">
+                                        <template x-if="item.isVideo">
+                                            <div class="absolute inset-0 flex items-center justify-center text-neutral-400">
+                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"></path></svg>
+                                            </div>
+                                        </template>
+                                        <template x-if="!item.isVideo">
+                                            <img :src="item.url" class="w-full h-full object-cover">
+                                        </template>
+                                    </div>
+                                    <span class="text-xs text-neutral-300 truncate max-w-[200px]" x-text="item.name"></span>
+                                </div>
+                                <div class="flex items-center space-x-1.5 flex-shrink-0">
+                                    <button type="button" @click="moveItem(index, -1)" :disabled="index === 0" class="w-7 h-7 flex items-center justify-center bg-white/[0.04] hover:bg-white/[0.1] disabled:opacity-30 disabled:pointer-events-none rounded border border-white/[0.08] text-white transition-colors">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"></path></svg>
+                                    </button>
+                                    <button type="button" @click="moveItem(index, 1)" :disabled="index === mediaPreviews.length - 1" class="w-7 h-7 flex items-center justify-center bg-white/[0.04] hover:bg-white/[0.1] disabled:opacity-30 disabled:pointer-events-none rounded border border-white/[0.08] text-white transition-colors">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
+                                    </button>
+                                    <button type="button" @click="removeItem(index)" class="w-7 h-7 flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 rounded border border-red-500/20 text-red-400 transition-colors ml-2">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </template>
+
+            <button type="submit" class="w-full bg-[#FF3366] text-white font-bold py-3 rounded-xl hover:bg-[#FF3366]/80 hover:shadow-[0_0_20px_rgba(255,51,102,0.35)] transition-all text-sm tracking-tight">
                 {{.T.Get "PortfolioFormSubmit"}}
             </button>
         </form>
@@ -32,7 +77,7 @@
             <div x-data="{ activeIndex: 0 }" class="space-y-4">
                 <template x-if="mediaPreviews.length > 0">
                     <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-black/40 border border-white/[0.08]">
-                        <template x-for="(item, index) in mediaPreviews" :key="index">
+                        <template x-for="(item, index) in mediaPreviews" :key="item.id">
                             <div x-show="activeIndex === index" class="absolute inset-0 w-full h-full">
                                 <template x-if="item.isVideo">
                                     <video :src="item.url" class="w-full h-full object-cover" controls muted playsinline></video>
@@ -44,11 +89,21 @@
                         </template>
                         <template x-if="mediaPreviews.length > 1">
                             <div class="absolute inset-x-0 bottom-2 flex justify-center space-x-1.5 z-10">
-                                <template x-for="(item, index) in mediaPreviews" :key="index">
+                                <template x-for="(item, index) in mediaPreviews" :key="item.id">
                                     <button type="button" @click="activeIndex = index"
                                             :class="activeIndex === index ? 'bg-[#FF3366] w-4' : 'bg-white/40 w-1.5'"
                                             class="h-1.5 rounded-full transition-all duration-300 focus:outline-none"></button>
                                 </template>
+                            </div>
+                        </template>
+                        <template x-if="mediaPreviews.length > 1">
+                            <div>
+                                <button type="button" @click="activeIndex = (activeIndex - 1 + mediaPreviews.length) % mediaPreviews.length" class="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 hover:bg-black/80 flex items-center justify-center text-white border border-white/10 hover:border-white/20 transition-all z-10">
+                                    <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+                                </button>
+                                <button type="button" @click="activeIndex = (activeIndex + 1) % mediaPreviews.length" class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 hover:bg-black/80 flex items-center justify-center text-white border border-white/10 hover:border-white/20 transition-all z-10">
+                                    <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+                                </button>
                             </div>
                         </template>
                     </div>
