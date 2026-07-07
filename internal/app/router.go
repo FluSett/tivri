@@ -1,23 +1,23 @@
 package app
 
 import (
+	"encoding/json"
 	"io/fs"
 	"net/http"
 	urlpkg "net/url"
 	"strings"
 
-	webmw "tivri/services/web/middleware"
+	"tivri/internal/core/security"
 )
 
 func (a *App) newRouter() (http.Handler, error) {
 	mux := http.NewServeMux()
-
-	subStaticFS, err := fs.Sub(a.webFS, "static")
+	subAssetsFS, err := fs.Sub(a.webFS, "assets")
 	if err != nil {
 		return nil, err
 	}
 
-	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(subStaticFS))))
+	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.FS(subAssetsFS))))
 
 	mux.HandleFunc("/api/lang", func(w http.ResponseWriter, r *http.Request) {
 		lang := r.URL.Query().Get("lang")
@@ -36,6 +36,7 @@ func (a *App) newRouter() (http.Handler, error) {
 		currentURL := r.Header.Get("HX-Current-URL")
 		path := "/"
 		tab := "portfolio"
+
 		if currentURL != "" {
 			if parsed, err := urlpkg.Parse(currentURL); err == nil {
 				path = parsed.Path
@@ -62,24 +63,30 @@ func (a *App) newRouter() (http.Handler, error) {
 				tmplKey = "admin"
 				pageData.IsAdmin = true
 
-				items, err := a.portfolioSvc.ListPortfolioItems(r.Context())
+				items, err := a.portfolioHandler.ListItems(r.Context())
 				if err == nil {
 					pageData.PortfolioItems = items
 				}
 
-				leads, err := a.leadSvc.ListLeads(r.Context())
+				leads, err := a.leadHandler.ListLeads(r.Context())
 				if err == nil {
 					pageData.Leads = leads
+					if raw, err := json.Marshal(leads); err == nil {
+						pageData.LeadsJSON = string(raw)
+					}
 				}
 
-				msgs, err := a.contactSvc.ListMessages(r.Context())
+				msgs, err := a.contactHandler.ListMessages(r.Context())
 				if err == nil {
 					pageData.ContactMessages = msgs
+					if raw, err := json.Marshal(msgs); err == nil {
+						pageData.MessagesJSON = string(raw)
+					}
 				}
 			}
 		} else {
 			tmplKey = "home"
-			items, err := a.portfolioSvc.ListPortfolioItems(r.Context())
+			items, err := a.portfolioHandler.ListItems(r.Context())
 			if err == nil {
 				pageData.PortfolioItems = items
 			}
@@ -87,7 +94,9 @@ func (a *App) newRouter() (http.Handler, error) {
 
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Header().Set("HX-Push-Url", path)
-		if err := a.templates[tmplKey].ExecuteTemplate(w, "base.layout.html", pageData); err != nil {
+
+		err = a.templates[tmplKey].ExecuteTemplate(w, "base.layout.html", pageData)
+		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	})
@@ -109,22 +118,25 @@ func (a *App) newRouter() (http.Handler, error) {
 
 	mux.HandleFunc("/admin/login", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
-			lang := webmw.ResolveLocale(r)
+			lang := security.ResolveLocale(r)
 			data := PageData{
 				Lang:         lang,
 				T:            a.translator.Get(lang),
 				IsAdmin:      true,
 				IsAdminLogin: true,
 			}
-			err := a.templates["login"].ExecuteTemplate(w, "base.layout.html", data)
+
+			err = a.templates["login"].ExecuteTemplate(w, "base.layout.html", data)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
+
 			return
 		}
+
 		if r.Method == http.MethodPost {
 			if a.securityMgr.IsLockedOut(r) {
-				lang := webmw.ResolveLocale(r)
+				lang := security.ResolveLocale(r)
 				data := PageData{
 					Lang:         lang,
 					T:            a.translator.Get(lang),
@@ -132,18 +144,22 @@ func (a *App) newRouter() (http.Handler, error) {
 					IsAdminLogin: true,
 					Error:        "Too many failed attempts. Locked out for 60 seconds.",
 				}
+
 				w.WriteHeader(http.StatusTooManyRequests)
-				err := a.templates["login"].ExecuteTemplate(w, "base.layout.html", data)
+				err = a.templates["login"].ExecuteTemplate(w, "base.layout.html", data)
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 				}
+
 				return
 			}
+
 			username := r.FormValue("username")
 			password := r.FormValue("password")
+
 			if username != a.cfg.AdminUsername || password != a.cfg.AdminPassword {
 				a.securityMgr.RecordFailedAttempt(r)
-				lang := webmw.ResolveLocale(r)
+				lang := security.ResolveLocale(r)
 				data := PageData{
 					Lang:         lang,
 					T:            a.translator.Get(lang),
@@ -151,63 +167,84 @@ func (a *App) newRouter() (http.Handler, error) {
 					IsAdminLogin: true,
 					Error:        "Invalid username or password",
 				}
+
 				w.WriteHeader(http.StatusUnauthorized)
-				err := a.templates["login"].ExecuteTemplate(w, "base.layout.html", data)
+				err = a.templates["login"].ExecuteTemplate(w, "base.layout.html", data)
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 				}
+
 				return
 			}
+
 			a.securityMgr.RecordSuccessfulAttempt(r)
 			token, err := a.securityMgr.GenerateToken()
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
+
 			http.SetCookie(w, &http.Cookie{
 				Name:     "admin_session",
 				Value:    token,
 				Path:     "/",
 				HttpOnly: true,
 				Secure:   a.cfg.Env == "production",
-				SameSite: http.SameSiteLaxMode,
+				SameSite: http.SameSiteStrictMode,
 				MaxAge:   86400,
 			})
+
 			http.Redirect(w, r, "/admin", http.StatusSeeOther)
 		}
 	})
 
 	mux.HandleFunc("/admin", func(w http.ResponseWriter, r *http.Request) {
 		a.securityMgr.CookieAuth(a.cfg.AdminUsername, a.cfg.AdminPassword, func(w http.ResponseWriter, r *http.Request) {
-			lang := webmw.ResolveLocale(r)
-			items, err := a.portfolioSvc.ListPortfolioItems(r.Context())
+			lang := security.ResolveLocale(r)
+			items, err := a.portfolioHandler.ListItems(r.Context())
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			leads, err := a.leadSvc.ListLeads(r.Context())
+
+			leads, err := a.leadHandler.ListLeads(r.Context())
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			msgs, err := a.contactSvc.ListMessages(r.Context())
+
+			msgs, err := a.contactHandler.ListMessages(r.Context())
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
+
 			tab := r.URL.Query().Get("tab")
 			if tab == "" {
 				tab = "portfolio"
 			}
+
+			var leadsJSON, msgsJSON string
+			if raw, err := json.Marshal(leads); err == nil {
+				leadsJSON = string(raw)
+			}
+
+			if raw, err := json.Marshal(msgs); err == nil {
+				msgsJSON = string(raw)
+			}
+
 			data := PageData{
 				Lang:            lang,
 				T:               a.translator.Get(lang),
 				PortfolioItems:  items,
 				Leads:           leads,
 				ContactMessages: msgs,
+				LeadsJSON:       leadsJSON,
+				MessagesJSON:    msgsJSON,
 				IsAdmin:         true,
 				AdminTab:        tab,
 			}
+
 			err = a.templates["admin"].ExecuteTemplate(w, "base.layout.html", data)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -218,20 +255,22 @@ func (a *App) newRouter() (http.Handler, error) {
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
 			w.WriteHeader(http.StatusNotFound)
-			lang := webmw.ResolveLocale(r)
+			lang := security.ResolveLocale(r)
 			data := PageData{
 				Lang: lang,
 				T:    a.translator.Get(lang),
 			}
-			err := a.templates["notFound"].ExecuteTemplate(w, "base.layout.html", data)
+
+			err = a.templates["notFound"].ExecuteTemplate(w, "base.layout.html", data)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
+
 			return
 		}
 
-		lang := webmw.ResolveLocale(r)
-		items, err := a.portfolioSvc.ListPortfolioItems(r.Context())
+		lang := security.ResolveLocale(r)
+		items, err := a.portfolioHandler.ListItems(r.Context())
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -249,5 +288,5 @@ func (a *App) newRouter() (http.Handler, error) {
 		}
 	})
 
-	return webmw.StructuredLogger(a.logger)(mux), nil
+	return security.StructuredLogger(a.logger)(mux), nil
 }

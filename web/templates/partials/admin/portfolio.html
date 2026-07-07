@@ -1,0 +1,77 @@
+{{define "admin.portfolio.html"}}
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12"
+     x-data="portfolioForm()">
+    <div class="lg:col-span-7 space-y-6">
+        <h3 class="text-lg font-bold text-neutral-200 tracking-tight">{{.T.Get "AddPortfolio"}}</h3>
+        <form hx-post="/admin/portfolio" hx-encoding="multipart/form-data" hx-target="#portfolio-grid" hx-swap="beforeend" class="space-y-4" @submit="setTimeout(() => { title = ''; description = ''; techStack = ''; mediaPreviews = []; $el.reset() }, 50)">
+            <div class="space-y-2">
+                <label class="form-label-admin">{{.T.Get "PortfolioFormTitle"}}</label>
+                <input type="text" name="title" required x-model="title" placeholder="Cloud Integration API" class="form-input">
+            </div>
+            <div class="space-y-2">
+                <label class="form-label-admin">{{.T.Get "PortfolioFormDescription"}}</label>
+                <textarea name="description" required rows="3" x-model="description" placeholder="Serverless pipeline for data replication..." class="form-input"></textarea>
+            </div>
+            <div class="space-y-2">
+                <label class="form-label-admin">{{.T.Get "PortfolioFormTechStack"}}</label>
+                <input type="text" name="tech_stack" required x-model="techStack" placeholder="Go, SQLite, AWS Lambda" class="form-input">
+            </div>
+            <div class="space-y-2">
+                <label class="form-label-admin">Media Files (Images/Videos, Max 5MB per file)</label>
+                <input type="file" name="media" multiple accept="image/*,video/*" @change="handleFiles($el)" class="form-input file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-white/[0.08] file:text-white hover:file:bg-white/[0.15] text-xs">
+            </div>
+            <button type="submit" class="w-full bg-[#FF3366] text-white font-bold py-3 rounded-xl hover:bg-[#FF3366]/80 transition-colors text-sm tracking-tight">
+                {{.T.Get "PortfolioFormSubmit"}}
+            </button>
+        </form>
+    </div>
+
+    <div class="lg:col-span-5 space-y-6">
+        <h3 class="text-lg font-bold text-neutral-200 tracking-tight">{{.T.Get "PortfolioPreviewTitle"}}</h3>
+        <div class="portfolio-card">
+            <div x-data="{ activeIndex: 0 }" class="space-y-4">
+                <template x-if="mediaPreviews.length > 0">
+                    <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-black/40 border border-white/[0.08]">
+                        <template x-for="(item, index) in mediaPreviews" :key="index">
+                            <div x-show="activeIndex === index" class="absolute inset-0 w-full h-full">
+                                <template x-if="item.isVideo">
+                                    <video :src="item.url" class="w-full h-full object-cover" controls muted playsinline></video>
+                                </template>
+                                <template x-if="!item.isVideo">
+                                    <img :src="item.url" class="w-full h-full object-cover" alt="Portfolio media">
+                                </template>
+                            </div>
+                        </template>
+                        <template x-if="mediaPreviews.length > 1">
+                            <div class="absolute inset-x-0 bottom-2 flex justify-center space-x-1.5 z-10">
+                                <template x-for="(item, index) in mediaPreviews" :key="index">
+                                    <button type="button" @click="activeIndex = index"
+                                            :class="activeIndex === index ? 'bg-[#FF3366] w-4' : 'bg-white/40 w-1.5'"
+                                            class="h-1.5 rounded-full transition-all duration-300 focus:outline-none"></button>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
+                <div class="flex justify-between items-start gap-4">
+                    <h3 class="text-base font-bold text-white tracking-tight leading-tight" x-text="title || 'Title'"></h3>
+                </div>
+                <p class="text-neutral-400 text-sm leading-relaxed tracking-tight" x-text="description || 'Description'"></p>
+                <div class="flex flex-wrap gap-2">
+                    <span class="bg-white/[0.04] text-neutral-300 text-xs px-2.5 py-1 rounded-lg border border-white/[0.06] tracking-tight font-medium" x-text="techStack || 'Tech Stack'"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="border-t border-white/[0.08] pt-8 space-y-6">
+    <h3 class="text-lg font-bold text-neutral-200 tracking-tight">{{.T.Get "PortfolioCurrentItems"}}</h3>
+    <div id="portfolio-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {{range .PortfolioItems}}
+            {{template "portfolio.html" .}}
+        {{end}}
+    </div>
+</div>
+{{end}}
