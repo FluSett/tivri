@@ -252,3 +252,13 @@ When applying configuration updates affecting storage layouts or major versions 
 1. **Preserve State**: Perform a database dump (`pg_dump` or `pg_dumpall`) on the active production container.
 2. **Rotate Volumes**: Stop the containers and remove or rename the obsolete volume to avoid folder conflicts.
 3. **Deploy & Restore**: Deploy the updated compose file, launch the containers to initialize the new directory structure, and import the SQL dump.
+
+---
+
+## 12. 🔄 Client-Facing & Admin Dashboard Alignment Mandate
+
+To maintain strict operational coherence, every client-facing feature, question, dynamic field, or configurable parameter must remain perfectly aligned with the Admin Dashboard:
+* **Feature Parity:** Any input collected from a client (e.g., custom budgets, priority choices, timeline deadlines) must have a corresponding read-only display or management field within the Admin Dashboard.
+* **Control Parity:** Any admin-configurable toggle, switch, or parameter (e.g., queue status, warning displays, custom priority fees) must instantly and dynamically affect the client-facing UI's behavior, layout, or displayed warnings.
+* **Synchronized State & Variable Naming:** Ensure that variables, database column names, translation keys, and API payload properties matching these configuration fields share identical semantic names across both contexts to avoid technical debt and translation misalignment.
+

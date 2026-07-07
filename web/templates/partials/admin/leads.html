@@ -2,6 +2,20 @@
 <div class="space-y-6"
      x-data="leadsTable(JSON.parse($el.getAttribute('data-leads')))"
      data-leads="{{.LeadsJSON}}">
+    <!-- High Queue Configuration Box -->
+    <div class="flex items-center justify-between bg-black/40 border border-white/[0.08] p-5 rounded-2xl">
+        <div class="space-y-1">
+            <h4 class="text-sm font-bold text-white uppercase tracking-wider">{{.T.Get "AdminHighQueueLabel"}}</h4>
+            <p class="text-xs text-neutral-400">{{.T.Get "AdminHighQueueHint"}}</p>
+        </div>
+        <form hx-post="/admin/settings/high-queue" hx-trigger="change" hx-swap="none" class="flex items-center">
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" name="high_queue" value="true" class="sr-only peer" {{if .HighQueueActive}}checked{{end}}>
+                <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#FF3366]"></div>
+            </label>
+        </form>
+    </div>
+
     <div class="flex flex-wrap gap-4 items-center justify-between bg-black/40 border border-white/[0.08] p-5 rounded-2xl">
         <div class="flex flex-wrap gap-4">
             <div class="space-y-1" x-data="{ open: false }">
@@ -79,6 +93,7 @@
                     <th class="py-3 px-4">{{.T.Get "ScopeCol"}}</th>
                     <th class="py-3 px-4">{{.T.Get "LeadContactEmail"}}</th>
                     <th class="py-3 px-4">{{.T.Get "LeadPhoneTelegram"}}</th>
+                    <th class="py-3 px-4">{{.T.Get "DeadlineCol"}}</th>
                     <th class="py-3 px-4">{{.T.Get "LeadClientStatus"}}</th>
                     <th class="py-3 px-4">{{.T.Get "LeadInternalStatus"}}</th>
                     <th class="py-3 px-4 text-right">{{.T.Get "BudgetCol"}}</th>
@@ -91,8 +106,19 @@
                     <tr class="hover:bg-white/[0.02] transition-colors">
                         <td class="py-3 px-4 font-bold text-white tracking-tight" x-text="l.companyName"></td>
                         <td class="py-3 px-4 text-neutral-400 leading-relaxed max-w-xs truncate" :title="l.projectScope" x-text="l.projectScope"></td>
-                        <td class="py-3 px-4 text-[#FF3366] font-medium" x-text="l.contactEmail"></td>
+                        <td class="py-3 px-4 text-neutral-400 font-medium" x-text="l.contactEmail"></td>
                         <td class="py-3 px-4 text-neutral-400 max-w-[180px] truncate" :title="l.contactPhone" x-text="l.contactPhone || '-'"></td>
+                        <td class="py-3 px-4">
+                            <template x-if="l.deadlineNeeded">
+                                <div class="space-y-0.5">
+                                    <span class="inline-block bg-[#FF3366]/25 border border-[#FF3366]/40 text-[#FF3366] font-semibold text-[9.5px] uppercase tracking-widest px-1.5 py-0.5 rounded shadow-[0_0_10px_rgba(255,51,102,0.1)]">Strict</span>
+                                    <p class="text-xs text-neutral-400 truncate max-w-[150px] mt-1" :title="l.deadlineSpec" x-text="l.deadlineSpec"></p>
+                                </div>
+                            </template>
+                            <template x-if="!l.deadlineNeeded">
+                                <span class="inline-block bg-white/10 border border-white/20 text-neutral-400 font-semibold text-[9.5px] uppercase tracking-widest px-1.5 py-0.5 rounded">Standard</span>
+                            </template>
+                        </td>
                         <td class="py-3 px-4">
                             <div x-data="{ open: false }" class="relative inline-block text-left">
                                 <button @click="open = !open"
