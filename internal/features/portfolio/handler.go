@@ -4,14 +4,21 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
+
+	"github.com/deepteams/webp"
 
 	"tivri/internal/eventbus"
 )
@@ -152,6 +159,15 @@ func (h *Handler) ListItems(ctx context.Context) ([]PortfolioItem, error) {
 	return copiedItems, nil
 }
 
+func convertToWebP(src io.Reader, dst io.Writer) error {
+	img, _, err := image.Decode(src)
+	if err != nil {
+		return err
+	}
+
+	return webp.Encode(dst, img, &webp.EncoderOptions{Quality: 85})
+}
+
 func SaveUploadedFiles(files []*multipart.FileHeader, uploadDir string) ([]string, error) {
 	var savedPaths []string
 	err := os.MkdirAll(uploadDir, 0755)
@@ -170,8 +186,21 @@ func SaveUploadedFiles(files []*multipart.FileHeader, uploadDir string) ([]strin
 		}
 		defer file.Close()
 
-		ext := filepath.Ext(fileHeader.Filename)
-		uniqueName := fmt.Sprintf("%d_%s%s", time.Now().UnixNano(), "media", ext)
+		contentType := fileHeader.Header.Get("Content-Type")
+		isImage := strings.HasPrefix(contentType, "image/")
+		isVideo := strings.HasPrefix(contentType, "video/")
+
+		if !isImage && !isVideo {
+			return nil, fmt.Errorf("portfolio: invalid file type: %s", fileHeader.Filename)
+		}
+
+		var uniqueName string
+		if isImage {
+			uniqueName = fmt.Sprintf("%d_%s.webp", time.Now().UnixNano(), "media")
+		} else {
+			ext := filepath.Ext(fileHeader.Filename)
+			uniqueName = fmt.Sprintf("%d_%s%s", time.Now().UnixNano(), "media", ext)
+		}
 		filePath := filepath.Join(uploadDir, uniqueName)
 
 		out, err := os.Create(filePath)
@@ -180,9 +209,18 @@ func SaveUploadedFiles(files []*multipart.FileHeader, uploadDir string) ([]strin
 		}
 		defer out.Close()
 
-		_, err = io.Copy(out, file)
-		if err != nil {
-			return nil, fmt.Errorf("portfolio: copy file failed: %w", err)
+		if isImage {
+			err = convertToWebP(file, out)
+			if err != nil {
+				out.Close()
+				os.Remove(filePath)
+				return nil, fmt.Errorf("portfolio: webp conversion failed: %w", err)
+			}
+		} else {
+			_, err = io.Copy(out, file)
+			if err != nil {
+				return nil, fmt.Errorf("portfolio: copy file failed: %w", err)
+			}
 		}
 
 		savedPaths = append(savedPaths, "/assets/uploads/"+uniqueName)

@@ -75,6 +75,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Invalid custom budget value (must be at least 100 USD)", http.StatusBadRequest)
 			return
 		}
+		budget = budget * 100
 	} else {
 		budget, err = strconv.ParseInt(budgetStr, 10, 64)
 		if err != nil {

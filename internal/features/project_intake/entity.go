@@ -2,6 +2,7 @@ package project_intake
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 )
 
@@ -16,6 +17,19 @@ type Lead struct {
 	InternalStatus string    `json:"internalStatus"`
 	CreatedAt      time.Time `json:"createdAt"`
 	UpdatedAt      time.Time `json:"updatedAt"`
+}
+
+func (l Lead) MarshalJSON() ([]byte, error) {
+	type Alias Lead
+	return json.Marshal(&struct {
+		Alias
+		CreatedAtStr string `json:"createdAtStr"`
+		UpdatedAtStr string `json:"updatedAtStr"`
+	}{
+		Alias:        Alias(l),
+		CreatedAtStr: l.CreatedAt.Format("2006-01-02 15:04"),
+		UpdatedAtStr: l.UpdatedAt.Format("2006-01-02 15:04"),
+	})
 }
 
 type Repository interface {

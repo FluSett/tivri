@@ -160,10 +160,6 @@ Instead, the system relies on an **In-Memory Event-Driven Architecture (EDA)** b
 * **Theme Customization:** Custom design tokens, complex CSS animations (e.g., keyframes), and non-standard vendor overrides must be written in `web/assets/css/theme.css` instead of being injected directly into templates.
 * **Component Style Extraction:** Avoid repeating identical class utility combinations or styling definitions across multiple elements (two or more occurrences, regardless of size or complexity). Any full style duplicate across templates must be extracted into semantic CSS rules (e.g., `.benefit-card`, `.form-input`, `.btn-icon`) inside `web/assets/css/theme.css` to keep templates entirely dry. Single-use styles that are unique to one element should remain inline as standard Tailwind utility classes to avoid unnecessary CSS bloat. Every single style duplicate (2+ occurrences) across the workspace must be extracted; no duplicates may be missed.
 
-
-
-
-
 ---
 
 ## 5. 🔒 Data Security & Financial Guardrails
@@ -237,3 +233,12 @@ The Agent is forbidden from silently dropping feature edge-cases. Every time a c
 * **Pin Versioning:** All base images in `FROM` clauses must specify exact tag versions (e.g. `golang:1.21-alpine`) instead of mutable tags (`latest`) to secure build repeatability.
 * **CGO Disabling:** Ensure compilation statements configure `CGO_ENABLED=0` to compile pure static Go binaries.
 
+---
+
+## 11. 🔄 Configuration Upgrades & Docker Compose Migration Rules
+
+### Production Migration Strategy
+When applying configuration updates affecting storage layouts or major versions (e.g., PostgreSQL 18 volume path change from `/var/lib/postgresql/data` to `/var/lib/postgresql`), deploying directly on top of active production volumes will cause startup failures. You must execute the following migration steps:
+1. **Preserve State**: Perform a database dump (`pg_dump` or `pg_dumpall`) on the active production container.
+2. **Rotate Volumes**: Stop the containers and remove or rename the obsolete volume to avoid folder conflicts.
+3. **Deploy & Restore**: Deploy the updated compose file, launch the containers to initialize the new directory structure, and import the SQL dump.
