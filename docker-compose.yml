@@ -1,13 +1,13 @@
 services:
   db:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - tivri_pgdata:/var/lib/postgresql/data
+      - tivri_pgdata:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
@@ -21,9 +21,9 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - APP_ENV=production
+      - APP_ENV=${APP_ENV:-production}
       - DB_DSN=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?sslmode=disable
-      - ADMIN_SECRET=${ADMIN_SECRET}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - PORT=8080
       - LOCALES_DIR=locales
     depends_on:
