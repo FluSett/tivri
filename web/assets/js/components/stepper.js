@@ -19,6 +19,10 @@ document.addEventListener('alpine:init', () => {
         budgetTouched: false,
         emailTouched: false,
         deadlineTouched: false,
+        submitStatus: 'idle',
+        turnstileToken: '',
+        turnstileId: null,
+        isVerified: false,
 
         get scopeRemaining() {
             return this.scopeMax - this.scopeText.length;
@@ -75,7 +79,12 @@ document.addEventListener('alpine:init', () => {
                 sessionStorage.removeItem('intake_deadlineSpec');
             }
 
-            this.$watch('step', val => sessionStorage.setItem('intake_step', val));
+            this.$watch('step', val => {
+                sessionStorage.setItem('intake_step', val);
+                if (val === 5 && !this.submitted) {
+                    this.$nextTick(() => this.renderTurnstile());
+                }
+            });
 
             this.$watch('budget', val => {
                 sessionStorage.setItem('intake_budget', val);
@@ -114,6 +123,19 @@ document.addEventListener('alpine:init', () => {
                     sessionStorage.setItem('openStepper', 'true');
                 }
             });
+
+            if (this.step === 5 && !this.submitted) {
+                this.$nextTick(() => this.renderTurnstile());
+            }
+
+            document.addEventListener('htmx:responseError', () => {
+                this.submitStatus = 'idle';
+                this.isVerified = false;
+                this.turnstileToken = '';
+                if (window.turnstile && this.turnstileId !== null) {
+                    window.turnstile.reset(this.turnstileId);
+                }
+            });
         },
 
         resetForm() {
@@ -132,6 +154,13 @@ document.addEventListener('alpine:init', () => {
             this.budgetTouched = false;
             this.emailTouched = false;
             this.deadlineTouched = false;
+            this.submitStatus = 'idle';
+            this.turnstileToken = '';
+            this.isVerified = false;
+
+            if (window.turnstile && this.turnstileId !== null) {
+                window.turnstile.reset(this.turnstileId);
+            }
 
             sessionStorage.removeItem('intake_step');
             sessionStorage.removeItem('intake_budget');
@@ -147,6 +176,42 @@ document.addEventListener('alpine:init', () => {
 
             this.openStepper = false;
             document.getElementById('intake-form').reset();
+        },
+
+        renderTurnstile() {
+            if (window.tivriTurnstileSiteKey && window.turnstile && this.$refs.turnstileContainer && this.turnstileId === null) {
+                this.turnstileId = window.turnstile.render(this.$refs.turnstileContainer, {
+                    sitekey: window.tivriTurnstileSiteKey,
+                    theme: 'dark',
+                    size: 'normal',
+                    language: document.documentElement.lang || 'en',
+                    callback: (token) => {
+                        this.turnstileToken = token;
+                        this.isVerified = true;
+                    },
+                    'expired-callback': () => {
+                        this.turnstileToken = '';
+                        this.isVerified = false;
+                    },
+                    'error-callback': () => {
+                        this.submitStatus = 'idle';
+                        this.isVerified = false;
+                        this.turnstileToken = '';
+                        window.dispatchEvent(new CustomEvent('tivri-error', { detail: 'Security verification failed.' }));
+                    }
+                });
+            }
+        },
+
+        handleSubmit(event) {
+            if (window.tivriTurnstileSiteKey && window.turnstile && !this.isVerified) {
+                event.preventDefault();
+                event.stopPropagation();
+                window.dispatchEvent(new CustomEvent('tivri-error', { detail: 'Please complete the security check.' }));
+                return;
+            }
+
+            this.submitStatus = 'submitting';
         }
     }));
 });
