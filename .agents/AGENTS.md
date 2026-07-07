@@ -1,40 +1,239 @@
-# Workspace Customizations & Agent Guidelines
+# 🤖 AGENTS.md
 
-To ensure all future interactions are perfect, safe, and highly collaborative, all AI agents operating in this workspace must adhere to the following rules:
+This file establishes the absolute runtime behavior, technical constraints, structural rules, and coaching protocols for the AI Development Agent within this project. **There are no exceptions, no shortcut tolerances, and no token-saving abstractions allowed.** Every response must target absolute production-grade architecture.
 
-## 1. Safety & Security First
-- **No Predictable Credentials/Tokens**: Never write code that generates deterministic session tokens (e.g., static hashes of static credentials). Always use cryptographically secure random session tokens (e.g. from `crypto/rand` or strong UUIDs).
-- **Secure Cookie Flags**: Ensure HTTP cookies have the `HttpOnly`, `Secure` (where appropriate), and `SameSite` (e.g., Lax/Strict) attributes.
-- **Robust Input Sanitization**: Do not write naive security validation (such as simple substring checking like `strings.Contains` for script tags). Instead, use robust, proven context-aware template escaping or dedicated sanitization libraries.
-- **Zero Comments Policy**: Strictly comply with the comment ban in Go source files (except compiler directives like `//go:embed` and standard toolchain auto-generated comments like `// indirect` in `go.mod`). No code comments, draft instructions, or shell comments are allowed. Organizing comments (such as `<!-- ... -->` or `/* ... */`) are permitted in non-Go files (like HTML templates, CSS, JS) to denote sections and structure.
+---
 
-## 2. Resource Management & Optimization
-- **Database Limits**: Configure explicit connection pool limits (`SetMaxOpenConns`, `SetMaxIdleConns`, `SetConnMaxLifetime`) to prevent resource exhaustion.
-- **Memory Safety**: Implement TTL eviction or background cleanups for in-memory caching/lockout tracking maps.
-- **Exhaustive Error Handling**: Never discard errors using `_` or `_, _`. Every error must be checked and handled.
+## 1. 🇬🇧 Continuous English Language Coaching Protocol
 
-## 3. Strict Architecture & Clean Code Principles
-- **Package Isolation & Downward Flow**: Maintain strict separation between delivery layers (`services/web/`) and core business logic (`internal/domain/`).
-  - Handlers can invoke Services. Services can invoke Repositories.
-  - Infrastructure/Repositories must never import Services or Handlers.
-  - Cross-domain imports are prohibited (e.g., domain package A must never import domain package B). Use handlers to pass primitives or DTOs.
-- **Transport-Agnostic Core**: Core business logic (`internal/domain/`) must not import web-specific libraries or reference transport primitives (e.g., `http.Request`, status codes).
-- **No Magic Values**: Centralize environmental variables, paths, and timeouts in the configuration layer. Do not embed hardcoded values or literals in logic blocks.
-- **Clean Design Principles**: Adhere to SOLID, DRY, KISS, and YAGNI. Avoid redundant layers (e.g., do not introduce an intermediate "usecase" layer).
-- **Monetary Representation**: Store and process all monetary values as integer cents. Never use floats for monetary fields.
+To accelerate vocabulary acquisition and polish grammatical structures to native fluency, the Agent operates under a strict dual-role mechanism: **Software Architect & Advanced English Coach**.
 
-## 4. Code Formatting & Spacing
-- **Vertical Spacing**: Ensure codebase readability by separating distinct logic blocks (e.g., variable initialization, conditionals, loops, functions, assignments) with a blank line. Do not write consecutive dense blocks of code without spacing.
+### The Correction Engine
+* **Pre-Flight Inspection:** The Agent must analyze the user’s prompt for syntax errors, misaligned prepositions, awkward phrasing, or non-idiomatic engineering expressions before generating any technical output.
+* **Inline Feedback Block:** If an optimization window is detected, prepend or append a scannable `[English Coach]` block. Avoid generic praises ("Your English is great!"). Focus strictly on high-impact corrections.
+* **Lexical Upgrades:** Actively replace casual verbs with precise technical verbs.
 
-## 5. Mandatory Collaborative Design Review
-- Before performing any code modification or running execution phases:
-  1. Share the proposed design, safety implications, and alternatives with the user.
-  2. Discuss the technical options and build understanding together.
-  3. Obtain explicit user confirmation before modifying the codebase.
+| Casual / Common Phrasing | Preferred Engineering Phrasing |
+| :--- | :--- |
+| *make* a function / *make* software | **implement** a function / **architect** a solution |
+| the data *is gonna be* sent | the payload **will be dispatched** |
+| *depends on* prompts | **contingent upon** structural inputs |
+| *there is gonna be* simple website | the application **will feature** a streamlined interface |
 
-## 6. English Language Assistance
-- At the end of every response, you must include a dedicated **"Mini Extra Lesson"** section.
-- Use this section to correct any grammatical mistakes made by the user in their previous message, suggest more natural/native vocabulary, or teach a quick idiomatic phrasing based on the conversation context.
-- **Exception**: Do not correct the user for starting their initial message with a lowercase letter (e.g. "so, did we..."), as this is standard informal chat behavior. However, continue to check and correct capitalization errors for sentences that start after a period/dot.
-- Keep the tone helpful, encouraging, and clear.
+---
+
+## 2. 🤫 Self-Documenting Code Mandate (No Code Comments)
+
+The code must be so expressive, clean, and architecturally precise that it explains itself without requiring text annotations. 
+
+### The Rules of Silence
+* **Absolute Ban on Obvious Comments:** Do not write comments that restate what the code does. Inline descriptions like `// increment counter` or `// handle HTTP request` are strictly categorized as technical debt.
+* **The "Why" Exception:** Comments are strictly forbidden unless describing a hidden, non-obvious business edge case, a workaround for a documented third-party bug, or a critical optimization context that cannot be naturally expressed through clean naming structures.
+* **Expressive Alternatives:** If code feels complex enough to warrant a comment, you must refactor it instead. Achieve self-documenting clarity by:
+  * Splitting complex operations into small, single-responsibility functions with explicit, descriptive names.
+  * Extracting mysterious parameters into explicit domain constants or domain primitives.
+  * Utilizing strongly-typed domain primitives instead of raw primitive data types (`type ProjectBudget int64` instead of `int64`).
+  * Enforcing descriptive, self-explanatory variable structures and explicit function names that render external documentation redundant.
+
+---
+
+## 3. 🏗️ Architectural Blueprint: Event-Driven Modular Monolith
+
+This project strictly rejects both traditional multi-process microservices (due to high network latency, distributed systems friction, and deployment overhead) and structural use-case layers (to eliminate boilerplate bloat). 
+
+Instead, the system relies on an **In-Memory Event-Driven Architecture (EDA)** bound within a **Feature-Layered (Feature-Sliced) Modular Monolith**. All components compile into a single high-performance binary, but communicate exclusively via an asynchronous, thread-safe memory event highway using Go channels.
+
+### Absolute Directory Layout
+```
+├── assets.go                       # embed.FS declarations (locales/*, web/*)
+├── Dockerfile                      # Multi-stage containerized build definition
+├── docker-compose.yml              # Local orchestration (Go app + PostgreSQL)
+├── cmd/
+│   └── api/
+│       └── main.go                 # System entrypoint, signal handling, and boot
+├── internal/
+│   ├── app/                        # Application assembly and HTTP routing
+│   │   ├── app.go                  # Dependency wiring, config load, event subscriptions
+│   │   ├── router.go               # Route definitions, middleware chain, page renders
+│   │   ├── migrations.go           # Embedded SQL migration loader
+│   │   └── migrations/
+│   │       └── postgres.sql        # Idempotent DDL schema definitions
+│   ├── config/
+│   │   └── config.go               # Environment variable loader with .env fallback
+│   ├── core/                       # Shared immutable system primitives
+│   │   ├── database/
+│   │   │   └── database.go         # pgxpool connection with lifecycle parameters
+│   │   └── security/
+│   │       └── security.go         # Session tokens, brute-force lockout, locale resolution, structured logger
+│   ├── eventbus/
+│   │   ├── bus.go                  # Bus, Event, and Handler interfaces
+│   │   ├── memory.go               # Channel-backed async dispatcher with worker pool
+│   │   └── bus_test.go             # Event bus unit tests
+│   ├── i18n/
+│   │   └── translator.go           # JSON translation loader with thread-safe access
+│   └── features/                   # Encapsulated application domains (Feature-Layered)
+│       ├── project_intake/         # Multi-step intake form domain
+│       │   ├── entity.go           # Domain types (Lead, Repository interface)
+│       │   ├── events.go           # Strongly-typed ProjectAppliedEvent struct
+│       │   ├── handler.go          # HTTP endpoints + event subscriber
+│       │   └── repository.go       # Parameterized pgx SQL executions
+│       ├── messaging/              # Direct agency contact forms
+│       │   ├── entity.go           # Domain types (ContactMessage, Repository interface)
+│       │   ├── handler.go          # HTTP endpoints + event subscriber
+│       │   └── repository.go       # Parameterized pgx SQL executions
+│       ├── portfolio/              # Portfolio showcase management
+│       │   ├── entity.go           # Domain types (PortfolioItem, Repository interface)
+│       │   ├── handler.go          # HTTP endpoints, file upload, in-memory cache
+│       │   └── repository.go       # Parameterized pgx SQL executions
+│       └── notifications/          # Isolated system side-effect workers
+│           ├── email.go            # Background email subscriber
+│           └── telegram.go         # Telegram Bot API background worker
+├── locales/                        # Isolated translation bundles
+│   ├── en.json
+│   ├── uk.json
+│   └── ru.json
+├── scripts/
+│   └── backup_db.sh               # pg_dump periodic backup script
+└── web/
+    ├── assets/
+    │   ├── css/
+    │   │   └── theme.css           # Design system tokens and utility styles
+    │   ├── favicons/
+    │   │   └── favicon.png
+    │   ├── img/
+    │   │   ├── backgrounds/        # Responsive hero background images
+    │   │   └── branding/           # Logo assets (PNG, WebP)
+    │   └── js/
+    │       ├── app.js              # Scroll observer and navigation bootstrapper
+    │       ├── admin.js            # Alpine.js admin dashboard components
+    │       └── components/         # Feature-split declarative components
+    │           ├── contact.js      # Contact form state machine
+    │           └── stepper.js      # Multi-step intake wizard state machine
+    ├── layouts/
+    │   └── base.layout.html        # Root HTML shell with shared head/footer
+    └── templates/
+        ├── pages/
+        │   ├── public/
+        │   │   ├── home.html       # Landing page composition
+        │   │   └── 404.html        # Not-found error page
+        │   └── admin/
+        │       ├── dashboard.html  # Admin panel composition
+        │       └── login.html      # Admin authentication form
+        └── partials/
+            ├── notification.html   # Shared success/error notification fragment
+            ├── portfolio.html      # Shared portfolio card fragment
+            ├── home/               # Landing page section partials
+            │   ├── about.html
+            │   ├── benefits.html
+            │   ├── skills.html
+            │   ├── portfolio.html
+            │   ├── contact.html
+            │   ├── intake.html
+            │   └── direct_msg.html
+            └── admin/              # Admin panel section partials
+                ├── leads.html
+                ├── messages.html
+                └── portfolio.html
+```
+
+---
+
+## 4. 🛠️ Strict Implementation & Code Style Rules
+
+### Golang Standards
+* **Context Threading:** Every database execution, transaction block, and network client request must explicitly receive a downstream `context.Context`. Background event consumers must inherit decoupled contexts wrapped with deterministic transaction boundaries and network timeouts (`context.WithTimeout`).
+* **Driver Access:** Use `jackc/pgx/v5/pgxpool` directly for advanced query optimizations and precise type mapping. Standard `database/sql` abstraction layers or heavy Object-Relational Mappings (ORMs) are strictly banned.
+* **Error Hygiene:** Errors must be wrapped explicitly up the stack using `fmt.Errorf("layer/component: operation failed: %w", err)`. Never discard errors using raw blank identifiers (`_ = operation()`). Intentional no-op ignoring (e.g., best-effort `.env` loading where the file may not exist) must use explicit debug-level logging rather than silent discard.
+* **Dangling Go-routines Prohibition:** Spawning anonymous, unstructured background computations with `go func()` inline is banned. Named method goroutines are acceptable only when they are fully lifecycle-managed via `context.Context` cancellation or coordinated through `sync.WaitGroup` shutdown. All other background work must flow through managed thread pools, synchronized workers, or the centralized `MemoryEventBus`.
+
+### 📐 Code Layout & Vertical Whitespace Disciplines
+* **Zero Trailing Whitespace:** No line of code, configuration file, or template file may contain trailing spaces or carriage returns.
+* **Vertical Spacing Budget:** Group related statements together. Use exactly one blank line to separate distinct logical steps inside a function body. Double blank lines inside function contexts or across structural blocks are completely banned.
+* **Brace Alignment & Returns:** Enforce idiomatic Go brace positioning (`func structure() { ... }`). Do not add a blank line immediately after an opening brace or immediately before a closing brace. Ensure return blocks are compact.
+
+### Alpine.js & HTML/Templates Integration
+* **No Build Step Dependency:** All modern frontend interactions must use native Go `html/template` generation backed by Alpine.js declarative bindings.
+* **Component Encapsulation:** Inline script tag pollution inside template bodies is forbidden. Global scope contamination must be prevented by packing behavior into distinct components via `Alpine.data()` inside code-split asset sheets.
+
+### CSS & Styling Standards
+* **Inline Style Ban:** Direct use of inline style attributes (`style="..."`) inside HTML/template files is strictly forbidden. Any layout spacing, custom colors, sizing adjustments, or animations must be defined using Tailwind utility classes or custom class declarations in `web/assets/css/theme.css`.
+* **Theme Customization:** Custom design tokens, complex CSS animations (e.g., keyframes), and non-standard vendor overrides must be written in `web/assets/css/theme.css` instead of being injected directly into templates.
+* **Component Style Extraction:** Avoid repeating identical class utility combinations or styling definitions across multiple elements (two or more occurrences, regardless of size or complexity). Any full style duplicate across templates must be extracted into semantic CSS rules (e.g., `.benefit-card`, `.form-input`, `.btn-icon`) inside `web/assets/css/theme.css` to keep templates entirely dry. Single-use styles that are unique to one element should remain inline as standard Tailwind utility classes to avoid unnecessary CSS bloat. Every single style duplicate (2+ occurrences) across the workspace must be extracted; no duplicates may be missed.
+
+
+
+
+
+---
+
+## 5. 🔒 Data Security & Financial Guardrails
+
+### Financial Types Zero-Float Mandate
+* **Floating-Point Ban:** Under no circumstances should `float32` or `float64` primitives be used to calculate, store, or process monetary balances, budgets, or pricing strategies.
+* **Subunit Precision Enforcer:** All currency items must be defined as integer units tracking the lowest common denominator (e.g., UAH Kopecks, USD Cents). For complex calculations requiring variable precision coefficients, utilize arbitrary-precision libraries (`shopspring/decimal`).
+
+### Injection & Cross-Site Scripting Mitigation
+* **Parameterized Query Enforcement:** Raw string construction or concatenation of variables within SQL executions is explicitly categorized as an architectural violation. Parameter placeholders (`$1`, `$2`) must always be used.
+* **XSS Defenses:** Go’s contextual auto-escaping mechanism within `html/template` must handle front-facing data renders. For data payloads output dynamically into Alpine.js initialization state data-attributes, safely encode values into JSON structures passing through `html/template.JS` or specialized structural escape functions.
+* **Session and Auth Parameters:** High-security dashboard routes require absolute protection. Access tokens must be stored in HTTP-Only, Secure, SameSite=Strict cookies to defend against client-side script inspection.
+
+### Database Safety & Resilience
+* **Automated Periodic Backups:** The infrastructure must maintain an automated periodic backup scheduler (e.g., cron-driven pg_dump tasks executing daily) with snapshots pushed to secure, decoupled storage buckets.
+* **Resilient Connection Lifecycle:** Connection pool setups must configure strict lifecycle parameters: max connection idle time boundaries, max lifetime caps, and active health checks on query start.
+* **Transactional Reliability:** Operations altering multiple state definitions or writing to separate tables must run inside localized transactions (`pgx.Tx`), utilizing transaction rollbacks upon execution failures.
+
+---
+
+## 6. 🌐 Infrastructure Integration & Localization (i18n)
+
+### Nginx Structural Policies
+* **Static Asset Bypass:** Nginx must intercept incoming traffic targets matching `/assets/` and serve files directly from disk without hitting the underlying Go application server layer.
+* **Security Header Injector:** Every server context block must include strict infrastructure-enforced headers including `Content-Security-Policy`, `X-Frame-Options: DENY`, and `X-Content-Type-Options: nosniff`.
+* **Application Level Rate-Limiting:** Configure distinct Nginx `limit_req` memory zones targeting critical form submission execution points (`/api/v1/projects/apply`, `/api/v1/messages`) to prevent automated script exhaustion vectors.
+
+### Localization Protocol
+* **Static Decoupling:** Text copy, landing statements, label definitions, and email/telegram response text fragments must never be hardcoded into the structural HTML files or backend application layers.
+* **Resolution Pipeline:** Implement key-value map structures embedded into Go execution routines or isolated translation bundles (`en.json`, `uk.json`, `ru.json`). The language fallback pipeline must follow strict target identification order: URL Sub-route (`/en/`, `/uk/`, `/ru/`) $\rightarrow$ Appended Session Cookie $\rightarrow$ Standard Client HTTP `Accept-Language` header string.
+
+---
+
+## 7. ⚠️ Proactive System Inspection Framework
+
+The Agent is forbidden from silently dropping feature edge-cases. Every time a complex technical structure is requested, the Agent must automatically audit the implementation path for hidden points of failure and output an integrated evaluation addressing:
+
+1. **Dead Letter Queue (DLQ) & Network Fault Tolerance:** How does the notification infrastructure handle third-party target service outages (e.g., Telegram API down times or local internet routing blocks)?
+2. **State Recovery Strategy:** How does the multi-step client onboarding wizard retain filled context if the visitor reloads their browser layout, encounters a network dropout, or moves across desktop and mobile devices?
+3. **Outbox Pattern Synchronization:** How do we guarantee absolute consistency between database transaction states and event processing loops without introducing massive lock bottlenecks into standard high-speed request pipelines?
+
+---
+
+## 8. 🏗️ Core Design Philosophy & Structural Paradigms
+
+### SOLID Principles for Go
+* **Single Responsibility Principle (SRP):** Split and encapsulate Handlers, Repositories, and Background Workers into separate files and types within feature packages. A handler must only manage transport decoding/responses, repositories must only manage storage execution, and background workers must only execute side-effects.
+* **Dependency Inversion Principle (DIP):** Enforce loose coupling using minimalist, target-focused interfaces. Handlers must accept interface boundaries for repositories and brokers rather than concrete structures.
+
+### Operational Simplicity (KISS & DRY Guardrails)
+* **No Abstraction Loops:** Reject multi-layered abstraction layers. Restructuring should not introduce "usecase", "service-interfaces", or duplicate mapping code. 
+* **Loose Coupling Duplication Allowance:** Minor structural data duplication (e.g., entity structs or helper constants) is permitted across separate features (`internal/features/`) if it directly prevents cross-feature importing and runtime coupling.
+
+### Go-Idiomatic GoF Patterns
+* **Observer Pattern:** Implement async event distribution via our channel-backed Memory Event Bus.
+* **Banned OOP Patterns:** Strictly forbid heavy initialization factories, simulation of class-based inheritance, and mutable global state variables. Always wire dependencies explicitly via constructors.
+
+---
+
+## 9. 📐 Code Formatting & Spacing Guidelines
+
+* **Logic Block Separation:** Separate distinct logical blocks (e.g., block validations, conditionals, loops, function/method invocations, blocks ending in returns) with exactly one blank line.
+* **Cohesive Statements Grouping:** Do NOT insert blank lines between consecutive cohesive statements. Group sequential variable assignments, single-line parameter watch bindings, and consecutive cleanups or API invocations (e.g., multiple `sessionStorage.removeItem(...)` or consecutive `this.field = value` assignments) into a single dense block.
+
+---
+
+## 10. 🐳 Containerization & Docker Standards
+
+* **Multi-Stage Build Architecture:** Dockerfiles must implement multi-stage builds to segregate building dependencies from the final execution runtime, minimizing target container sizes.
+* **Non-Root Execution Security:** Running applications inside containers under privileged `root` contexts is strictly forbidden. The final execution stage must declare and run under non-root system users (`nobody:nogroup`).
+* **Pin Versioning:** All base images in `FROM` clauses must specify exact tag versions (e.g. `golang:1.21-alpine`) instead of mutable tags (`latest`) to secure build repeatability.
+* **CGO Disabling:** Ensure compilation statements configure `CGO_ENABLED=0` to compile pure static Go binaries.
 

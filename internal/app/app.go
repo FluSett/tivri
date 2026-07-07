@@ -1,7 +1,7 @@
 package app
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"html/template"
 	"io/fs"
@@ -10,24 +10,28 @@ import (
 	"os"
 	"time"
 
-	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"tivri"
 	"tivri/internal/config"
-	"tivri/internal/domain/contact"
-	"tivri/internal/domain/lead"
-	"tivri/internal/domain/portfolio"
+	"tivri/internal/core/database"
+	"tivri/internal/core/security"
+	"tivri/internal/eventbus"
+	"tivri/internal/features/messaging"
+	"tivri/internal/features/notifications"
+	"tivri/internal/features/portfolio"
+	"tivri/internal/features/project_intake"
 	"tivri/internal/i18n"
-	webhandler "tivri/services/web/handler"
-	"tivri/services/web/middleware"
 )
 
 type PageData struct {
 	Lang            string
 	T               i18n.Translation
 	PortfolioItems  []portfolio.PortfolioItem
-	Leads           []lead.Lead
-	ContactMessages []contact.ContactMessage
+	Leads           []project_intake.Lead
+	ContactMessages []messaging.ContactMessage
+	LeadsJSON       string
+	MessagesJSON    string
 	IsAdmin         bool
 	IsAdminLogin    bool
 	AdminTab        string
@@ -36,22 +40,20 @@ type PageData struct {
 
 type App struct {
 	cfg              *config.Config
-	db               *sql.DB
+	db               *pgxpool.Pool
 	translator       *i18n.Translator
 	templates        map[string]*template.Template
-	portfolioHandler *webhandler.PortfolioHandler
-	leadHandler      *webhandler.LeadHandler
-	contactHandler   *webhandler.ContactHandler
-	portfolioSvc     *portfolio.Service
-	leadSvc          *lead.Service
-	contactSvc       *contact.Service
+	portfolioHandler *portfolio.Handler
+	leadHandler      *project_intake.Handler
+	contactHandler   *messaging.Handler
 	logger           *slog.Logger
 	webFS            fs.FS
-	securityMgr      *middleware.SecurityManager
+	securityMgr      *security.SecurityManager
+	eventBus         eventbus.Bus
 }
 
-func New() (*App, error) {
-	if err := ensureStaticDirectories(); err != nil {
+func New(ctx context.Context) (*App, error) {
+	if err := ensureAssetDirectories(); err != nil {
 		return nil, err
 	}
 
@@ -66,8 +68,8 @@ func New() (*App, error) {
 	} else {
 		logger = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	}
-	slog.SetDefault(logger)
 
+	slog.SetDefault(logger)
 	logger.Info("configuration loaded",
 		slog.String("env", cfg.Env),
 		slog.String("port", cfg.Port),
@@ -80,16 +82,13 @@ func New() (*App, error) {
 		)
 	}
 
-	db, err := sql.Open("pgx", cfg.DBDSN)
+	db, err := database.Connect(ctx, cfg.DBDSN)
 	if err != nil {
 		return nil, err
 	}
 
-	db.SetMaxOpenConns(25)
-	db.SetMaxIdleConns(25)
-	db.SetConnMaxLifetime(5 * time.Minute)
-
-	if err = migrate(db); err != nil {
+	err = database.Migrate(ctx, db, postgresMigrationSQL)
+	if err != nil {
 		db.Close()
 		return nil, err
 	}
@@ -100,13 +99,10 @@ func New() (*App, error) {
 		return nil, err
 	}
 
-	portfolioRepo := portfolio.NewSQLRepository(db)
-	leadRepo := lead.NewSQLRepository(db)
-	contactRepo := contact.NewSQLRepository(db)
-
-	portfolioSvc := portfolio.NewService(portfolioRepo)
-	leadSvc := lead.NewService(leadRepo)
-	contactSvc := contact.NewService(contactRepo)
+	eventBus := eventbus.NewMemoryEventBus(ctx, logger)
+	portfolioRepo := portfolio.NewPostgresRepository(db)
+	leadRepo := project_intake.NewPostgresRepository(db)
+	contactRepo := messaging.NewPostgresRepository(db)
 
 	funcMap := template.FuncMap{
 		"formatCents": func(cents int64) string {
@@ -116,7 +112,7 @@ func New() (*App, error) {
 		},
 	}
 
-	webUIFS, err := fs.Sub(tivri.WebFS, "services/web/ui")
+	webUIFS, err := fs.Sub(tivri.WebFS, "web")
 	if err != nil {
 		db.Close()
 		return nil, err
@@ -124,17 +120,17 @@ func New() (*App, error) {
 
 	homeTmpl, err := template.New("base.layout.html").Funcs(funcMap).ParseFS(
 		webUIFS,
-		"html/base.layout.html",
-		"html/pages/public/home.html",
-		"html/partials/portfolio.html",
-		"html/partials/notification.html",
-		"html/partials/home/about.html",
-		"html/partials/home/benefits.html",
-		"html/partials/home/skills.html",
-		"html/partials/home/portfolio.html",
-		"html/partials/home/contact.html",
-		"html/partials/home/intake.html",
-		"html/partials/home/direct_msg.html",
+		"layouts/base.layout.html",
+		"templates/pages/public/home.html",
+		"templates/partials/portfolio.html",
+		"templates/partials/notification.html",
+		"templates/partials/home/about.html",
+		"templates/partials/home/benefits.html",
+		"templates/partials/home/skills.html",
+		"templates/partials/home/portfolio.html",
+		"templates/partials/home/contact.html",
+		"templates/partials/home/intake.html",
+		"templates/partials/home/direct_msg.html",
 	)
 	if err != nil {
 		db.Close()
@@ -143,13 +139,13 @@ func New() (*App, error) {
 
 	adminTmpl, err := template.New("base.layout.html").Funcs(funcMap).ParseFS(
 		webUIFS,
-		"html/base.layout.html",
-		"html/pages/admin/dashboard.html",
-		"html/partials/portfolio.html",
-		"html/partials/notification.html",
-		"html/partials/admin/portfolio.html",
-		"html/partials/admin/leads.html",
-		"html/partials/admin/messages.html",
+		"layouts/base.layout.html",
+		"templates/pages/admin/dashboard.html",
+		"templates/partials/portfolio.html",
+		"templates/partials/notification.html",
+		"templates/partials/admin/portfolio.html",
+		"templates/partials/admin/leads.html",
+		"templates/partials/admin/messages.html",
 	)
 	if err != nil {
 		db.Close()
@@ -158,8 +154,8 @@ func New() (*App, error) {
 
 	notFoundTmpl, err := template.New("base.layout.html").Funcs(funcMap).ParseFS(
 		webUIFS,
-		"html/base.layout.html",
-		"html/pages/public/404.html",
+		"layouts/base.layout.html",
+		"templates/pages/public/404.html",
 	)
 	if err != nil {
 		db.Close()
@@ -168,8 +164,8 @@ func New() (*App, error) {
 
 	loginTmpl, err := template.New("base.layout.html").Funcs(funcMap).ParseFS(
 		webUIFS,
-		"html/base.layout.html",
-		"html/pages/admin/login.html",
+		"layouts/base.layout.html",
+		"templates/pages/admin/login.html",
 	)
 	if err != nil {
 		db.Close()
@@ -183,11 +179,21 @@ func New() (*App, error) {
 		"login":    loginTmpl,
 	}
 
-	portfolioHandler := webhandler.NewPortfolioHandler(portfolioSvc, homeTmpl)
-	leadHandler := webhandler.NewLeadHandler(leadSvc, homeTmpl, translator)
-	contactHandler := webhandler.NewContactHandler(contactSvc, homeTmpl, translator)
+	portfolioHandler := portfolio.NewHandler(portfolioRepo, eventBus, homeTmpl)
+	leadHandler := project_intake.NewHandler(leadRepo, eventBus, homeTmpl, translator)
+	contactHandler := messaging.NewHandler(contactRepo, eventBus, homeTmpl, translator)
+	emailWorker := notifications.NewEmailWorker()
+	telegramWorker := notifications.NewTelegramWorker()
 
-	securityMgr := middleware.NewSecurityManager(logger)
+	eventBus.Subscribe("portfolio.created", portfolioHandler.HandlePortfolioCreated)
+	eventBus.Subscribe("project_intake.applied", leadHandler.HandleProjectApplied)
+	eventBus.Subscribe("project_intake.applied", emailWorker.HandleEvent)
+	eventBus.Subscribe("project_intake.applied", telegramWorker.HandleEvent)
+	eventBus.Subscribe("contact.created", contactHandler.HandleMessageCreated)
+	eventBus.Subscribe("contact.created", emailWorker.HandleEvent)
+	eventBus.Subscribe("contact.created", telegramWorker.HandleEvent)
+
+	securityMgr := security.NewSecurityManager(ctx, logger)
 
 	return &App{
 		cfg:              cfg,
@@ -197,19 +203,18 @@ func New() (*App, error) {
 		portfolioHandler: portfolioHandler,
 		leadHandler:      leadHandler,
 		contactHandler:   contactHandler,
-		portfolioSvc:     portfolioSvc,
-		leadSvc:          leadSvc,
-		contactSvc:       contactSvc,
 		logger:           logger,
 		webFS:            webUIFS,
 		securityMgr:      securityMgr,
+		eventBus:         eventBus,
 	}, nil
 }
 
 func (a *App) Close() error {
 	if a.db != nil {
-		return a.db.Close()
+		a.db.Close()
 	}
+
 	return nil
 }
 
@@ -230,14 +235,8 @@ func (a *App) Start() error {
 	return server.ListenAndServe()
 }
 
-func migrate(db *sql.DB) error {
-	_, err := db.Exec(postgresMigrationSQL)
-	return err
-}
-
-func ensureStaticDirectories() error {
-	base := "services/web/ui/static"
-
+func ensureAssetDirectories() error {
+	base := "web/assets"
 	if _, err := os.Stat(base); os.IsNotExist(err) {
 		return nil
 	}
