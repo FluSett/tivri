@@ -36,8 +36,31 @@ if ('scrollRestoration' in history) {
         updateScrollState();
     }
 
-    document.addEventListener('htmx:beforeSwap', function() {
+    document.addEventListener('htmx:beforeSwap', function(evt) {
         document.documentElement.classList.add('no-transition');
+
+        if (evt.detail.serverResponse) {
+            try {
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(evt.detail.serverResponse, 'text/html');
+                
+                var oldHeader = document.getElementById('site-header');
+                var newHeader = doc.getElementById('site-header');
+                if (oldHeader && newHeader) {
+                    newHeader.className = oldHeader.className;
+                }
+
+                var oldFooter = document.getElementById('site-footer');
+                var newFooter = doc.getElementById('site-footer');
+                if (oldFooter && newFooter) {
+                    newFooter.className = oldFooter.className;
+                }
+
+                evt.detail.serverResponse = doc.documentElement.outerHTML;
+            } catch (e) {
+                console.error('Failed to parse server response:', e);
+            }
+        }
     });
 
     document.addEventListener('htmx:afterSwap', function() {

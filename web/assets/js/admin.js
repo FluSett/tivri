@@ -68,24 +68,95 @@ document.addEventListener('alpine:init', () => {
     }));
 
     Alpine.data('portfolioForm', () => ({
-        title: '',
-        description: '',
-        techStack: '',
+        title: sessionStorage.getItem('admin_portfolio_title') || '',
+        description: sessionStorage.getItem('admin_portfolio_description') || '',
+        techStack: sessionStorage.getItem('admin_portfolio_techStack') || '',
         mediaPreviews: [],
+        init() {
+            this.$watch('title', val => sessionStorage.setItem('admin_portfolio_title', val || ''));
+            this.$watch('description', val => sessionStorage.setItem('admin_portfolio_description', val || ''));
+            this.$watch('techStack', val => sessionStorage.setItem('admin_portfolio_techStack', val || ''));
+        },
         handleFiles(el) {
-            this.mediaPreviews = [];
             const files = el.files;
             for (let i = 0; i < files.length; i++) {
-                if (files[i].size > 5 * 1024 * 1024) {
-                    alert('File ' + files[i].name + ' exceeds maximum size of 5MB.');
-                    el.value = '';
-                    this.mediaPreviews = [];
+                const f = files[i];
+                if (f.size > 5 * 1024 * 1024) {
+                    window.dispatchEvent(new CustomEvent('tivri-error', { detail: 'File ' + f.name + ' exceeds maximum size of 5MB.' }));
+                    continue;
+                }
+                
+                this.mediaPreviews.push({
+                    id: Math.random().toString(36).substr(2, 9),
+                    file: f,
+                    name: f.name,
+                    url: URL.createObjectURL(f),
+                    isVideo: f.type.startsWith('video/')
+                });
+            }
+            el.value = '';
+        },
+        moveItem(index, direction) {
+            const targetIndex = index + direction;
+            if (targetIndex < 0 || targetIndex >= this.mediaPreviews.length) return;
+            const temp = this.mediaPreviews[index];
+            this.mediaPreviews[index] = this.mediaPreviews[targetIndex];
+            this.mediaPreviews[targetIndex] = temp;
+        },
+        removeItem(index) {
+            URL.revokeObjectURL(this.mediaPreviews[index].url);
+            this.mediaPreviews.splice(index, 1);
+        },
+        clearForm() {
+            this.mediaPreviews.forEach(item => URL.revokeObjectURL(item.url));
+            this.title = '';
+            this.description = '';
+            this.techStack = '';
+            this.mediaPreviews = [];
+            sessionStorage.removeItem('admin_portfolio_title');
+            sessionStorage.removeItem('admin_portfolio_description');
+            sessionStorage.removeItem('admin_portfolio_techStack');
+        },
+        async submitForm(formEl) {
+            if (!this.title.trim() || !this.description.trim() || !this.techStack.trim()) {
+                window.dispatchEvent(new CustomEvent('tivri-error', { detail: 'Please fill in all required fields.' }));
+                return;
+            }
+            
+            const fd = new FormData();
+            fd.append('title', this.title);
+            fd.append('description', this.description);
+            fd.append('tech_stack', this.techStack);
+            
+            this.mediaPreviews.forEach(item => {
+                fd.append('media', item.file);
+            });
+            
+            try {
+                const response = await fetch('/admin/portfolio', {
+                    method: 'POST',
+                    headers: {
+                        'HX-Request': 'true',
+                        'HX-Trigger': 'portfolio-upload'
+                    },
+                    body: fd
+                });
+                
+                if (!response.ok) {
+                    const errMsg = await response.text();
+                    window.dispatchEvent(new CustomEvent('tivri-error', { detail: errMsg || 'Upload failed' }));
                     return;
                 }
-                this.mediaPreviews.push({
-                    url: URL.createObjectURL(files[i]),
-                    isVideo: files[i].type.startsWith('video/')
-                });
+                
+                const html = await response.text();
+                const grid = document.getElementById('portfolio-grid');
+                if (grid) {
+                    grid.insertAdjacentHTML('beforeend', html);
+                }
+                this.clearForm();
+                formEl.reset();
+            } catch (err) {
+                window.dispatchEvent(new CustomEvent('tivri-error', { detail: err.message || 'Network error occurred during portfolio upload.' }));
             }
         }
     }));
