@@ -1,0 +1,11 @@
+.git
+.env
+.agents/
+tivri.db
+tivri.db-journal
+backups/
+*.sql
+README.md
+task.md
+implementation_plan.md
+walkthrough.md

@@ -2,6 +2,9 @@ package config
 
 import (
 	"bufio"
+	"errors"
+	"fmt"
+	"log/slog"
 	"os"
 	"strings"
 )
@@ -16,7 +19,9 @@ type Config struct {
 }
 
 func Load() (*Config, error) {
-	_ = loadEnvFile(".env")
+	if err := loadEnvFile(".env"); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return nil, fmt.Errorf("config: load .env failed: %w", err)
+	}
 
 	env := os.Getenv("APP_ENV")
 	if env == "" {
@@ -72,6 +77,8 @@ func loadEnvFile(filename string) error {
 	}
 	defer file.Close()
 
+	slog.Debug("config: loading environment overrides", slog.String("file", filename))
+
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
@@ -87,7 +94,9 @@ func loadEnvFile(filename string) error {
 		key := strings.TrimSpace(parts[0])
 		val := strings.TrimSpace(parts[1])
 		if key != "" {
-			_ = os.Setenv(key, val)
+			if err := os.Setenv(key, val); err != nil {
+				return fmt.Errorf("config: setenv %q failed: %w", key, err)
+			}
 		}
 	}
 

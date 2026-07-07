@@ -5,5 +5,5 @@ import "embed"
 //go:embed locales/*
 var LocalesFS embed.FS
 
-//go:embed services/web/ui/*
+//go:embed web/*
 var WebFS embed.FS

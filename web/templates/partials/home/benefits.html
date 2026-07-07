@@ -1,0 +1,57 @@
+{{define "section.benefits.html"}}
+<section id="benefits" class="relative min-h-[80vh] flex flex-col justify-between py-8 md:py-12 scroll-mt-16 md:scroll-mt-28">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center my-auto flex-grow">
+        <div class="section-sidebar">
+            <div class="section-marker-container">
+                 <span class="text-xs font-bold tracking-widest text-[#FF3366] rotate-90 my-4">02</span>
+                 <div class="section-marker-line"></div>
+            </div>
+        </div>
+        
+        <div class="lg:col-span-11 space-y-8">
+            <div class="section-title-wrap">
+                <div class="section-accent-line"></div>
+                <h2 class="section-accent-text">{{.T.Get "WhyNav"}}</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="benefit-card space-y-4">
+                    <span class="card-index">01</span>
+                    <h3 class="text-lg font-bold text-white tracking-tight">{{.T.Get "Why1Title"}}</h3>
+                    <p class="text-sm text-neutral-400 leading-relaxed tracking-tight">{{.T.Get "Why1Desc"}}</p>
+                </div>
+                <div class="benefit-card space-y-4">
+                    <span class="card-index">02</span>
+                    <h3 class="text-lg font-bold text-white tracking-tight">{{.T.Get "Why2Title"}}</h3>
+                    <p class="text-sm text-neutral-400 leading-relaxed tracking-tight">{{.T.Get "Why2Desc"}}</p>
+                </div>
+                <div class="benefit-card space-y-4">
+                    <span class="card-index">03</span>
+                    <h3 class="text-lg font-bold text-white tracking-tight">{{.T.Get "Why3Title"}}</h3>
+                    <p class="text-sm text-neutral-400 leading-relaxed tracking-tight">{{.T.Get "Why3Desc"}}</p>
+                </div>
+                <div class="benefit-card space-y-4">
+                    <span class="card-index">04</span>
+                    <h3 class="text-lg font-bold text-white tracking-tight">{{.T.Get "Why4Title"}}</h3>
+                    <p class="text-sm text-neutral-400 leading-relaxed tracking-tight">{{.T.Get "Why4Desc"}}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-footer-nav">
+        <div class="flex items-center space-x-4">
+            <a href="/#about" class="btn-icon">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path>
+                </svg>
+            </a>
+            <a href="/#skills" class="btn-icon">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+        </div>
+    </div>
+</section>
+{{end}}

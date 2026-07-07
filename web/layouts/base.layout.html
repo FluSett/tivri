@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="{{.Lang}}" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TIVRI</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22&gt;&lt;polygon points=%2250,15 85,50 50,85 15,50%22 fill=%22%23FF3366%22/&gt;&lt;/svg&gt;">
+    <meta name="description" content="TIVRI — premium full-stack engineering with unmatched architectural integrity. Build or improve your product with our senior engineers.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="/assets/js/app.js" defer></script>
+    <script src="/assets/js/admin.js" defer></script>
+    <script src="/assets/js/components/stepper.js" defer></script>
+    <script src="/assets/js/components/contact.js" defer></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/intersect@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script>
+        if (!window.__initialized) {
+            window.__initialized = true;
+            if (window.performance && window.performance.navigation && window.performance.navigation.type === 1) {
+                sessionStorage.removeItem('intake_step');
+                sessionStorage.removeItem('intake_budget');
+                sessionStorage.removeItem('intake_customBudget');
+                sessionStorage.removeItem('intake_scopeText');
+                sessionStorage.removeItem('intake_nameText');
+                sessionStorage.removeItem('intake_contactEmail');
+                sessionStorage.removeItem('intake_contactPhone');
+                sessionStorage.removeItem('intake_submitted');
+                sessionStorage.removeItem('openStepper');
+                sessionStorage.removeItem('contact_email');
+                sessionStorage.removeItem('contact_topic');
+                sessionStorage.removeItem('contact_message');
+                sessionStorage.removeItem('contact_submitted');
+            }
+        }
+    </script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/assets/css/theme.css">
+</head>
+<body class="min-h-screen flex flex-col justify-between font-sans selection:bg-[#FF3366] selection:text-white relative"
+      :class="mobileMenuOpen ? 'overflow-hidden' : ''"
+      x-data="{ mobileMenuOpen: false, openStepper: sessionStorage.getItem('openStepper') === 'true', init() { this.$watch('openStepper', val => sessionStorage.setItem('openStepper', val)) } }"
+      x-on:resize.window="if (window.innerWidth >= 768) mobileMenuOpen = false">
+    <div class="fixed inset-0 pointer-events-none z-0 flex justify-between w-full px-4 md:px-16 lg:px-24">
+        <div class="w-px h-full bg-white/[0.03]"></div>
+        <div class="w-px h-full bg-white/[0.03] hidden md:block"></div>
+        <div class="w-px h-full bg-white/[0.03] hidden md:block"></div>
+        <div class="w-px h-full bg-white/[0.03] hidden md:block"></div>
+        <div class="w-px h-full bg-white/[0.03]"></div>
+    </div>
+
+    <header id="site-header" class="fixed top-0 left-0 w-full z-50 transition-all duration-500 py-10 px-6 md:px-16 lg:px-24 bg-transparent border-transparent">
+        <div class="max-w-[1600px] mx-auto w-full flex justify-between items-center gap-4 relative z-10">
+            {{if .IsAdmin}}
+            <div class="flex items-center space-x-2"
+                  :class="mobileMenuOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 transition-opacity duration-300'">
+                <a href="/admin" onclick="if (window.location.pathname === '/' || window.location.pathname === '/admin') { event.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }" class="flex items-center space-x-3 group">
+                    <div class="relative w-6 h-6 flex items-center justify-center flex-shrink-0 logo-glow-anim">
+                        <div class="absolute inset-0 bg-[#FF3366] rounded-sm transform rotate-45 group-hover:rotate-90 transition-transform duration-500"></div>
+                        <div class="absolute w-2 h-2 bg-[#0A0A0A] rounded-full"></div>
+                    </div>
+                    <span class="text-2xl font-black tracking-tighter text-white group-hover:text-[#FF3366] transition-colors duration-300">TIVRI</span>
+                </a>
+                <span class="bg-[#FF3366]/20 border border-[#FF3366]/40 text-[#FF3366] font-mono text-[10px] font-black px-2 py-0.5 rounded tracking-widest uppercase">{{.T.Get "AdminMark"}}</span>
+            </div>
+            {{else}}
+            <div :class="mobileMenuOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 transition-opacity duration-300'">
+                <a href="/" onclick="if (window.location.pathname === '/' || window.location.pathname === '/admin') { event.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }" class="flex items-center space-x-3 group">
+                    <div class="relative w-6 h-6 flex items-center justify-center flex-shrink-0 logo-glow-anim">
+                        <div class="absolute inset-0 bg-[#FF3366] rounded-sm transform rotate-45 group-hover:rotate-90 transition-transform duration-500"></div>
+                        <div class="absolute w-2 h-2 bg-[#0A0A0A] rounded-full"></div>
+                    </div>
+                    <span class="text-2xl font-black tracking-tighter text-white group-hover:text-[#FF3366] transition-colors duration-300">TIVRI</span>
+                </a>
+            </div>
+            {{end}}
+
+            <!-- Header Right-side -->
+            <div class="flex items-center space-x-6 relative z-50">
+                <nav id="main-nav" class="hidden md:flex items-center space-x-6 lg:space-x-10">
+                    {{if .IsAdmin}}
+                        {{if not .IsAdminLogin}}
+                        <a href="/admin?tab=portfolio" class="nav-link text-sm font-medium transition-all duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-[#FF3366] after:transition-all after:duration-300 whitespace-nowrap {{if eq .AdminTab "portfolio"}}text-white after:w-full{{else}}text-neutral-400 hover:text-white after:w-0 hover:after:w-full{{end}}"><span>{{.T.Get "TabPortfolio"}}</span><span class="nav-active-dot"></span></a>
+                        <a href="/admin?tab=leads" class="nav-link text-sm font-medium transition-all duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-[#FF3366] after:transition-all after:duration-300 whitespace-nowrap {{if eq .AdminTab "leads"}}text-white after:w-full{{else}}text-neutral-400 hover:text-white after:w-0 hover:after:w-full{{end}}"><span>{{.T.Get "TabLeads"}}</span><span class="nav-active-dot"></span></a>
+                        <a href="/admin?tab=messages" class="nav-link text-sm font-medium transition-all duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-[#FF3366] after:transition-all after:duration-300 whitespace-nowrap {{if eq .AdminTab "messages"}}text-white after:w-full{{else}}text-neutral-400 hover:text-white after:w-0 hover:after:w-full{{end}}"><span>{{.T.Get "TabMessages"}}</span><span class="nav-active-dot"></span></a>
+                        {{end}}
+                    {{else}}
+                        <a href="/#about" data-section="about" class="nav-link text-sm font-medium text-neutral-400 hover:text-white transition-all duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-[#FF3366] hover:after:w-full after:transition-all after:duration-300 whitespace-nowrap"><span>{{.T.Get "AboutNav"}}</span><span class="nav-active-dot"></span></a>
+                        <a href="/#benefits" data-section="benefits" class="nav-link text-sm font-medium text-neutral-400 hover:text-white transition-all duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-[#FF3366] hover:after:w-full after:transition-all after:duration-300 whitespace-nowrap"><span>{{.T.Get "WhyNav"}}</span><span class="nav-active-dot"></span></a>
+                        <a href="/#skills" data-section="skills" class="nav-link text-sm font-medium text-neutral-400 hover:text-white transition-all duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-[#FF3366] hover:after:w-full after:transition-all after:duration-300 whitespace-nowrap"><span>{{.T.Get "SkillsNav"}}</span><span class="nav-active-dot"></span></a>
+                        <a href="/#portfolio" data-section="portfolio" class="nav-link text-sm font-medium text-neutral-400 hover:text-white transition-all duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-[#FF3366] hover:after:w-full after:transition-all after:duration-300 whitespace-nowrap"><span>{{.T.Get "PortfolioNav"}}</span><span class="nav-active-dot"></span></a>
+                        <a href="/#contact" data-section="contact" class="nav-link text-sm font-medium text-neutral-400 hover:text-white transition-all duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-[#FF3366] hover:after:w-full after:transition-all after:duration-300 whitespace-nowrap flex items-center">
+                            <span class="contact-blink">{{.T.Get "ContactNav"}}</span>
+                            <span class="nav-active-dot"></span>
+                        </a>
+                    {{end}}
+                </nav>
+
+                <!-- Header Language Selector -->
+                <div class="h-4 w-px bg-white/20 hidden md:block mx-2"></div>
+                <div class="relative {{if not .IsAdminLogin}}hidden md:block{{end}}" x-data="{ open: false }">
+                    <button @click="open = !open" class="flex items-center space-x-1 text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white focus:outline-none transition-colors">
+                        <span>{{if eq .Lang "en"}}EN{{else if eq .Lang "uk"}}UA{{else}}RU{{end}}</span>
+                        <svg class="w-3 h-3 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div x-show="open"
+                          @click.outside="open = false"
+                          x-transition:enter="transition ease-out duration-100"
+                          x-transition:enter-start="opacity-0 scale-95"
+                          x-transition:enter-end="opacity-100 scale-100"
+                          x-transition:leave="transition ease-in duration-75"
+                          x-transition:leave-start="opacity-100 scale-100"
+                          x-transition:leave-end="opacity-0 scale-95"
+                          class="absolute right-0 mt-2 w-20 bg-[#0A0A0A] border border-white/[0.08] rounded-lg shadow-xl py-1 z-50 text-left"
+                          x-cloak>
+                        <button type="button" {{if eq .Lang "en"}}disabled class="w-full text-left block px-4 py-2 text-xs font-semibold text-[#FF3366] pointer-events-none cursor-default"{{else}}hx-get="/api/lang?lang=en" hx-target="body" hx-swap="outerHTML" class="w-full text-left block px-4 py-2 text-xs font-semibold text-neutral-400 hover:text-white hover:bg-white/[0.04] transition-colors"{{end}}>EN</button>
+                        <button type="button" {{if eq .Lang "uk"}}disabled class="w-full text-left block px-4 py-2 text-xs font-semibold text-[#FF3366] pointer-events-none cursor-default"{{else}}hx-get="/api/lang?lang=uk" hx-target="body" hx-swap="outerHTML" class="w-full text-left block px-4 py-2 text-xs font-semibold text-neutral-400 hover:text-white hover:bg-white/[0.04] transition-colors"{{end}}>UA</button>
+                        <button type="button" {{if eq .Lang "ru"}}disabled class="w-full text-left block px-4 py-2 text-xs font-semibold text-[#FF3366] pointer-events-none cursor-default"{{else}}hx-get="/api/lang?lang=ru" hx-target="body" hx-swap="outerHTML" class="w-full text-left block px-4 py-2 text-xs font-semibold text-neutral-400 hover:text-white hover:bg-white/[0.04] transition-colors"{{end}}>RU</button>
+                    </div>
+                </div>
+
+                {{if not .IsAdminLogin}}
+                <button class="md:hidden text-neutral-400 hover:text-white focus:outline-none transition-colors"
+                        @click="mobileMenuOpen = true">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+                {{end}}
+        </div>
+    </header>
+
+    <!-- Mobile Slide Menu Container -->
+    <div x-show="mobileMenuOpen" x-cloak class="fixed inset-0 z-[100] md:hidden" role="dialog" aria-modal="true">
+        <!-- Mobile Menu Backdrop -->
+        <div x-show="mobileMenuOpen"
+             x-transition:enter="transition-opacity ease-linear duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition-opacity ease-linear duration-300"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 bg-black/80"
+             @click="mobileMenuOpen = false">
+        </div>
+
+        <!-- Mobile Menu Slide-Out Panel Wrapper -->
+        <div class="fixed inset-0 flex z-[110] pointer-events-none">
+            <!-- Mobile Menu Slide-Out Panel -->
+            <div x-show="mobileMenuOpen"
+                 x-transition:enter="transition ease-in-out duration-300 transform"
+                 x-transition:enter-start="translate-x-full"
+                 x-transition:enter-end="translate-x-0"
+                 x-transition:leave="transition ease-in-out duration-300 transform"
+                 x-transition:leave-start="translate-x-0"
+                 x-transition:leave-end="translate-x-full"
+                 class="relative ml-auto flex h-full w-[80%] max-w-[280px] flex-col justify-between bg-black/40 backdrop-blur-md border-l border-white/[0.08] p-8 shadow-2xl pointer-events-auto">
+                 
+                 <!-- Close Button Row -->
+                 <div class="flex justify-end w-full pt-2">
+                     <button class="text-neutral-400 hover:text-white focus:outline-none focus:ring-0 select-none outline-none transition-all duration-300 hover:rotate-90 transform"
+                             @click="mobileMenuOpen = false">
+                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                         </svg>
+                     </button>
+                 </div>
+
+                 <!-- Centered Logo inside Mobile Panel -->
+                 <div class="w-full flex justify-center mt-6">
+                    <a href="/" x-on:click="if (window.location.pathname === '/' || window.location.pathname === '/admin') { $event.preventDefault(); mobileMenuOpen = false; window.scrollTo({ top: 0, behavior: 'smooth' }); }" class="flex items-center space-x-3 group">
+                        <div class="relative w-6 h-6 flex items-center justify-center flex-shrink-0 logo-glow-anim">
+                            <div class="absolute inset-0 bg-[#FF3366] rounded-sm transform rotate-45 group-hover:rotate-90 transition-transform duration-500"></div>
+                            <div class="absolute w-2 h-2 bg-[#0A0A0A] rounded-full"></div>
+                        </div>
+                        <span class="text-2xl font-black tracking-tighter text-white group-hover:text-[#FF3366] transition-colors duration-300">TIVRI</span>
+                        {{if .IsAdmin}}
+                        <span class="bg-[#FF3366]/20 border border-[#FF3366]/40 text-[#FF3366] font-mono text-[10px] font-black px-2 py-0.5 rounded tracking-widest uppercase">{{.T.Get "AdminMark"}}</span>
+                        {{end}}
+                    </a>
+                 </div>
+
+                 <!-- Mobile Panel Links -->
+                 <div class="flex-grow flex flex-col justify-center py-8">
+                     {{if and .IsAdmin (not .IsAdminLogin)}}
+                     <div class="flex flex-col items-start space-y-6">
+                         <a href="/admin?tab=portfolio" @click="mobileMenuOpen = false" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "TabPortfolio"}}</a>
+                         <a href="/admin?tab=leads" @click="mobileMenuOpen = false" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "TabLeads"}}</a>
+                         <a href="/admin?tab=messages" @click="mobileMenuOpen = false" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "TabMessages"}}</a>
+                     </div>
+                     {{else if not .IsAdmin}}
+                     <div class="flex flex-col items-start space-y-6">
+                         <a href="/#about" @click="mobileMenuOpen = false" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "AboutNav"}}</a>
+                         <a href="/#benefits" @click="mobileMenuOpen = false" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "WhyNav"}}</a>
+                         <a href="/#skills" @click="mobileMenuOpen = false" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "SkillsNav"}}</a>
+                         <a href="/#portfolio" @click="mobileMenuOpen = false" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "PortfolioNav"}}</a>
+                         <a href="/#contact" @click="mobileMenuOpen = false" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "ContactNav"}}</a>
+                     </div>
+                     {{end}}
+                 </div>
+
+                 <!-- Mobile Panel Footer -->
+                 <div class="pb-2 text-center">
+                     <div class="h-px w-full bg-white/10 mb-8"></div>
+                     <div class="flex items-center justify-center space-x-5">
+                          <button type="button" {{if eq .Lang "en"}}disabled class="text-xs font-bold uppercase tracking-wider text-[#FF3366] pointer-events-none cursor-default"{{else}}hx-get="/api/lang?lang=en" hx-target="body" hx-swap="outerHTML" @click="mobileMenuOpen = false" class="text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white hover:scale-105 transition-all duration-200"{{end}}>EN</button>
+                          <button type="button" {{if eq .Lang "uk"}}disabled class="text-xs font-bold uppercase tracking-wider text-[#FF3366] pointer-events-none cursor-default"{{else}}hx-get="/api/lang?lang=uk" hx-target="body" hx-swap="outerHTML" @click="mobileMenuOpen = false" class="text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white hover:scale-105 transition-all duration-200"{{end}}>UA</button>
+                          <button type="button" {{if eq .Lang "ru"}}disabled class="text-xs font-bold uppercase tracking-wider text-[#FF3366] pointer-events-none cursor-default"{{else}}hx-get="/api/lang?lang=ru" hx-target="body" hx-swap="outerHTML" @click="mobileMenuOpen = false" class="text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white hover:scale-105 transition-all duration-200"{{end}}>RU</button>
+                     </div>
+                     <p class="text-xs text-neutral-500 tracking-wider mt-12 pb-1">&copy; 2026 TIVRI. {{.T.Get "RightsReserved"}}</p>
+                 </div>
+            </div>
+        </div>
+    </div>
+
+    <main class="w-full max-w-[1600px] mx-auto px-6 md:px-16 lg:px-24 pt-32 pb-16 flex-grow relative z-10">
+        {{template "content" .}}
+    </main>
+
+    <footer id="site-footer" class="w-full border-t transition-all duration-700 ease-out px-6 md:px-16 lg:px-24 relative z-10 bg-transparent border-transparent py-12">
+        <div class="max-w-[1600px] mx-auto w-full grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+            <div class="md:col-span-5 space-y-4">
+                <div class="flex items-center space-x-3">
+                    <a href="/" onclick="if (window.location.pathname === '/' || window.location.pathname === '/admin') { event.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }" class="flex items-center space-x-3 group">
+                        <div class="relative w-6 h-6 flex items-center justify-center flex-shrink-0 logo-glow-anim">
+                            <div class="absolute inset-0 bg-[#FF3366] rounded-sm transform rotate-45 group-hover:rotate-90 transition-transform duration-500"></div>
+                            <div class="absolute w-2 h-2 bg-[#0A0A0A] rounded-full"></div>
+                        </div>
+                        <span class="text-2xl font-black tracking-tighter text-white group-hover:text-[#FF3366] transition-colors duration-300">TIVRI</span>
+                    </a>
+                    {{if .IsAdmin}}
+                    <span class="bg-[#FF3366]/20 border border-[#FF3366]/40 text-[#FF3366] font-mono text-[10px] font-black px-2 py-0.5 rounded tracking-widest uppercase">{{.T.Get "AdminMark"}}</span>
+                    {{end}}
+                </div>
+                <p class="text-sm text-neutral-400 max-w-sm leading-relaxed">{{.T.Get "FooterIntro"}}</p>
+            </div>
+
+            <div class="md:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-8">
+                <!-- Sitemap -->
+                {{if not .IsAdminLogin}}
+                <div class="space-y-3">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-neutral-500">{{.T.Get "SitemapTitle"}}</h4>
+                    <nav class="flex flex-col space-y-2">
+                        {{if .IsAdmin}}
+                        <a href="/admin?tab=portfolio" class="text-sm font-medium text-neutral-400 hover:text-white transition-colors w-max">{{.T.Get "TabPortfolio"}}</a>
+                        <a href="/admin?tab=leads" class="text-sm font-medium text-neutral-400 hover:text-white transition-colors w-max">{{.T.Get "TabLeads"}}</a>
+                        <a href="/admin?tab=messages" class="text-sm font-medium text-neutral-400 hover:text-white transition-colors w-max">{{.T.Get "TabMessages"}}</a>
+                        {{else}}
+                        <a href="/#about" class="text-sm font-medium text-neutral-400 hover:text-white transition-colors w-max">{{.T.Get "AboutNav"}}</a>
+                        <a href="/#benefits" class="text-sm font-medium text-neutral-400 hover:text-white transition-colors w-max">{{.T.Get "WhyNav"}}</a>
+                        <a href="/#skills" class="text-sm font-medium text-neutral-400 hover:text-white transition-colors w-max">{{.T.Get "SkillsNav"}}</a>
+                        <a href="/#portfolio" class="text-sm font-medium text-neutral-400 hover:text-white transition-colors w-max">{{.T.Get "PortfolioNav"}}</a>
+                        <a href="/#contact" class="text-sm font-medium text-neutral-400 hover:text-white transition-colors flex items-center space-x-1.5 w-max">
+                            <span>{{.T.Get "ContactNav"}}</span>
+                            <span class="inline-block w-2 h-2 bg-[#FF3366] animate-pulse rounded-sm"></span>
+                        </a>
+                        {{end}}
+                    </nav>
+                </div>
+                {{else}}
+                <div></div>
+                {{end}}
+
+                <!-- Socials & Warning Notice -->
+                <div class="space-y-4">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-neutral-500">{{.T.Get "SocialTitle"}}</h4>
+                    <div class="flex items-center gap-4">
+                        <a href="https://x.com" target="_blank" rel="noopener noreferrer" class="relative w-9 h-9 flex items-center justify-center group logo-glow-anim">
+                            <div class="absolute inset-0 bg-white/[0.03] border border-white/[0.08] rounded-sm transform rotate-45 group-hover:rotate-90 group-hover:border-[#FF3366] group-hover:bg-[#FF3366]/10 transition-all duration-500"></div>
+                            <svg class="w-4 h-4 text-neutral-400 group-hover:text-white transition-colors relative z-10" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                            </svg>
+                        </a>
+                        <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="relative w-9 h-9 flex items-center justify-center group logo-glow-anim">
+                            <div class="absolute inset-0 bg-white/[0.03] border border-white/[0.08] rounded-sm transform rotate-45 group-hover:rotate-90 group-hover:border-[#FF3366] group-hover:bg-[#FF3366]/10 transition-all duration-500"></div>
+                            <svg class="w-4 h-4 text-neutral-400 group-hover:text-white transition-colors relative z-10" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.8v8.37h2.8v-4.67c0-.25.02-.5.1-.68a1.14 1.14 0 0 1 1-.77c.76 0 1 .56 1 1.39v4.73h2.8M6.5 8.37a1.37 1.37 0 0 0 1.3-1.3A1.3 1.3 0 0 0 6.5 5.7a1.3 1.3 0 0 0-1.3 1.3A1.37 1.37 0 0 0 6.5 8.37M8 18.5V10.1H5.2v8.4H8z"/>
+                            </svg>
+                        </a>
+                        <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" class="relative w-9 h-9 flex items-center justify-center group logo-glow-anim">
+                            <div class="absolute inset-0 bg-white/[0.03] border border-white/[0.08] rounded-sm transform rotate-45 group-hover:rotate-90 group-hover:border-[#FF3366] group-hover:bg-[#FF3366]/10 transition-all duration-500"></div>
+                            <svg class="w-4 h-4 text-neutral-400 group-hover:text-white transition-colors relative z-10" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.06-2.89-.52-4.06-1.39-.17-.13-.32-.27-.47-.41v5.3c-.07 1.7-.58 3.44-1.74 4.67-1.25 1.34-3.14 2.04-4.94 1.94-2.12-.13-4.16-1.42-4.96-3.39-.9-2.22-.3-4.95 1.48-6.52 1.4-1.23 3.39-1.71 5.21-1.27v4.11c-1.04-.37-2.23-.1-2.98.67-.7.72-.88 1.88-.42 2.78.47.92 1.55 1.44 2.58 1.31 1.05-.13 1.89-.98 1.99-2.03.04-1.72.01-10.75.01-10.75z"/>
+                            </svg>
+                        </a>
+                    </div>
+                    <div class="text-[11px] text-neutral-500 leading-normal max-w-xs flex items-start gap-1.5 pt-2">
+                        <svg class="w-3.5 h-3.5 text-[#FF3366] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        <span>{{.T.Get "SocialsWarning"}}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="max-w-[1600px] mx-auto w-full border-t border-white/[0.05] mt-8 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-neutral-500">
+            <p class="tracking-tight">&copy; 2026 TIVRI. {{.T.Get "RightsReserved"}}</p>
+            <p class="tracking-tight">{{.T.Get "CraftedWith"}}</p>
+        </div>
+    </footer>
+</body>
+</html>
