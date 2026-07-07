@@ -36,6 +36,7 @@ type PageData struct {
 	IsAdminLogin    bool
 	AdminTab        string
 	Error           string
+	HighQueueActive bool
 }
 
 type App struct {
@@ -208,6 +209,27 @@ func New(ctx context.Context) (*App, error) {
 		securityMgr:      securityMgr,
 		eventBus:         eventBus,
 	}, nil
+}
+
+func (a *App) getHighQueueSetting(ctx context.Context) (bool, error) {
+	var val string
+	err := a.db.QueryRow(ctx, "SELECT value FROM system_settings WHERE key = $1", "high_queue").Scan(&val)
+	if err != nil {
+		return false, fmt.Errorf("app: get high_queue setting failed: %w", err)
+	}
+	return val == "true", nil
+}
+
+func (a *App) setHighQueueSetting(ctx context.Context, enabled bool) error {
+	val := "false"
+	if enabled {
+		val = "true"
+	}
+	_, err := a.db.Exec(ctx, "INSERT INTO system_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value", "high_queue", val)
+	if err != nil {
+		return fmt.Errorf("app: set high_queue setting failed: %w", err)
+	}
+	return nil
 }
 
 func (a *App) Close() error {

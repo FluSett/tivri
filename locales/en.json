@@ -143,5 +143,16 @@
   "LoginSubtitle": "This area is restricted to site administrators.",
   "LabelUsername": "Username",
   "LabelPassword": "Password",
-  "BtnLogin": "Login"
+  "BtnLogin": "Login",
+  "DeadlineStepTitle": "Timeline & Urgency",
+  "DeadlineStepHint": "Help us understand your project schedule and priority requirements.",
+  "DeadlineLabel": "Do you have a strict launch deadline?",
+  "DeadlineSpecPlaceholder": "Specify target date or timeframe (e.g. End of Q3, or October 15th)...",
+  "DeadlinePriorityInfo": "Note: Requesting priority processing ensures your project is first in our queue, which may incur an additional fee. If another client has requested priority for the same period, we will coordinate and notify you regarding exact start windows.",
+  "HighQueueWarning": "We are currently experiencing a high volume of project requests. Initial start times may be longer than expected.",
+  "AdminHighQueueLabel": "High Queue Status Warning",
+  "AdminHighQueueHint": "Enable to display a high-queue warning alert to new clients during intake.",
+  "DeadlineCol": "Deadline Details",
+  "DeadlineUnavailableMsg": "Priority deadline selection is currently unavailable because we are experiencing a high volume of requests. We are processing active queues first.",
+  "QueueNotice": "Queue Notice"
 }

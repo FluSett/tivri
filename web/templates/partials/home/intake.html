@@ -1,6 +1,6 @@
 {{define "home.intake.html"}}
 <div class="border border-white/[0.08] bg-white/[0.02] p-8 rounded-xl hover:border-[#FF3366]/30 hover:shadow-[0_0_30px_rgba(255,51,102,0.05)] transition-all duration-500"
-     x-data="stepper">
+     x-data="stepper({{.HighQueueActive}})">
     
     <div x-show="!openStepper" x-collapse class="space-y-6">
         <h3 class="text-xl font-bold text-white tracking-tight">{{.T.Get "ContactHeadline"}}</h3>
@@ -45,6 +45,18 @@
                   :style="'width: ' + ((step / totalSteps) * 100) + '%'"></div>
             </div>
 
+            {{if .HighQueueActive}}
+            <div class="p-4 border border-yellow-500/20 bg-yellow-500/5 text-yellow-400 rounded-xl space-y-1">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    <span class="text-xs font-bold uppercase tracking-wider">{{.T.Get "QueueNotice"}}</span>
+                </div>
+                <p class="text-[11px] text-neutral-300 leading-normal">{{.T.Get "HighQueueWarning"}}</p>
+            </div>
+            {{end}}
+
             <form id="intake-form"
                   hx-post="/api/intake"
                   hx-target="this"
@@ -54,6 +66,8 @@
                 <input type="hidden" name="lang" value="{{.Lang}}">
                 <input type="hidden" name="budget" :value="budget">
                 <input type="hidden" name="custom_budget" :value="budget === 'other' ? customBudget : ''">
+                <input type="hidden" name="deadline_needed" :value="deadlineNeeded ? 'true' : 'false'">
+                <input type="hidden" name="deadline_spec" :value="deadlineNeeded ? deadlineSpec : ''">
 
                 <div x-show="step === 1" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-4">
                     <div class="space-y-1">
@@ -129,6 +143,68 @@
 
                 <div x-show="step === 3" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-4">
                     <div class="space-y-1">
+                        <label class="form-label">{{.T.Get "DeadlineStepTitle"}}</label>
+                        <p class="text-[11px] text-neutral-400 mb-2">{{.T.Get "DeadlineStepHint"}}</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <button type="button" 
+                                @click="if (!highQueueActive) { deadlineNeeded = true }"
+                                :class="deadlineNeeded ? 'btn-choice-active' : 'btn-choice'"
+                                :disabled="highQueueActive"
+                                class="btn-choice flex flex-col justify-between min-h-[70px] disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span class="text-xs font-bold uppercase tracking-wider">Strict Deadline</span>
+                            <span class="text-[10px] text-neutral-500 mt-1">Select if you have a launch target</span>
+                        </button>
+                        <button type="button" 
+                                @click="deadlineNeeded = false"
+                                :class="!deadlineNeeded ? 'btn-choice-active' : 'btn-choice'"
+                                :disabled="highQueueActive"
+                                class="btn-choice flex flex-col justify-between min-h-[70px] disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span class="text-xs font-bold uppercase tracking-wider">Standard Delivery</span>
+                            <span class="text-[10px] text-neutral-500 mt-1">Flexible processing queue</span>
+                        </button>
+                    </div>
+
+                    <div x-show="highQueueActive" class="text-[11px] text-neutral-400 bg-white/[0.02] border border-white/[0.08] p-3 rounded-lg leading-normal">
+                        {{.T.Get "DeadlineUnavailableMsg"}}
+                    </div>
+
+                    <div x-show="deadlineNeeded && !highQueueActive" x-transition class="space-y-2">
+                        <input type="text"
+                               x-model="deadlineSpec"
+                               maxlength="300"
+                               @input.debounce.500ms="deadlineTouched = true"
+                               @blur="deadlineTouched = true"
+                               class="form-input"
+                               placeholder="{{.T.Get "DeadlineSpecPlaceholder"}}">
+                        <div class="flex justify-between items-center text-[10px]">
+                            <span x-show="deadlineTouched && deadlineSpec.trim().length < 2" class="text-[#FF3366] font-medium">
+                                {{.T.Get "ValMinChars2"}}
+                            </span>
+                            <span x-show="!deadlineTouched || deadlineSpec.trim().length >= 2"></span>
+                            <span class="text-neutral-400 font-semibold font-mono text-xs" x-text="deadlineSpec.length + ' / 300'"></span>
+                        </div>
+                        <p class="text-[10px] text-neutral-500 leading-relaxed">{{.T.Get "DeadlinePriorityInfo"}}</p>
+                    </div>
+
+                    <div class="flex justify-between items-center pt-2">
+                        <div class="flex gap-2">
+                            <button type="button" @click="step = 2"
+                                    class="btn-secondary">
+                                {{.T.Get "PrevBtn"}}
+                            </button>
+                        </div>
+                        <button type="button" @click="step = 4"
+                                class="btn-primary-form"
+                                :disabled="!canGoNext(3)">
+                            {{.T.Get "NextBtn"}}
+                        </button>
+                    </div>
+                </div>
+
+                <div x-show="step === 4" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-4">
+                    <div class="space-y-1">
                         <label class="form-label">{{.T.Get "BudgetValueLabel"}}</label>
                     </div>
                     <div class="grid grid-cols-2 gap-3">
@@ -195,20 +271,20 @@
                     
                     <div class="flex justify-between items-center pt-2">
                         <div class="flex gap-2">
-                            <button type="button" @click="step = 2"
+                            <button type="button" @click="step = 3"
                                     class="btn-secondary">
                                 {{.T.Get "PrevBtn"}}
                             </button>
                         </div>
-                        <button type="button" @click="step = 4"
+                        <button type="button" @click="step = 5"
                                 class="btn-primary-form"
-                                :disabled="!canGoNext(3)">
+                                :disabled="!canGoNext(4)">
                             {{.T.Get "NextBtn"}}
                         </button>
                     </div>
                 </div>
 
-                <div x-show="step === 4" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-5">
+                <div x-show="step === 5" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-5">
                     <div class="space-y-1">
                         <label class="form-label">{{.T.Get "ContactStepTitle"}}</label>
                         <p class="text-xs text-neutral-400">{{.T.Get "ContactStepHint"}}</p>
@@ -244,7 +320,7 @@
                     </div>
 
                     <div class="flex justify-between pt-2">
-                        <button type="button" @click="step = 3"
+                        <button type="button" @click="step = 4"
                                 class="btn-secondary">
                             {{.T.Get "PrevBtn"}}
                         </button>
