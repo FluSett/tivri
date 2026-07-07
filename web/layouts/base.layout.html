@@ -19,24 +19,29 @@
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script>
-        if (!window.__initialized) {
-            window.__initialized = true;
-            if (window.performance && window.performance.navigation && window.performance.navigation.type === 1) {
-                sessionStorage.removeItem('intake_step');
-                sessionStorage.removeItem('intake_budget');
-                sessionStorage.removeItem('intake_customBudget');
-                sessionStorage.removeItem('intake_scopeText');
-                sessionStorage.removeItem('intake_nameText');
-                sessionStorage.removeItem('intake_contactEmail');
-                sessionStorage.removeItem('intake_contactPhone');
-                sessionStorage.removeItem('intake_submitted');
-                sessionStorage.removeItem('openStepper');
-                sessionStorage.removeItem('contact_email');
-                sessionStorage.removeItem('contact_topic');
-                sessionStorage.removeItem('contact_message');
-                sessionStorage.removeItem('contact_submitted');
+        (function() {
+            if (sessionStorage.getItem('tivri_htmx_nav') === 'true') {
+                sessionStorage.removeItem('tivri_htmx_nav');
+                return;
             }
-        }
+            sessionStorage.removeItem('intake_step');
+            sessionStorage.removeItem('intake_budget');
+            sessionStorage.removeItem('intake_customBudget');
+            sessionStorage.removeItem('intake_scopeText');
+            sessionStorage.removeItem('intake_nameText');
+            sessionStorage.removeItem('intake_contactEmail');
+            sessionStorage.removeItem('intake_contactPhone');
+            sessionStorage.removeItem('intake_submitted');
+            sessionStorage.removeItem('openStepper');
+            sessionStorage.removeItem('contact_showForm');
+            sessionStorage.removeItem('contact_email');
+            sessionStorage.removeItem('contact_topic');
+            sessionStorage.removeItem('contact_message');
+            sessionStorage.removeItem('contact_submitted');
+            sessionStorage.removeItem('admin_portfolio_title');
+            sessionStorage.removeItem('admin_portfolio_description');
+            sessionStorage.removeItem('admin_portfolio_techStack');
+        })();
     </script>
     <script>
         tailwind.config = {
