@@ -27,12 +27,17 @@
                 </div>
 
                 <form x-show="!submitted"
+                      id="contact-form"
+                      @submit.prevent="handleSubmit($event)"
                       hx-post="/api/contact" 
                       hx-target="this" 
                       hx-swap="none" 
-                      @htmx:after-request="if($event.detail.successful) { submitted = true; email = ''; topic = ''; message = ''; sessionStorage.removeItem('contact_email'); sessionStorage.removeItem('contact_topic'); sessionStorage.removeItem('contact_message'); }"
+                      @htmx:after-request="if($event.detail.successful) { submitted = true; email = ''; topic = ''; message = ''; sessionStorage.removeItem('contact_email'); sessionStorage.removeItem('contact_topic'); sessionStorage.removeItem('contact_message'); } submitStatus = 'idle';"
                       class="space-y-4">
                     <input type="hidden" name="lang" value="{{.Lang}}">
+                    {{if .TurnstileSiteKey}}
+                    <input type="hidden" name="cf-turnstile-response" x-model="turnstileToken">
+                    {{end}}
                     
                     <div class="space-y-1">
                         <label class="form-label">{{.T.Get "FormEmailLabel"}}</label>
@@ -71,13 +76,25 @@
                             <span class="text-neutral-400 font-semibold font-mono text-xs" x-text="message.length + ' / 1000'"></span>
                         </div>
                     </div>
+
+                    {{if .TurnstileSiteKey}}
+                    <div class="flex justify-center py-2">
+                        <div x-ref="turnstileContainer"></div>
+                    </div>
+                    {{end}}
                     
                     <div id="contact-status">
                         <button type="submit" 
-                                :disabled="email.trim().length < 5 || !email.includes('@') || !email.includes('.') || topic.trim().length < 3 || message.trim().length < 10"
-                                :class="(email.trim().length < 5 || !email.includes('@') || !email.includes('.') || topic.trim().length < 3 || message.trim().length < 10) ? 'bg-white/10 text-neutral-500 cursor-not-allowed border-transparent' : 'bg-transparent text-white border border-[#FF3366] hover:bg-[#FF3366] hover:shadow-[0_0_15px_rgba(255,51,102,0.4)]'"
-                                class="w-full font-bold text-xs uppercase tracking-wider py-3 rounded-lg transition-all duration-300">
-                            {{.T.Get "FormSubmitBtn"}}
+                                :disabled="submitStatus !== 'idle' || email.trim().length < 5 || !email.includes('@') || !email.includes('.') || topic.trim().length < 3 || message.trim().length < 10"
+                                :class="(email.trim().length < 5 || !email.includes('@') || !email.includes('.') || topic.trim().length < 3 || message.trim().length < 10) ? 'bg-white/10 text-neutral-500 cursor-not-allowed border-transparent' : (submitStatus !== 'idle' ? 'bg-[#FF3366] text-white border border-[#FF3366] cursor-wait shadow-[0_0_15px_rgba(255,51,102,0.4)]' : 'bg-transparent text-white border border-[#FF3366] hover:bg-[#FF3366] hover:shadow-[0_0_15px_rgba(255,51,102,0.4)]')"
+                                class="w-full font-bold text-xs uppercase tracking-wider py-3 rounded-lg transition-all duration-300 flex items-center justify-center space-x-2">
+                            <span x-show="submitStatus === 'idle'">{{.T.Get "FormSubmitBtn"}}</span>
+                            <span x-show="submitStatus !== 'idle'" class="flex items-center space-x-2">
+                                <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            </span>
                         </button>
                     </div>
                 </form>

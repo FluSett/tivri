@@ -10,12 +10,14 @@ import (
 )
 
 type Config struct {
-	Env           string
-	DBDSN         string
-	AdminUsername string
-	AdminPassword string
-	Port          string
-	LocalesDir    string
+	Env                string
+	DBDSN              string
+	AdminUsername      string
+	AdminPassword      string
+	Port               string
+	LocalesDir         string
+	TurnstileSiteKey   string
+	TurnstileSecretKey string
 }
 
 func Load() (*Config, error) {
@@ -57,13 +59,18 @@ func Load() (*Config, error) {
 		localesDir = "locales"
 	}
 
+	turnstileSiteKey := os.Getenv("TURNSTILE_SITE_KEY")
+	turnstileSecretKey := os.Getenv("TURNSTILE_SECRET_KEY")
+
 	return &Config{
-		Env:           env,
-		DBDSN:         dbDSN,
-		AdminUsername: adminUsername,
-		AdminPassword: adminPassword,
-		Port:          port,
-		LocalesDir:    localesDir,
+		Env:                env,
+		DBDSN:              dbDSN,
+		AdminUsername:      adminUsername,
+		AdminPassword:      adminPassword,
+		Port:               port,
+		LocalesDir:         localesDir,
+		TurnstileSiteKey:   turnstileSiteKey,
+		TurnstileSecretKey: turnstileSecretKey,
 	}, nil
 }
 

@@ -53,6 +53,7 @@ func (a *App) newRouter() (http.Handler, error) {
 			IsAdmin:         false,
 			AdminTab:        tab,
 			HighQueueActive: highQueueActive,
+			TurnstileSiteKey: a.cfg.TurnstileSiteKey,
 		}
 
 		var tmplKey string
@@ -122,10 +123,11 @@ func (a *App) newRouter() (http.Handler, error) {
 		if r.Method == http.MethodGet {
 			lang := security.ResolveLocale(r)
 			data := PageData{
-				Lang:         lang,
-				T:            a.translator.Get(lang),
-				IsAdmin:      true,
-				IsAdminLogin: true,
+				Lang:             lang,
+				T:                a.translator.Get(lang),
+				IsAdmin:          true,
+				IsAdminLogin:     true,
+				TurnstileSiteKey: a.cfg.TurnstileSiteKey,
 			}
 
 			err = a.templates["login"].ExecuteTemplate(w, "base.layout.html", data)
@@ -140,11 +142,12 @@ func (a *App) newRouter() (http.Handler, error) {
 			if a.securityMgr.IsLockedOut(r) {
 				lang := security.ResolveLocale(r)
 				data := PageData{
-					Lang:         lang,
-					T:            a.translator.Get(lang),
-					IsAdmin:      true,
-					IsAdminLogin: true,
-					Error:        "Too many failed attempts. Locked out for 60 seconds.",
+					Lang:             lang,
+					T:                a.translator.Get(lang),
+					IsAdmin:          true,
+					IsAdminLogin:     true,
+					Error:            "Too many failed attempts. Locked out for 60 seconds.",
+					TurnstileSiteKey: a.cfg.TurnstileSiteKey,
 				}
 
 				w.WriteHeader(http.StatusTooManyRequests)
@@ -163,11 +166,12 @@ func (a *App) newRouter() (http.Handler, error) {
 				a.securityMgr.RecordFailedAttempt(r)
 				lang := security.ResolveLocale(r)
 				data := PageData{
-					Lang:         lang,
-					T:            a.translator.Get(lang),
-					IsAdmin:      true,
-					IsAdminLogin: true,
-					Error:        "Invalid username or password",
+					Lang:             lang,
+					T:                a.translator.Get(lang),
+					IsAdmin:          true,
+					IsAdminLogin:     true,
+					Error:            "Invalid username or password",
+					TurnstileSiteKey: a.cfg.TurnstileSiteKey,
 				}
 
 				w.WriteHeader(http.StatusUnauthorized)
@@ -247,6 +251,7 @@ func (a *App) newRouter() (http.Handler, error) {
 				IsAdmin:         true,
 				AdminTab:        tab,
 				HighQueueActive: highQueueActive,
+				TurnstileSiteKey: a.cfg.TurnstileSiteKey,
 			}
 
 			err = a.templates["admin"].ExecuteTemplate(w, "base.layout.html", data)
@@ -282,8 +287,9 @@ func (a *App) newRouter() (http.Handler, error) {
 			w.WriteHeader(http.StatusNotFound)
 			lang := security.ResolveLocale(r)
 			data := PageData{
-				Lang: lang,
-				T:    a.translator.Get(lang),
+				Lang:             lang,
+				T:                a.translator.Get(lang),
+				TurnstileSiteKey: a.cfg.TurnstileSiteKey,
 			}
 
 			err = a.templates["notFound"].ExecuteTemplate(w, "base.layout.html", data)
@@ -307,6 +313,7 @@ func (a *App) newRouter() (http.Handler, error) {
 			T:               a.translator.Get(lang),
 			PortfolioItems:  items,
 			HighQueueActive: highQueueActive,
+			TurnstileSiteKey: a.cfg.TurnstileSiteKey,
 		}
 
 		err = a.templates["home"].ExecuteTemplate(w, "base.layout.html", data)

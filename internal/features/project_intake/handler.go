@@ -5,11 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
+	"tivri/internal/core/security"
 	"tivri/internal/eventbus"
 	"tivri/internal/i18n"
 )
@@ -19,18 +21,20 @@ type HTMLRenderer interface {
 }
 
 type Handler struct {
-	repo       Repository
-	bus        eventbus.Bus
-	renderer   HTMLRenderer
-	translator *i18n.Translator
+	repo            Repository
+	bus             eventbus.Bus
+	renderer        HTMLRenderer
+	translator      *i18n.Translator
+	turnstileSecret string
 }
 
-func NewHandler(repo Repository, bus eventbus.Bus, renderer HTMLRenderer, translator *i18n.Translator) *Handler {
+func NewHandler(repo Repository, bus eventbus.Bus, renderer HTMLRenderer, translator *i18n.Translator, turnstileSecret string) *Handler {
 	return &Handler{
-		repo:       repo,
-		bus:        bus,
-		renderer:   renderer,
-		translator: translator,
+		repo:            repo,
+		bus:             bus,
+		renderer:        renderer,
+		translator:      translator,
+		turnstileSecret: turnstileSecret,
 	}
 }
 
@@ -44,6 +48,34 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
+	}
+
+	if h.turnstileSecret != "" {
+		token := r.FormValue("cf-turnstile-response")
+		lang := r.FormValue("lang")
+		trans := h.translator.Get(lang)
+		if token == "" {
+			http.Error(w, trans.Get("ValTurnstileRequired"), http.StatusBadRequest)
+			return
+		}
+
+		ip := r.Header.Get("X-Forwarded-For")
+		if ip == "" {
+			if strings.Contains(r.RemoteAddr, ":") {
+				if host, _, err := net.SplitHostPort(r.RemoteAddr); err == nil {
+					ip = host
+				}
+			}
+			if ip == "" {
+				ip = r.RemoteAddr
+			}
+		}
+
+		ok, err := security.VerifyTurnstile(h.turnstileSecret, token, ip)
+		if err != nil || !ok {
+			http.Error(w, trans.Get("ValTurnstileFailed"), http.StatusBadRequest)
+			return
+		}
 	}
 
 	companyName := strings.TrimSpace(r.FormValue("company_name"))

@@ -37,6 +37,7 @@ type PageData struct {
 	AdminTab        string
 	Error           string
 	HighQueueActive bool
+	TurnstileSiteKey string
 }
 
 type App struct {
@@ -181,8 +182,8 @@ func New(ctx context.Context) (*App, error) {
 	}
 
 	portfolioHandler := portfolio.NewHandler(portfolioRepo, eventBus, homeTmpl)
-	leadHandler := project_intake.NewHandler(leadRepo, eventBus, homeTmpl, translator)
-	contactHandler := messaging.NewHandler(contactRepo, eventBus, homeTmpl, translator)
+	leadHandler := project_intake.NewHandler(leadRepo, eventBus, homeTmpl, translator, cfg.TurnstileSecretKey)
+	contactHandler := messaging.NewHandler(contactRepo, eventBus, homeTmpl, translator, cfg.TurnstileSecretKey)
 	emailWorker := notifications.NewEmailWorker()
 	telegramWorker := notifications.NewTelegramWorker()
 

@@ -154,5 +154,10 @@
   "AdminHighQueueHint": "Enable to display a high-queue warning alert to new clients during intake.",
   "DeadlineCol": "Deadline Details",
   "DeadlineUnavailableMsg": "Priority deadline selection is currently unavailable because we are experiencing a high volume of requests. We are processing active queues first.",
-  "QueueNotice": "Queue Notice"
+  "QueueNotice": "Queue Notice",
+  "SubmitStatusVerifying": "Verifying security...",
+  "SubmitStatusSubmitting": "Submitting request...",
+  "SubmitStatusSending": "Sending message...",
+  "ValTurnstileRequired": "Please complete the security check.",
+  "ValTurnstileFailed": "Security verification failed. Please try again."
 }
