@@ -120,5 +120,10 @@ if ('scrollRestoration' in history) {
     }
 
     document.addEventListener('htmx:afterSwap', initNavObserver);
+
+    document.addEventListener('htmx:responseError', function(evt) {
+        var errorText = evt.detail.xhr.responseText || 'An error occurred during submission.';
+        window.dispatchEvent(new CustomEvent('tivri-error', { detail: errorText }));
+    });
 })();
 
