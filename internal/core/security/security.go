@@ -145,7 +145,6 @@ func (sm *SecurityManager) CookieAuth(adminUsername, adminPassword string, next 
 			} else {
 				w.WriteHeader(http.StatusUnauthorized)
 			}
-
 			return
 		}
 
@@ -163,7 +162,6 @@ func (sm *SecurityManager) CookieAuth(adminUsername, adminPassword string, next 
 			} else {
 				w.WriteHeader(http.StatusUnauthorized)
 			}
-
 			return
 		}
 
@@ -179,7 +177,6 @@ func (sm *SecurityManager) BasicAuth(adminUsername, adminPassword string, next h
 			if err != nil {
 				sm.logger.Error("security: write failed", slog.Any("error", err))
 			}
-
 			return
 		}
 

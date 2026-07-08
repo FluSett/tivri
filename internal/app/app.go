@@ -52,6 +52,7 @@ type App struct {
 	webFS            fs.FS
 	securityMgr      *security.SecurityManager
 	eventBus         eventbus.Bus
+	telegramWorker   *notifications.TelegramWorker
 }
 
 func New(ctx context.Context) (*App, error) {
@@ -185,7 +186,7 @@ func New(ctx context.Context) (*App, error) {
 	leadHandler := project_intake.NewHandler(leadRepo, eventBus, homeTmpl, translator, cfg.TurnstileSecretKey)
 	contactHandler := messaging.NewHandler(contactRepo, eventBus, homeTmpl, translator, cfg.TurnstileSecretKey)
 	emailWorker := notifications.NewEmailWorker()
-	telegramWorker := notifications.NewTelegramWorker()
+	telegramWorker := notifications.NewTelegramWorker(cfg.TelegramBotToken, cfg.TelegramChatID)
 
 	eventBus.Subscribe("portfolio.created", portfolioHandler.HandlePortfolioCreated)
 	eventBus.Subscribe("project_intake.applied", leadHandler.HandleProjectApplied)
@@ -194,6 +195,7 @@ func New(ctx context.Context) (*App, error) {
 	eventBus.Subscribe("contact.created", contactHandler.HandleMessageCreated)
 	eventBus.Subscribe("contact.created", emailWorker.HandleEvent)
 	eventBus.Subscribe("contact.created", telegramWorker.HandleEvent)
+	eventBus.Subscribe("settings.high_queue_changed", telegramWorker.HandleEvent)
 
 	securityMgr := security.NewSecurityManager(ctx, logger)
 
@@ -209,6 +211,7 @@ func New(ctx context.Context) (*App, error) {
 		webFS:            webUIFS,
 		securityMgr:      securityMgr,
 		eventBus:         eventBus,
+		telegramWorker:   telegramWorker,
 	}, nil
 }
 
@@ -237,7 +240,6 @@ func (a *App) Close() error {
 	if a.db != nil {
 		a.db.Close()
 	}
-
 	return nil
 }
 
@@ -255,6 +257,12 @@ func (a *App) Start() error {
 	}
 
 	fmt.Printf("Server starting on %s\n", server.Addr)
+
+	bootCtx, bootCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	if err := a.telegramWorker.NotifySystemUp(bootCtx); err != nil {
+		a.logger.Error("failed to send telegram boot notification", slog.String("error", err.Error()))
+	}
+	bootCancel()
 	return server.ListenAndServe()
 }
 
@@ -293,6 +301,5 @@ func ensureAssetDirectories() error {
 			}
 		}
 	}
-
 	return nil
 }

@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS intake_leads (
     project_scope TEXT NOT NULL,
     budget BIGINT NOT NULL,
     contact_email TEXT NOT NULL DEFAULT '',
-    contact_phone TEXT NOT NULL DEFAULT '',
+    contact_info TEXT NOT NULL DEFAULT '',
     client_status TEXT NOT NULL DEFAULT 'pending',
     internal_status TEXT NOT NULL DEFAULT 'pending',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -39,3 +39,17 @@ INSERT INTO system_settings (key, value) VALUES ('high_queue', 'false') ON CONFL
 
 ALTER TABLE intake_leads ADD COLUMN IF NOT EXISTS deadline_needed BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE intake_leads ADD COLUMN IF NOT EXISTS deadline_spec TEXT NOT NULL DEFAULT '';
+ALTER TABLE intake_leads ADD COLUMN IF NOT EXISTS is_custom_budget BOOLEAN NOT NULL DEFAULT FALSE;
+
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 
+        FROM information_schema.columns 
+        WHERE table_name='intake_leads' AND column_name='contact_phone'
+    ) THEN
+        ALTER TABLE intake_leads RENAME COLUMN contact_phone TO contact_info;
+    END IF;
+END $$;
+
+
