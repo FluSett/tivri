@@ -185,6 +185,16 @@
                     </div>
                 </div>
 
+                {{if and .IsAdmin (not .IsAdminLogin)}}
+                <div class="h-4 w-px bg-white/20 hidden md:block mx-2"></div>
+                <a href="/admin/logout" class="hidden md:flex items-center space-x-1.5 text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-[#FF3366] transition-colors duration-200">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                    </svg>
+                    <span>{{.T.Get "BtnLogout"}}</span>
+                </a>
+                {{end}}
+
                 {{if not .IsAdminLogin}}
                 <button class="md:hidden text-neutral-400 hover:text-white focus:outline-none transition-colors"
                         @click="mobileMenuOpen = true">
@@ -253,6 +263,12 @@
                          <a href="/admin?tab=portfolio" @click="mobileMenuOpen = false" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "TabPortfolio"}}</a>
                          <a href="/admin?tab=leads" @click="mobileMenuOpen = false" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "TabLeads"}}</a>
                          <a href="/admin?tab=messages" @click="mobileMenuOpen = false" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "TabMessages"}}</a>
+                         <a href="/admin/logout" @click="mobileMenuOpen = false" class="text-lg font-medium text-neutral-400 hover:text-[#FF3366] transition-colors flex items-center space-x-2">
+                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                             </svg>
+                             <span>{{.T.Get "BtnLogout"}}</span>
+                         </a>
                      </div>
                      {{else if not .IsAdmin}}
                      <div class="flex flex-col items-start space-y-6">
