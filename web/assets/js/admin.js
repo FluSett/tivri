@@ -36,6 +36,27 @@ document.addEventListener('alpine:init', () => {
             lead.updatedAt = Math.floor(now.getTime() / 1000);
             const pad = (n) => String(n).padStart(2, '0');
             lead.updatedAtStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+        },
+        formatBudgetTier(cents, isCustom) {
+            if (isCustom) {
+                return 'Custom ($' + (cents / 100).toLocaleString() + ')';
+            }
+            switch (cents) {
+                case 250000:
+                    return 'Small ($1k–$5k)';
+                case 750000:
+                    return 'Starter ($5k–$10k)';
+                case 1750000:
+                    return 'Growth ($10k–$25k)';
+                case 5000000:
+                    return 'Scale ($25k–$75k)';
+                case 11250000:
+                    return 'Enterprise ($75k–$150k)';
+                case 20000000:
+                    return 'Premium ($150k+)';
+                default:
+                    return 'Custom ($' + (cents / 100).toLocaleString() + ')';
+            }
         }
     }));
 
@@ -85,7 +106,6 @@ document.addEventListener('alpine:init', () => {
                     window.dispatchEvent(new CustomEvent('tivri-error', { detail: 'File ' + f.name + ' exceeds maximum size of 5MB.' }));
                     continue;
                 }
-                
                 this.mediaPreviews.push({
                     id: Math.random().toString(36).substr(2, 9),
                     file: f,
@@ -122,16 +142,15 @@ document.addEventListener('alpine:init', () => {
                 window.dispatchEvent(new CustomEvent('tivri-error', { detail: 'Please fill in all required fields.' }));
                 return;
             }
-            
+
             const fd = new FormData();
             fd.append('title', this.title);
             fd.append('description', this.description);
             fd.append('tech_stack', this.techStack);
-            
             this.mediaPreviews.forEach(item => {
                 fd.append('media', item.file);
             });
-            
+
             try {
                 const response = await fetch('/admin/portfolio', {
                     method: 'POST',
@@ -141,13 +160,12 @@ document.addEventListener('alpine:init', () => {
                     },
                     body: fd
                 });
-                
                 if (!response.ok) {
                     const errMsg = await response.text();
                     window.dispatchEvent(new CustomEvent('tivri-error', { detail: errMsg || 'Upload failed' }));
                     return;
                 }
-                
+
                 const html = await response.text();
                 const grid = document.getElementById('portfolio-grid');
                 if (grid) {

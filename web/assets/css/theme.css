@@ -160,8 +160,9 @@ a.nav-link {
     color: #ffffff;
     font-size: 0.875rem;
     padding: 0.625rem 1rem;
-    border-radius: 0.25rem;
+    border-radius: 0.75rem;
     transition: all 0.2s ease;
+
 }
 .form-input:focus {
     border-color: #FF3366;

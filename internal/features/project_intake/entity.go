@@ -12,9 +12,10 @@ type Lead struct {
 	ProjectScope   string    `json:"projectScope"`
 	Budget         int64     `json:"budget"`
 	ContactEmail   string    `json:"contactEmail"`
-	ContactPhone   string    `json:"contactPhone"`
+	ContactInfo    string    `json:"contactInfo"`
 	DeadlineNeeded bool      `json:"deadlineNeeded"`
 	DeadlineSpec   string    `json:"deadlineSpec"`
+	IsCustomBudget bool      `json:"isCustomBudget"`
 	ClientStatus   string    `json:"clientStatus"`
 	InternalStatus string    `json:"internalStatus"`
 	CreatedAt      time.Time `json:"createdAt"`

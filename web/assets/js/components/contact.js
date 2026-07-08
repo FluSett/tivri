@@ -16,7 +16,7 @@ document.addEventListener('alpine:init', () => {
         init() {
             this.$watch('showForm', val => {
                 sessionStorage.setItem('contact_showForm', val);
-                if (val) {
+                if (val && !this.submitted) {
                     this.$nextTick(() => this.renderTurnstile());
                 }
             });
@@ -24,7 +24,15 @@ document.addEventListener('alpine:init', () => {
             this.$watch('email', val => sessionStorage.setItem('contact_email', val || ''));
             this.$watch('topic', val => sessionStorage.setItem('contact_topic', val || ''));
             this.$watch('message', val => sessionStorage.setItem('contact_message', val || ''));
-            this.$watch('submitted', val => sessionStorage.setItem('contact_submitted', val));
+            this.$watch('submitted', val => {
+                sessionStorage.setItem('contact_submitted', val);
+                if (!val && this.showForm) {
+                    this.$nextTick(() => {
+                        this.turnstileId = null;
+                        this.renderTurnstile();
+                    });
+                }
+            });
 
             if (this.showForm && !this.submitted) {
                 this.$nextTick(() => this.renderTurnstile());
@@ -42,26 +50,30 @@ document.addEventListener('alpine:init', () => {
 
         renderTurnstile() {
             if (window.tivriTurnstileSiteKey && window.turnstile && this.$refs.turnstileContainer && this.turnstileId === null) {
-                this.turnstileId = window.turnstile.render(this.$refs.turnstileContainer, {
-                    sitekey: window.tivriTurnstileSiteKey,
-                    theme: 'dark',
-                    size: 'normal',
-                    language: document.documentElement.lang || 'en',
-                    callback: (token) => {
-                        this.turnstileToken = token;
-                        this.isVerified = true;
-                    },
-                    'expired-callback': () => {
-                        this.turnstileToken = '';
-                        this.isVerified = false;
-                    },
-                    'error-callback': () => {
-                        this.submitStatus = 'idle';
-                        this.isVerified = false;
-                        this.turnstileToken = '';
-                        window.dispatchEvent(new CustomEvent('tivri-error', { detail: 'Security verification failed.' }));
-                    }
-                });
+                try {
+                    this.turnstileId = window.turnstile.render(this.$refs.turnstileContainer, {
+                        sitekey: window.tivriTurnstileSiteKey,
+                        theme: 'dark',
+                        size: 'normal',
+                        language: document.documentElement.lang || 'en',
+                        callback: (token) => {
+                            this.turnstileToken = token;
+                            this.isVerified = true;
+                        },
+                        'expired-callback': () => {
+                            this.turnstileToken = '';
+                            this.isVerified = false;
+                        },
+                        'error-callback': () => {
+                            this.submitStatus = 'idle';
+                            this.isVerified = false;
+                            this.turnstileToken = '';
+                            window.dispatchEvent(new CustomEvent('tivri-error', { detail: 'Security verification failed.' }));
+                        }
+                    });
+                } catch (e) {
+                    console.error('Turnstile render failed:', e);
+                }
             }
         },
 

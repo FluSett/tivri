@@ -82,7 +82,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	projectScope := strings.TrimSpace(r.FormValue("project_scope"))
 	budgetStr := r.FormValue("budget")
 	contactEmail := strings.TrimSpace(r.FormValue("contact_email"))
-	contactPhone := strings.TrimSpace(r.FormValue("contact_phone"))
+	contactInfo := strings.TrimSpace(r.FormValue("contact_info"))
 	deadlineNeededStr := r.FormValue("deadline_needed")
 	deadlineNeeded := deadlineNeededStr == "true" || deadlineNeededStr == "on" || deadlineNeededStr == "1"
 	deadlineSpec := strings.TrimSpace(r.FormValue("deadline_spec"))
@@ -124,9 +124,10 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		ProjectScope:   projectScope,
 		Budget:         budget,
 		ContactEmail:   contactEmail,
-		ContactPhone:   contactPhone,
+		ContactInfo:    contactInfo,
 		DeadlineNeeded: deadlineNeeded,
 		DeadlineSpec:   deadlineSpec,
+		IsCustomBudget: budgetStr == "other",
 		ClientStatus:   "pending",
 		InternalStatus: "pending",
 		CreatedAt:      time.Now(),
@@ -142,13 +143,16 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	h.bus.Publish(r.Context(), eventbus.Event{
 		Type: "project_intake.applied",
 		Payload: ProjectAppliedEvent{
-			ID:           ld.ID,
-			CompanyName:  ld.CompanyName,
-			ProjectScope: ld.ProjectScope,
-			Budget:       ld.Budget,
-			ContactEmail: ld.ContactEmail,
-			ContactPhone: ld.ContactPhone,
-			Timestamp:    time.Now(),
+			ID:             ld.ID,
+			CompanyName:    ld.CompanyName,
+			ProjectScope:   ld.ProjectScope,
+			Budget:         ld.Budget,
+			ContactEmail:   ld.ContactEmail,
+			ContactInfo:    ld.ContactInfo,
+			DeadlineNeeded: ld.DeadlineNeeded,
+			DeadlineSpec:   ld.DeadlineSpec,
+			IsCustomBudget: ld.IsCustomBudget,
+			Timestamp:      time.Now(),
 		},
 		Timestamp: time.Now(),
 	})

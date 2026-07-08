@@ -44,7 +44,6 @@ if ('scrollRestoration' in history) {
             try {
                 var parser = new DOMParser();
                 var doc = parser.parseFromString(evt.detail.serverResponse, 'text/html');
-                
                 var oldHeader = document.getElementById('site-header');
                 var newHeader = doc.getElementById('site-header');
                 if (oldHeader && newHeader) {
@@ -126,4 +125,3 @@ if ('scrollRestoration' in history) {
         window.dispatchEvent(new CustomEvent('tivri-error', { detail: errorText }));
     });
 })();
-
