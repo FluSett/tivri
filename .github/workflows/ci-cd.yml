@@ -17,6 +17,18 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Node Dependencies
+        run: npm install
+
+      - name: Build Tailwind CSS
+        run: npx tailwindcss -i web/assets/css/input.css -o web/assets/css/theme.css --minify
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
@@ -39,6 +51,18 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Node Dependencies
+        run: npm install
+
+      - name: Build Tailwind CSS
+        run: npx tailwindcss -i web/assets/css/input.css -o web/assets/css/theme.css --minify
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
