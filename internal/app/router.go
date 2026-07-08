@@ -22,6 +22,44 @@ func (a *App) newRouter() (http.Handler, error) {
 
 	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.FS(subAssetsFS))))
 
+	mux.HandleFunc("/robots.txt", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		_, _ = w.Write([]byte("User-agent: *\nDisallow: /admin/\nDisallow: /admin\nAllow: /\n\nSitemap: https://tivri.cc/sitemap.xml\n"))
+	})
+
+	mux.HandleFunc("/sitemap.xml", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/xml; charset=utf-8")
+		now := time.Now().Format("2006-01-02")
+		sitemap := `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://tivri.cc/</loc>
+    <lastmod>` + now + `</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://tivri.cc/?lang=en</loc>
+    <lastmod>` + now + `</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tivri.cc/?lang=uk</loc>
+    <lastmod>` + now + `</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tivri.cc/?lang=ru</loc>
+    <lastmod>` + now + `</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+</urlset>`
+		_, _ = w.Write([]byte(sitemap))
+	})
+
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		if err := a.db.Ping(r.Context()); err != nil {
@@ -62,13 +100,15 @@ func (a *App) newRouter() (http.Handler, error) {
 		}
 
 		highQueueActive, _ := a.getHighQueueSetting(r.Context())
+		maintenanceActive, _ := a.getMaintenanceSetting(r.Context())
 		pageData := PageData{
-			Lang:            lang,
-			T:               a.translator.Get(lang),
-			IsAdmin:         false,
-			AdminTab:        tab,
-			HighQueueActive: highQueueActive,
-			TurnstileSiteKey: a.cfg.TurnstileSiteKey,
+			Lang:              lang,
+			T:                 a.translator.Get(lang),
+			IsAdmin:           false,
+			AdminTab:          tab,
+			HighQueueActive:   highQueueActive,
+			MaintenanceActive: maintenanceActive,
+			TurnstileSiteKey:  a.cfg.TurnstileSiteKey,
 		}
 
 		var tmplKey string
@@ -103,10 +143,14 @@ func (a *App) newRouter() (http.Handler, error) {
 				}
 			}
 		} else {
-			tmplKey = "home"
-			items, err := a.portfolioHandler.ListItems(r.Context())
-			if err == nil {
-				pageData.PortfolioItems = items
+			if maintenanceActive {
+				tmplKey = "maintenance"
+			} else {
+				tmplKey = "home"
+				items, err := a.portfolioHandler.ListItems(r.Context())
+				if err == nil {
+					pageData.PortfolioItems = items
+				}
 			}
 		}
 
@@ -296,18 +340,20 @@ func (a *App) newRouter() (http.Handler, error) {
 			}
 
 			highQueueActive, _ := a.getHighQueueSetting(r.Context())
+			maintenanceActive, _ := a.getMaintenanceSetting(r.Context())
 			data := PageData{
-				Lang:            lang,
-				T:               a.translator.Get(lang),
-				PortfolioItems:  items,
-				Leads:           leads,
-				ContactMessages: msgs,
-				LeadsJSON:       leadsJSON,
-				MessagesJSON:    msgsJSON,
-				IsAdmin:         true,
-				AdminTab:        tab,
-				HighQueueActive: highQueueActive,
-				TurnstileSiteKey: a.cfg.TurnstileSiteKey,
+				Lang:              lang,
+				T:                 a.translator.Get(lang),
+				PortfolioItems:    items,
+				Leads:             leads,
+				ContactMessages:   msgs,
+				LeadsJSON:         leadsJSON,
+				MessagesJSON:      msgsJSON,
+				IsAdmin:           true,
+				AdminTab:          tab,
+				HighQueueActive:   highQueueActive,
+				MaintenanceActive: maintenanceActive,
+				TurnstileSiteKey:  a.cfg.TurnstileSiteKey,
 			}
 
 			err = a.templates["admin"].ExecuteTemplate(w, "base.layout.html", data)
@@ -338,6 +384,34 @@ func (a *App) newRouter() (http.Handler, error) {
 
 			a.eventBus.Publish(r.Context(), eventbus.Event{
 				Type:      "settings.high_queue_changed",
+				Payload:   enabled,
+				Timestamp: time.Now(),
+			})
+			w.WriteHeader(http.StatusOK)
+		})(w, r)
+	})
+
+	mux.HandleFunc("/admin/settings/maintenance", func(w http.ResponseWriter, r *http.Request) {
+		a.securityMgr.CookieAuth(a.cfg.AdminUsername, a.cfg.AdminPassword, func(w http.ResponseWriter, r *http.Request) {
+			if r.Method != http.MethodPost {
+				http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+				return
+			}
+
+			err := r.ParseForm()
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			enabled := r.FormValue("maintenance") == "true" || r.FormValue("maintenance") == "on" || r.FormValue("maintenance") == "1"
+			err = a.setMaintenanceSetting(r.Context(), enabled)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			a.eventBus.Publish(r.Context(), eventbus.Event{
+				Type:      "settings.maintenance_changed",
 				Payload:   enabled,
 				Timestamp: time.Now(),
 			})
@@ -384,5 +458,46 @@ func (a *App) newRouter() (http.Handler, error) {
 		}
 	})
 
-	return security.StructuredLogger(a.logger)(mux), nil
+	return security.StructuredLogger(a.logger)(a.maintenanceMiddleware(mux)), nil
+}
+
+func (a *App) maintenanceMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+		if strings.HasPrefix(path, "/assets/") || path == "/healthz" || strings.HasPrefix(path, "/admin") {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		active, err := a.getMaintenanceSetting(r.Context())
+		if err != nil {
+			a.logger.Error("failed to retrieve maintenance mode setting", "error", err)
+		}
+
+		if active {
+			if path == "/api/lang" {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			w.WriteHeader(http.StatusServiceUnavailable)
+
+			lang := security.ResolveLocale(r)
+			data := PageData{
+				Lang:              lang,
+				T:                 a.translator.Get(lang),
+				MaintenanceActive: true,
+				TurnstileSiteKey:  a.cfg.TurnstileSiteKey,
+			}
+
+			err = a.templates["maintenance"].ExecuteTemplate(w, "base.layout.html", data)
+			if err != nil {
+				a.logger.Error("failed to render maintenance template", "error", err)
+			}
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
