@@ -62,8 +62,10 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ env.IMAGE_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - name: Copy docker-compose.yml to Droplet
+      - name: Copy docker-compose.yml and web assets to Droplet
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.DROPLET_IP }}
@@ -72,6 +74,37 @@ jobs:
           port: ${{ secrets.DROPLET_SSH_PORT }}
           source: "docker-compose.yml,web"
           target: "/var/www/tivri"
+
+      - name: Check if Nginx configuration changed
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            nginx:
+              - 'nginx/tivri.conf'
+
+      - name: Copy Nginx configuration to Droplet
+        if: steps.filter.outputs.nginx == 'true'
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DROPLET_IP }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          port: ${{ secrets.DROPLET_SSH_PORT }}
+          source: "nginx/tivri.conf"
+          target: "/etc/nginx/sites-available"
+          strip_components: 1
+
+      - name: Reload Nginx configuration
+        if: steps.filter.outputs.nginx == 'true'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DROPLET_IP }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          passphrase: ${{ secrets.DROPLET_SSH_PASSPHRASE }}
+          port: ${{ secrets.DROPLET_SSH_PORT }}
+          script: nginx -t && systemctl reload nginx
 
       - name: Deploy to DigitalOcean
         uses: appleboy/ssh-action@v1.0.3
