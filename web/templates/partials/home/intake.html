@@ -157,16 +157,16 @@
                                 :class="deadlineNeeded ? 'btn-choice-active' : 'btn-choice'"
                                 :disabled="highQueueActive"
                                 class="btn-choice flex flex-col justify-between min-h-[70px] disabled:opacity-50 disabled:cursor-not-allowed">
-                            <span class="text-xs font-bold uppercase tracking-wider">Strict Deadline</span>
-                            <span class="text-[10px] text-neutral-500 mt-1">Select if you have a launch target</span>
+                            <span class="text-xs font-bold uppercase tracking-wider">{{.T.Get "DeadlineStrictTitle"}}</span>
+                            <span class="text-[10px] text-neutral-500 mt-1">{{.T.Get "DeadlineStrictDesc"}}</span>
                         </button>
                         <button type="button" 
                                 @click="deadlineNeeded = false"
                                 :class="!deadlineNeeded ? 'btn-choice-active' : 'btn-choice'"
                                 :disabled="highQueueActive"
                                 class="btn-choice flex flex-col justify-between min-h-[70px] disabled:opacity-50 disabled:cursor-not-allowed">
-                            <span class="text-xs font-bold uppercase tracking-wider">Standard Delivery</span>
-                            <span class="text-[10px] text-neutral-500 mt-1">Flexible processing queue</span>
+                            <span class="text-xs font-bold uppercase tracking-wider">{{.T.Get "DeadlineStandardTitle"}}</span>
+                            <span class="text-[10px] text-neutral-500 mt-1">{{.T.Get "DeadlineStandardDesc"}}</span>
                         </button>
                     </div>
 

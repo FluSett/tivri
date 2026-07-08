@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"io/fs"
+	"net"
 	"net/http"
 	urlpkg "net/url"
 	"strings"
@@ -171,6 +172,39 @@ func (a *App) newRouter() (http.Handler, error) {
 				return
 			}
 
+			if a.cfg.TurnstileSiteKey != "" {
+				token := r.FormValue("cf-turnstile-response")
+				var ip string
+				if forwarded := r.Header.Get("X-Forwarded-For"); forwarded != "" {
+					parts := strings.Split(forwarded, ",")
+					ip = strings.TrimSpace(parts[0])
+				} else {
+					if host, _, err := net.SplitHostPort(r.RemoteAddr); err == nil {
+						ip = host
+					} else {
+						ip = r.RemoteAddr
+					}
+				}
+				ok, err := security.VerifyTurnstile(a.cfg.TurnstileSecretKey, token, ip)
+				if err != nil || !ok {
+					lang := security.ResolveLocale(r)
+					data := PageData{
+						Lang:             lang,
+						T:                a.translator.Get(lang),
+						IsAdmin:          true,
+						IsAdminLogin:     true,
+						Error:            a.translator.Get(lang).Get("ValTurnstileFailed"),
+						TurnstileSiteKey: a.cfg.TurnstileSiteKey,
+					}
+					w.WriteHeader(http.StatusBadRequest)
+					err = a.templates["login"].ExecuteTemplate(w, "base.layout.html", data)
+					if err != nil {
+						http.Error(w, err.Error(), http.StatusInternalServerError)
+					}
+					return
+				}
+			}
+
 			username := r.FormValue("username")
 			password := r.FormValue("password")
 
@@ -213,6 +247,17 @@ func (a *App) newRouter() (http.Handler, error) {
 
 			http.Redirect(w, r, "/admin", http.StatusSeeOther)
 		}
+	})
+
+	mux.HandleFunc("/admin/logout", func(w http.ResponseWriter, r *http.Request) {
+		http.SetCookie(w, &http.Cookie{
+			Name:     "admin_session",
+			Value:    "",
+			Path:     "/",
+			HttpOnly: true,
+			MaxAge:   -1,
+		})
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 	})
 
 	mux.HandleFunc("/admin", func(w http.ResponseWriter, r *http.Request) {
