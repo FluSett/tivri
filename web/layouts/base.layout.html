@@ -3,9 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TIVRI</title>
+    <title>{{.T.Get "MetaTitle"}}</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22&gt;&lt;polygon points=%2250,15 85,50 50,85 15,50%22 fill=%22%23FF3366%22/&gt;&lt;/svg&gt;">
-    <meta name="description" content="TIVRI — premium full-stack engineering with unmatched architectural integrity. Build or improve your product with our senior engineers.">
+    <meta name="description" content="{{.T.Get "MetaDescription"}}">
+    <link rel="canonical" href="https://tivri.cc/">
+    <link rel="alternate" hreflang="en" href="https://tivri.cc/?lang=en" />
+    <link rel="alternate" hreflang="uk" href="https://tivri.cc/?lang=uk" />
+    <link rel="alternate" hreflang="ru" href="https://tivri.cc/?lang=ru" />
+    <link rel="alternate" hreflang="x-default" href="https://tivri.cc/" />
+    <meta property="og:title" content="{{.T.Get "MetaTitle"}}">
+    <meta property="og:description" content="{{.T.Get "MetaDescription"}}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://tivri.cc/">
+    <meta property="og:image" content="https://tivri.cc/assets/img/branding/logo.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{.T.Get "MetaTitle"}}">
+    <meta name="twitter:description" content="{{.T.Get "MetaDescription"}}">
+    <meta name="twitter:image" content="https://tivri.cc/assets/img/branding/logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -148,7 +162,7 @@
                         <a href="/admin?tab=leads" class="nav-link text-sm font-medium transition-all duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-[#FF3366] after:transition-all after:duration-300 whitespace-nowrap {{if eq .AdminTab "leads"}}text-white after:w-full{{else}}text-neutral-400 hover:text-white after:w-0 hover:after:w-full{{end}}"><span>{{.T.Get "TabLeads"}}</span><span class="nav-active-dot"></span></a>
                         <a href="/admin?tab=messages" class="nav-link text-sm font-medium transition-all duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-[#FF3366] after:transition-all after:duration-300 whitespace-nowrap {{if eq .AdminTab "messages"}}text-white after:w-full{{else}}text-neutral-400 hover:text-white after:w-0 hover:after:w-full{{end}}"><span>{{.T.Get "TabMessages"}}</span><span class="nav-active-dot"></span></a>
                         {{end}}
-                    {{else}}
+                    {{else if not .MaintenanceActive}}
                         <a href="/#about" data-section="about" class="nav-link text-sm font-medium text-neutral-400 hover:text-white transition-all duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-[#FF3366] hover:after:w-full after:transition-all after:duration-300 whitespace-nowrap"><span>{{.T.Get "AboutNav"}}</span><span class="nav-active-dot"></span></a>
                         <a href="/#benefits" data-section="benefits" class="nav-link text-sm font-medium text-neutral-400 hover:text-white transition-all duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-[#FF3366] hover:after:w-full after:transition-all after:duration-300 whitespace-nowrap"><span>{{.T.Get "WhyNav"}}</span><span class="nav-active-dot"></span></a>
                         <a href="/#skills" data-section="skills" class="nav-link text-sm font-medium text-neutral-400 hover:text-white transition-all duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-[#FF3366] hover:after:w-full after:transition-all after:duration-300 whitespace-nowrap"><span>{{.T.Get "SkillsNav"}}</span><span class="nav-active-dot"></span></a>
@@ -195,7 +209,7 @@
                 </a>
                 {{end}}
 
-                {{if not .IsAdminLogin}}
+                {{if and (not .IsAdminLogin) (not .MaintenanceActive)}}
                 <button class="md:hidden text-neutral-400 hover:text-white focus:outline-none transition-colors"
                         @click="mobileMenuOpen = true">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -270,15 +284,15 @@
                              <span>{{.T.Get "BtnLogout"}}</span>
                          </a>
                      </div>
-                     {{else if not .IsAdmin}}
-                     <div class="flex flex-col items-start space-y-6">
-                         <a href="/#about" @click="mobileMenuOpen = false" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "AboutNav"}}</a>
-                         <a href="/#benefits" @click="mobileMenuOpen = false" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "WhyNav"}}</a>
-                         <a href="/#skills" @click="mobileMenuOpen = false" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "SkillsNav"}}</a>
-                         <a href="/#portfolio" @click="mobileMenuOpen = false" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "PortfolioNav"}}</a>
-                         <a href="/#contact" @click="mobileMenuOpen = false" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "ContactNav"}}</a>
-                     </div>
-                     {{end}}
+                     {{else if and (not .IsAdmin) (not .MaintenanceActive)}}
+                      <div class="flex flex-col items-start space-y-6">
+                          <a href="/#about" @click="mobileMenuOpen = false" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "AboutNav"}}</a>
+                          <a href="/#benefits" @click="mobileMenuOpen = false" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "WhyNav"}}</a>
+                          <a href="/#skills" @click="mobileMenuOpen = false" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "SkillsNav"}}</a>
+                          <a href="/#portfolio" @click="mobileMenuOpen = false" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "PortfolioNav"}}</a>
+                          <a href="/#contact" @click="mobileMenuOpen = false" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "ContactNav"}}</a>
+                      </div>
+                      {{end}}
                  </div>
 
                  <!-- Mobile Panel Footer -->
@@ -319,7 +333,7 @@
 
             <div class="md:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-8">
                 <!-- Sitemap -->
-                {{if not .IsAdminLogin}}
+                {{if and (not .IsAdminLogin) (not .MaintenanceActive)}}
                 <div class="space-y-3">
                     <h4 class="text-xs font-bold uppercase tracking-wider text-neutral-500">{{.T.Get "SitemapTitle"}}</h4>
                     <nav class="flex flex-col space-y-2">

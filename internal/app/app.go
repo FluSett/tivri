@@ -37,6 +37,7 @@ type PageData struct {
 	AdminTab        string
 	Error           string
 	HighQueueActive bool
+	MaintenanceActive bool
 	TurnstileSiteKey string
 }
 
@@ -175,11 +176,22 @@ func New(ctx context.Context) (*App, error) {
 		return nil, err
 	}
 
+	maintenanceTmpl, err := template.New("base.layout.html").Funcs(funcMap).ParseFS(
+		webUIFS,
+		"layouts/base.layout.html",
+		"templates/pages/public/maintenance.html",
+	)
+	if err != nil {
+		db.Close()
+		return nil, err
+	}
+
 	templates := map[string]*template.Template{
-		"home":     homeTmpl,
-		"admin":    adminTmpl,
-		"notFound": notFoundTmpl,
-		"login":    loginTmpl,
+		"home":        homeTmpl,
+		"admin":       adminTmpl,
+		"notFound":    notFoundTmpl,
+		"login":       loginTmpl,
+		"maintenance": maintenanceTmpl,
 	}
 
 	portfolioHandler := portfolio.NewHandler(portfolioRepo, eventBus, homeTmpl)
@@ -196,6 +208,7 @@ func New(ctx context.Context) (*App, error) {
 	eventBus.Subscribe("contact.created", emailWorker.HandleEvent)
 	eventBus.Subscribe("contact.created", telegramWorker.HandleEvent)
 	eventBus.Subscribe("settings.high_queue_changed", telegramWorker.HandleEvent)
+	eventBus.Subscribe("settings.maintenance_changed", telegramWorker.HandleEvent)
 
 	securityMgr := security.NewSecurityManager(ctx, logger)
 
@@ -236,6 +249,27 @@ func (a *App) setHighQueueSetting(ctx context.Context, enabled bool) error {
 	return nil
 }
 
+func (a *App) getMaintenanceSetting(ctx context.Context) (bool, error) {
+	var val string
+	err := a.db.QueryRow(ctx, "SELECT value FROM system_settings WHERE key = $1", "maintenance_mode").Scan(&val)
+	if err != nil {
+		return false, fmt.Errorf("app: get maintenance setting failed: %w", err)
+	}
+	return val == "true", nil
+}
+
+func (a *App) setMaintenanceSetting(ctx context.Context, enabled bool) error {
+	val := "false"
+	if enabled {
+		val = "true"
+	}
+	_, err := a.db.Exec(ctx, "INSERT INTO system_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value", "maintenance_mode", val)
+	if err != nil {
+		return fmt.Errorf("app: set maintenance setting failed: %w", err)
+	}
+	return nil
+}
+
 func (a *App) Close() error {
 	if a.db != nil {
 		a.db.Close()
@@ -243,7 +277,7 @@ func (a *App) Close() error {
 	return nil
 }
 
-func (a *App) Start() error {
+func (a *App) Start(ctx context.Context) error {
 	router, err := a.newRouter()
 	if err != nil {
 		return err
@@ -258,12 +292,34 @@ func (a *App) Start() error {
 
 	fmt.Printf("Server starting on %s\n", server.Addr)
 
+	go func() {
+		<-ctx.Done()
+		a.logger.Info("shutting down server gracefully...")
+
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		notifyCtx, notifyCancel := context.WithTimeout(context.Background(), 5*time.Second)
+		if err := a.telegramWorker.NotifySystemDown(notifyCtx); err != nil {
+			a.logger.Error("failed to send telegram shutdown notification", slog.String("error", err.Error()))
+		}
+		notifyCancel()
+
+		if err := server.Shutdown(shutdownCtx); err != nil {
+			a.logger.Error("failed to gracefully shut down http server", slog.String("error", err.Error()))
+		}
+	}()
+
 	bootCtx, bootCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	if err := a.telegramWorker.NotifySystemUp(bootCtx); err != nil {
 		a.logger.Error("failed to send telegram boot notification", slog.String("error", err.Error()))
 	}
 	bootCancel()
-	return server.ListenAndServe()
+
+	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		return err
+	}
+	return nil
 }
 
 func ensureAssetDirectories() error {

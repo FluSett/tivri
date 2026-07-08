@@ -1,0 +1,10 @@
+.env
+.env.*
+!.env.example
+*.exe
+*.test
+*.out
+bin/
+dist/
+/tmp/
+/web/assets/img/uploads/

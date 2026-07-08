@@ -2,18 +2,35 @@
 <div class="space-y-6"
      x-data="leadsTable(JSON.parse($el.getAttribute('data-leads')))"
      data-leads="{{.LeadsJSON}}">
-    <!-- High Queue Configuration Box -->
-    <div class="flex items-center justify-between bg-black/40 border border-white/[0.08] p-5 rounded-2xl">
-        <div class="space-y-1">
-            <h4 class="text-sm font-bold text-white uppercase tracking-wider">{{.T.Get "AdminHighQueueLabel"}}</h4>
-            <p class="text-xs text-neutral-400">{{.T.Get "AdminHighQueueHint"}}</p>
+    <!-- Settings Panel -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- High Queue Configuration Box -->
+        <div class="flex items-center justify-between bg-black/40 border border-white/[0.08] p-5 rounded-2xl">
+            <div class="space-y-1">
+                <h4 class="text-sm font-bold text-white uppercase tracking-wider">{{.T.Get "AdminHighQueueLabel"}}</h4>
+                <p class="text-xs text-neutral-400">{{.T.Get "AdminHighQueueHint"}}</p>
+            </div>
+            <form hx-post="/admin/settings/high-queue" hx-trigger="change" hx-swap="none" class="flex items-center">
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="high_queue" value="true" class="sr-only peer" {{if .HighQueueActive}}checked{{end}}>
+                    <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#FF3366]"></div>
+                </label>
+            </form>
         </div>
-        <form hx-post="/admin/settings/high-queue" hx-trigger="change" hx-swap="none" class="flex items-center">
-            <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" name="high_queue" value="true" class="sr-only peer" {{if .HighQueueActive}}checked{{end}}>
-                <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#FF3366]"></div>
-            </label>
-        </form>
+
+        <!-- Maintenance Mode Configuration Box -->
+        <div class="flex items-center justify-between bg-black/40 border border-white/[0.08] p-5 rounded-2xl">
+            <div class="space-y-1">
+                <h4 class="text-sm font-bold text-white uppercase tracking-wider">{{.T.Get "AdminMaintenanceLabel"}}</h4>
+                <p class="text-xs text-neutral-400">{{.T.Get "AdminMaintenanceHint"}}</p>
+            </div>
+            <form hx-post="/admin/settings/maintenance" hx-trigger="change" hx-swap="none" class="flex items-center">
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="maintenance" value="true" class="sr-only peer" {{if .MaintenanceActive}}checked{{end}}>
+                    <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#FF3366]"></div>
+                </label>
+            </form>
+        </div>
     </div>
 
     <div class="flex flex-wrap gap-4 items-center justify-between bg-black/40 border border-white/[0.08] p-5 rounded-2xl">
