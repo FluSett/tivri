@@ -8,3 +8,5 @@ bin/
 dist/
 /tmp/
 /web/assets/img/uploads/
+node_modules/
+package-lock.json
