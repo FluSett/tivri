@@ -79,6 +79,18 @@ func New(ctx context.Context) (*App, error) {
 		slog.String("port", cfg.Port),
 	)
 
+	if cfg.Env == "production" {
+		if cfg.AdminPassword == "" || cfg.AdminPassword == "secret" {
+			logger.Warn("admin password is unset or using default — set ADMIN_PASSWORD in production")
+		}
+		if cfg.TelegramBotToken == "" || cfg.TelegramChatID == "" {
+			logger.Warn("telegram notifications disabled — set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID")
+		}
+		if cfg.TurnstileSiteKey == "" || cfg.TurnstileSecretKey == "" {
+			logger.Warn("turnstile is disabled — set TURNSTILE_SITE_KEY and TURNSTILE_SECRET_KEY")
+		}
+	}
+
 	if cfg.Env == "development" {
 		logger.Info("development admin credentials",
 			slog.String("username", cfg.AdminUsername),

@@ -31,7 +31,13 @@
                         clearInterval(interval);
                         window.turnstile.render("#turnstile-widget", {
                             sitekey: "{{.TurnstileSiteKey}}",
-                            theme: "dark"
+                            theme: "dark",
+                            "error-callback": function() {
+                                if (window.tivriTurnstileOnError) {
+                                    return window.tivriTurnstileOnError();
+                                }
+                                return true;
+                            }
                         });
                     }
                 }, 50);

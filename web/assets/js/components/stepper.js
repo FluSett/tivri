@@ -189,6 +189,7 @@ document.addEventListener('alpine:init', () => {
                             this.isVerified = false;
                             this.turnstileToken = '';
                             window.dispatchEvent(new CustomEvent('tivri-error', { detail: 'Security verification failed.' }));
+                            return true;
                         }
                     });
                 } catch (e) {

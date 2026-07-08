@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+@layer base {
+  img, svg, video, canvas, audio, iframe, embed, object {
+    vertical-align: unset;
+  }
+}
+
 @theme {
   --font-sans: "Inter", "sans-serif";
 }
