@@ -18,6 +18,12 @@ type Config struct {
 	LocalesDir         string
 	TurnstileSiteKey   string
 	TurnstileSecretKey string
+	TelegramBotToken   string
+	TelegramChatID     string
+}
+
+func getEnv(key string) string {
+	return strings.TrimSpace(strings.ReplaceAll(os.Getenv(key), "\r", ""))
 }
 
 func Load() (*Config, error) {
@@ -25,12 +31,12 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("config: load .env failed: %w", err)
 	}
 
-	env := os.Getenv("APP_ENV")
+	env := getEnv("APP_ENV")
 	if env == "" {
 		env = "development"
 	}
 
-	dbDSN := os.Getenv("DB_DSN")
+	dbDSN := getEnv("DB_DSN")
 	if dbDSN == "" {
 		if env == "development" {
 			dbDSN = "tivri.db"
@@ -39,28 +45,30 @@ func Load() (*Config, error) {
 		}
 	}
 
-	adminUsername := os.Getenv("ADMIN_USERNAME")
+	adminUsername := getEnv("ADMIN_USERNAME")
 	if adminUsername == "" {
 		adminUsername = "admin"
 	}
 
-	adminPassword := os.Getenv("ADMIN_PASSWORD")
+	adminPassword := getEnv("ADMIN_PASSWORD")
 	if adminPassword == "" {
 		adminPassword = "secret"
 	}
 
-	port := os.Getenv("PORT")
+	port := getEnv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
-	localesDir := os.Getenv("LOCALES_DIR")
+	localesDir := getEnv("LOCALES_DIR")
 	if localesDir == "" {
 		localesDir = "locales"
 	}
 
-	turnstileSiteKey := os.Getenv("TURNSTILE_SITE_KEY")
-	turnstileSecretKey := os.Getenv("TURNSTILE_SECRET_KEY")
+	turnstileSiteKey := getEnv("TURNSTILE_SITE_KEY")
+	turnstileSecretKey := getEnv("TURNSTILE_SECRET_KEY")
+	telegramBotToken := getEnv("TELEGRAM_BOT_TOKEN")
+	telegramChatID := getEnv("TELEGRAM_CHAT_ID")
 
 	return &Config{
 		Env:                env,
@@ -71,6 +79,8 @@ func Load() (*Config, error) {
 		LocalesDir:         localesDir,
 		TurnstileSiteKey:   turnstileSiteKey,
 		TurnstileSecretKey: turnstileSecretKey,
+		TelegramBotToken:   telegramBotToken,
+		TelegramChatID:     telegramChatID,
 	}, nil
 }
 

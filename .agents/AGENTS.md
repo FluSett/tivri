@@ -149,9 +149,10 @@ Instead, the system relies on an **In-Memory Event-Driven Architecture (EDA)** b
 ### 📐 Code Layout & Vertical Whitespace Disciplines
 * **Zero Trailing Whitespace:** No line of code, configuration file, or template file may contain trailing spaces or carriage returns.
 * **Vertical Spacing Budget:** Group related statements together. Use exactly one blank line to separate distinct logical steps inside a function body. Double blank lines inside function contexts or across structural blocks are completely banned.
-* **Brace Alignment & Returns:** Enforce idiomatic Go brace positioning (`func structure() { ... }`). Do not add a blank line immediately after an opening brace or immediately before a closing brace. Ensure return blocks are compact.
+* **Brace Alignment & Returns:** Enforce idiomatic Go brace positioning (`func structure() { ... }`). Do not add a blank line immediately after an opening brace or immediately before a closing brace (or combinations like `})` or `})(w, r)`). Do not insert a blank line before a single final statement (like a return or final write status) at the end of a block/method. Ensure return blocks are compact.
 
 ### Alpine.js & HTML/Templates Integration
+
 * **No Build Step Dependency:** All modern frontend interactions must use native Go `html/template` generation backed by Alpine.js declarative bindings.
 * **Component Encapsulation:** Inline script tag pollution inside template bodies is forbidden. Global scope contamination must be prevented by packing behavior into distinct components via `Alpine.data()` inside code-split asset sheets.
 
@@ -255,10 +256,12 @@ When applying configuration updates affecting storage layouts or major versions 
 
 ---
 
-## 12. 🔄 Client-Facing & Admin Dashboard Alignment Mandate
+## 12. 🔄 Client-Facing, Admin Dashboard, & Notification Alignment Mandate
 
-To maintain strict operational coherence, every client-facing feature, question, dynamic field, or configurable parameter must remain perfectly aligned with the Admin Dashboard:
-* **Feature Parity:** Any input collected from a client (e.g., custom budgets, priority choices, timeline deadlines) must have a corresponding read-only display or management field within the Admin Dashboard.
-* **Control Parity:** Any admin-configurable toggle, switch, or parameter (e.g., queue status, warning displays, custom priority fees) must instantly and dynamically affect the client-facing UI's behavior, layout, or displayed warnings.
-* **Synchronized State & Variable Naming:** Ensure that variables, database column names, translation keys, and API payload properties matching these configuration fields share identical semantic names across both contexts to avoid technical debt and translation misalignment.
+To maintain strict operational coherence, every client-facing feature, question, dynamic field, or configurable parameter must remain perfectly aligned across all interfaces, including client views, administrator dashboards, and external alert systems (e.g., Telegram notifications):
+* **Feature Parity:** Any input collected from a client (e.g., custom budgets, priority choices, timeline deadlines) must have a corresponding read-only display or management field within the Admin Dashboard and be reflected in notification payloads.
+* **Control Parity:** Any admin-configurable toggle, switch, or parameter (e.g., queue status, warning displays, custom priority fees) must instantly and dynamically affect the client-facing UI's behavior, layout, or displayed warnings, as well as relevant notification alerts.
+* **Full Synchronized Propagation:** If any feature logic or field changes, the change must be propagated consistently across all affected touchpoints—client frontend forms, admin management views, internal database representations, API payloads, and external notification templates (Telegram channels/bots, emails, system logs).
+* **Synchronized State & Variable Naming:** Ensure that variables, database column names, translation keys, and API payload properties matching these configuration fields share identical semantic names across all contexts to avoid technical debt and translation misalignment.
+
 

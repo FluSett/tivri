@@ -16,8 +16,8 @@ func NewPostgresRepository(pool *pgxpool.Pool) *PostgresRepository {
 }
 
 func (r *PostgresRepository) Save(ctx context.Context, ld *Lead) error {
-	query := "INSERT INTO intake_leads (company_name, project_scope, budget, contact_email, contact_phone, deadline_needed, deadline_spec, client_status, internal_status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id"
-	err := r.pool.QueryRow(ctx, query, ld.CompanyName, ld.ProjectScope, ld.Budget, ld.ContactEmail, ld.ContactPhone, ld.DeadlineNeeded, ld.DeadlineSpec, ld.ClientStatus, ld.InternalStatus).Scan(&ld.ID)
+	query := "INSERT INTO intake_leads (company_name, project_scope, budget, contact_email, contact_info, deadline_needed, deadline_spec, is_custom_budget, client_status, internal_status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id"
+	err := r.pool.QueryRow(ctx, query, ld.CompanyName, ld.ProjectScope, ld.Budget, ld.ContactEmail, ld.ContactInfo, ld.DeadlineNeeded, ld.DeadlineSpec, ld.IsCustomBudget, ld.ClientStatus, ld.InternalStatus).Scan(&ld.ID)
 	if err != nil {
 		return fmt.Errorf("project_intake: save failed: %w", err)
 	}
@@ -26,7 +26,7 @@ func (r *PostgresRepository) Save(ctx context.Context, ld *Lead) error {
 }
 
 func (r *PostgresRepository) List(ctx context.Context) ([]Lead, error) {
-	query := "SELECT id, company_name, project_scope, budget, contact_email, contact_phone, deadline_needed, deadline_spec, client_status, internal_status, created_at, updated_at FROM intake_leads ORDER BY id DESC"
+	query := "SELECT id, company_name, project_scope, budget, contact_email, contact_info, deadline_needed, deadline_spec, is_custom_budget, client_status, internal_status, created_at, updated_at FROM intake_leads ORDER BY id DESC"
 	rows, err := r.pool.Query(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("project_intake: query leads failed: %w", err)
@@ -36,7 +36,7 @@ func (r *PostgresRepository) List(ctx context.Context) ([]Lead, error) {
 	var list []Lead
 	for rows.Next() {
 		var ld Lead
-		err := rows.Scan(&ld.ID, &ld.CompanyName, &ld.ProjectScope, &ld.Budget, &ld.ContactEmail, &ld.ContactPhone, &ld.DeadlineNeeded, &ld.DeadlineSpec, &ld.ClientStatus, &ld.InternalStatus, &ld.CreatedAt, &ld.UpdatedAt)
+		err := rows.Scan(&ld.ID, &ld.CompanyName, &ld.ProjectScope, &ld.Budget, &ld.ContactEmail, &ld.ContactInfo, &ld.DeadlineNeeded, &ld.DeadlineSpec, &ld.IsCustomBudget, &ld.ClientStatus, &ld.InternalStatus, &ld.CreatedAt, &ld.UpdatedAt)
 		if err != nil {
 			return nil, fmt.Errorf("project_intake: scan lead failed: %w", err)
 		}
