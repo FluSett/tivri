@@ -92,7 +92,7 @@
                     <th class="py-3 px-4">{{.T.Get "LeadTitle"}}</th>
                     <th class="py-3 px-4">{{.T.Get "ScopeCol"}}</th>
                     <th class="py-3 px-4">{{.T.Get "LeadContactEmail"}}</th>
-                    <th class="py-3 px-4">{{.T.Get "LeadPhoneTelegram"}}</th>
+                    <th class="py-3 px-4">{{.T.Get "LeadContactInfo"}}</th>
                     <th class="py-3 px-4">{{.T.Get "DeadlineCol"}}</th>
                     <th class="py-3 px-4">{{.T.Get "LeadClientStatus"}}</th>
                     <th class="py-3 px-4">{{.T.Get "LeadInternalStatus"}}</th>
@@ -107,7 +107,7 @@
                         <td class="py-3 px-4 font-bold text-white tracking-tight" x-text="l.companyName"></td>
                         <td class="py-3 px-4 text-neutral-400 leading-relaxed max-w-xs truncate" :title="l.projectScope" x-text="l.projectScope"></td>
                         <td class="py-3 px-4 text-neutral-400 font-medium" x-text="l.contactEmail"></td>
-                        <td class="py-3 px-4 text-neutral-400 max-w-[180px] truncate" :title="l.contactPhone" x-text="l.contactPhone || '-'"></td>
+                        <td class="py-3 px-4 text-neutral-400 max-w-[180px] truncate" :title="l.contactInfo" x-text="l.contactInfo || '-'"></td>
                         <td class="py-3 px-4">
                             <template x-if="l.deadlineNeeded">
                                 <div class="space-y-0.5">
@@ -171,7 +171,7 @@
                                  </div>
                             </div>
                         </td>
-                        <td class="py-3 px-4 text-right font-mono text-white" x-text="'$' + (l.budget / 100).toLocaleString()"></td>
+                        <td class="py-3 px-4 text-right font-mono text-white whitespace-nowrap" x-text="formatBudgetTier(l.budget, l.isCustomBudget)"></td>
                         <td class="py-3 px-4 table-cell-meta" x-text="l.createdAtStr"></td>
                         <td class="py-3 px-4 table-cell-meta" x-text="l.updatedAtStr"></td>
                     </tr>

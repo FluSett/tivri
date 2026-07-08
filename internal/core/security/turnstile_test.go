@@ -110,7 +110,7 @@ func TestVerifyTurnstileRequestPayload(t *testing.T) {
 		},
 	}
 
-	_, err := VerifyTurnstile("my-secret", "my-token", "192.168.1.1")
+	_, err := VerifyTurnstile("my-secret", "my-token", "203.0.113.195")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -118,7 +118,7 @@ func TestVerifyTurnstileRequestPayload(t *testing.T) {
 	expectedParts := []string{
 		"secret=my-secret",
 		"response=my-token",
-		"remoteip=192.168.1.1",
+		"remoteip=203.0.113.195",
 	}
 
 	for _, p := range expectedParts {

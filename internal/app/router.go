@@ -6,8 +6,10 @@ import (
 	"net/http"
 	urlpkg "net/url"
 	"strings"
+	"time"
 
 	"tivri/internal/core/security"
+	"tivri/internal/eventbus"
 )
 
 func (a *App) newRouter() (http.Handler, error) {
@@ -18,6 +20,18 @@ func (a *App) newRouter() (http.Handler, error) {
 	}
 
 	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.FS(subAssetsFS))))
+
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if err := a.db.Ping(r.Context()); err != nil {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			_, _ = w.Write([]byte(`{"status":"error","details":"database ping failed"}`))
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"status":"ok"}`))
+	})
 
 	mux.HandleFunc("/api/lang", func(w http.ResponseWriter, r *http.Request) {
 		lang := r.URL.Query().Get("lang")
@@ -134,7 +148,6 @@ func (a *App) newRouter() (http.Handler, error) {
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
-
 			return
 		}
 
@@ -155,7 +168,6 @@ func (a *App) newRouter() (http.Handler, error) {
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 				}
-
 				return
 			}
 
@@ -179,7 +191,6 @@ func (a *App) newRouter() (http.Handler, error) {
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 				}
-
 				return
 			}
 
@@ -267,6 +278,7 @@ func (a *App) newRouter() (http.Handler, error) {
 				http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 				return
 			}
+
 			err := r.ParseForm()
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
@@ -278,6 +290,12 @@ func (a *App) newRouter() (http.Handler, error) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
+
+			a.eventBus.Publish(r.Context(), eventbus.Event{
+				Type:      "settings.high_queue_changed",
+				Payload:   enabled,
+				Timestamp: time.Now(),
+			})
 			w.WriteHeader(http.StatusOK)
 		})(w, r)
 	})
@@ -296,7 +314,6 @@ func (a *App) newRouter() (http.Handler, error) {
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
-
 			return
 		}
 

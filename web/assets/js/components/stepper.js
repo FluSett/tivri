@@ -12,7 +12,7 @@ document.addEventListener('alpine:init', () => {
         deadlineNeeded: sessionStorage.getItem('intake_deadlineNeeded') === 'true',
         deadlineSpec: sessionStorage.getItem('intake_deadlineSpec') || '',
         contactEmail: sessionStorage.getItem('intake_contactEmail') || '',
-        contactPhone: sessionStorage.getItem('intake_contactPhone') || '',
+        contactInfo: sessionStorage.getItem('intake_contactInfo') || '',
         submitted: sessionStorage.getItem('intake_submitted') === 'true',
         nameTouched: false,
         scopeTouched: false,
@@ -36,7 +36,6 @@ document.addEventListener('alpine:init', () => {
             if (this.budget === 'other') {
                 return this.customBudget;
             }
-
             return this.budget;
         },
 
@@ -60,11 +59,9 @@ document.addEventListener('alpine:init', () => {
                 if (this.budget === '') {
                     return false;
                 }
-
                 if (this.budget === 'other') {
                     return this.customBudget.trim() !== '' && !isNaN(this.customBudget) && parseInt(this.customBudget) >= 100;
                 }
-
                 return true;
             }
 
@@ -88,18 +85,14 @@ document.addEventListener('alpine:init', () => {
 
             this.$watch('budget', val => {
                 sessionStorage.setItem('intake_budget', val);
-
                 if (val !== 'other') {
                     this.customBudget = '';
-
                     sessionStorage.removeItem('intake_customBudget');
                 }
             });
 
             this.$watch('customBudget', val => sessionStorage.setItem('intake_customBudget', val));
-
             this.$watch('scopeText', val => sessionStorage.setItem('intake_scopeText', val));
-
             this.$watch('nameText', val => sessionStorage.setItem('intake_nameText', val));
 
             this.$watch('deadlineNeeded', val => {
@@ -111,14 +104,11 @@ document.addEventListener('alpine:init', () => {
             });
 
             this.$watch('deadlineSpec', val => sessionStorage.setItem('intake_deadlineSpec', val));
-
             this.$watch('contactEmail', val => sessionStorage.setItem('intake_contactEmail', val));
-
-            this.$watch('contactPhone', val => sessionStorage.setItem('intake_contactPhone', val));
+            this.$watch('contactInfo', val => sessionStorage.setItem('intake_contactInfo', val));
 
             this.$watch('submitted', val => {
                 sessionStorage.setItem('intake_submitted', val);
-
                 if (val) {
                     sessionStorage.setItem('openStepper', 'true');
                 }
@@ -147,7 +137,7 @@ document.addEventListener('alpine:init', () => {
             this.deadlineNeeded = false;
             this.deadlineSpec = '';
             this.contactEmail = '';
-            this.contactPhone = '';
+            this.contactInfo = '';
             this.submitted = false;
             this.nameTouched = false;
             this.scopeTouched = false;
@@ -170,7 +160,7 @@ document.addEventListener('alpine:init', () => {
             sessionStorage.removeItem('intake_deadlineNeeded');
             sessionStorage.removeItem('intake_deadlineSpec');
             sessionStorage.removeItem('intake_contactEmail');
-            sessionStorage.removeItem('intake_contactPhone');
+            sessionStorage.removeItem('intake_contactInfo');
             sessionStorage.removeItem('intake_submitted');
             sessionStorage.removeItem('openStepper');
 
@@ -180,26 +170,30 @@ document.addEventListener('alpine:init', () => {
 
         renderTurnstile() {
             if (window.tivriTurnstileSiteKey && window.turnstile && this.$refs.turnstileContainer && this.turnstileId === null) {
-                this.turnstileId = window.turnstile.render(this.$refs.turnstileContainer, {
-                    sitekey: window.tivriTurnstileSiteKey,
-                    theme: 'dark',
-                    size: 'normal',
-                    language: document.documentElement.lang || 'en',
-                    callback: (token) => {
-                        this.turnstileToken = token;
-                        this.isVerified = true;
-                    },
-                    'expired-callback': () => {
-                        this.turnstileToken = '';
-                        this.isVerified = false;
-                    },
-                    'error-callback': () => {
-                        this.submitStatus = 'idle';
-                        this.isVerified = false;
-                        this.turnstileToken = '';
-                        window.dispatchEvent(new CustomEvent('tivri-error', { detail: 'Security verification failed.' }));
-                    }
-                });
+                try {
+                    this.turnstileId = window.turnstile.render(this.$refs.turnstileContainer, {
+                        sitekey: window.tivriTurnstileSiteKey,
+                        theme: 'dark',
+                        size: 'normal',
+                        language: document.documentElement.lang || 'en',
+                        callback: (token) => {
+                            this.turnstileToken = token;
+                            this.isVerified = true;
+                        },
+                        'expired-callback': () => {
+                            this.turnstileToken = '';
+                            this.isVerified = false;
+                        },
+                        'error-callback': () => {
+                            this.submitStatus = 'idle';
+                            this.isVerified = false;
+                            this.turnstileToken = '';
+                            window.dispatchEvent(new CustomEvent('tivri-error', { detail: 'Security verification failed.' }));
+                        }
+                    });
+                } catch (e) {
+                    console.error('Turnstile render failed:', e);
+                }
             }
         },
 
