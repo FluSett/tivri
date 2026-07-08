@@ -21,7 +21,7 @@ func main() {
 
 	defer server.Close()
 
-	err = server.Start()
+	err = server.Start(ctx)
 	if err != nil {
 		log.Fatalf("application error: %v", err)
 	}

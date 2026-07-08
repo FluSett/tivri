@@ -52,4 +52,4 @@ BEGIN
     END IF;
 END $$;
 
-
+INSERT INTO system_settings (key, value) VALUES ('maintenance_mode', 'false') ON CONFLICT (key) DO NOTHING;
