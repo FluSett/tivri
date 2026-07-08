@@ -110,6 +110,26 @@ func (w *TelegramWorker) HandleEvent(ctx context.Context, e eventbus.Event) erro
 			statusStr,
 		)
 
+	case "settings.maintenance_changed":
+		enabled, ok := e.Payload.(bool)
+		if !ok {
+			return errors.New("notifications/telegram: invalid maintenance status payload type")
+		}
+
+		statusStr := "DISABLED"
+		statusEmoji := "🟢"
+		if enabled {
+			statusStr = "ENABLED"
+			statusEmoji = "🛠️"
+		}
+
+		message = fmt.Sprintf(
+			"%s *System Alert: Maintenance Mode Changed*\n\n"+
+				"Maintenance Mode has been set to *%s* by an administrator.",
+			statusEmoji,
+			statusStr,
+		)
+
 	default:
 		return nil
 	}
@@ -122,6 +142,15 @@ func (w *TelegramWorker) NotifySystemUp(ctx context.Context) error {
 	}
 
 	message := fmt.Sprintf("✅ *Server Status Update*\n\nServer has booted successfully at `%s`.", time.Now().Format(time.RFC1123))
+	return w.sendTelegramMessage(ctx, message)
+}
+
+func (w *TelegramWorker) NotifySystemDown(ctx context.Context) error {
+	if w.token == "" || w.chatID == "" {
+		return nil
+	}
+
+	message := fmt.Sprintf("⚠️ *Server Status Update*\n\nServer is shutting down gracefully at `%s`.", time.Now().Format(time.RFC1123))
 	return w.sendTelegramMessage(ctx, message)
 }
 
