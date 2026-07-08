@@ -15,7 +15,7 @@
 
 body {
     background-color: #0A0A0A;
-    background-image: radial-gradient(circle at 50% -20%, rgba(255, 51, 102, 0.15) 0%, transparent 65%), url('/static/img/backgrounds/bg-sm.jpg');
+    background-image: radial-gradient(circle at 50% -20%, rgba(255, 51, 102, 0.15) 0%, transparent 65%), url('/assets/img/backgrounds/bg-sm.jpg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -24,12 +24,12 @@ body {
 }
 @media (min-width: 768px) {
     body {
-        background-image: radial-gradient(circle at 50% -20%, rgba(255, 51, 102, 0.15) 0%, transparent 65%), url('/static/img/backgrounds/bg-md.jpg');
+        background-image: radial-gradient(circle at 50% -20%, rgba(255, 51, 102, 0.15) 0%, transparent 65%), url('/assets/img/backgrounds/bg-md.jpg');
     }
 }
 @media (min-width: 1200px) {
     body {
-        background-image: radial-gradient(circle at 50% -20%, rgba(255, 51, 102, 0.15) 0%, transparent 65%), url('/static/img/backgrounds/bg-lg.jpg');
+        background-image: radial-gradient(circle at 50% -20%, rgba(255, 51, 102, 0.15) 0%, transparent 65%), url('/assets/img/backgrounds/bg-lg.jpg');
     }
 }
 
