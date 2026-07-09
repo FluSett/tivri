@@ -40,7 +40,7 @@
   "Skills2Title": "Cross-Platform Mobile",
   "Skills2Desc": "Native-quality iOS and Android applications utilizing React Native or Flutter, applying robust state management patterns (such as BLoC) to ensure UI performance and long-term maintainability.",
   "Skills3Title": "Modern Web Systems",
-  "Skills3Desc": "Dynamic, optimized web applications built with Next.js, React, Svelte, Alpine.js, and HTMX, styled via TailwindCSS and clean, reusable CSS systems.",
+  "Skills3Desc": "Dynamic, optimized web applications built with Next.js, React, Vue.js, Svelte, Alpine.js, and HTMX, styled via TailwindCSS and clean, reusable CSS systems.",
   "Skills4Title": "Pragmatic Architecture",
   "Skills4Desc": "We actively combat over-engineering. Technology choices are strictly contingent upon the specific technical task, scale, and business requirements of the project, delivering the simplest resilient path.",
   "SkillsBadgeTitle": "Future-Ready Code Quality",
