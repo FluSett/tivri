@@ -103,6 +103,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		Message:   message,
 		Status:    "new",
 		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 
 	err = h.repo.Save(r.Context(), msg)
