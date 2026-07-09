@@ -60,7 +60,7 @@
   "FormSubmitBtn": "Send Message",
   "AboutHeading": "The value of software is not in its volume, but in its integrity.",
   "MakeItHappen": "Make it happen",
-  "FooterIntro": "Architecting resilient digital systems with absolute code integrity and structural clarity.",
+  "FooterIntro": "Resilient backend, mobile, and web systems built with clean architecture and rigorous testing.",
   "SitemapTitle": "Sitemap",
   "SocialTitle": "Social",
   "SocialsWarning": "We are new and haven't launched our socials yet — coming soon.",
@@ -172,5 +172,5 @@
   "MaintenanceTitle": "We'll Be Right Back",
   "MaintenanceText": "We are currently conducting scheduled system maintenance. Please check back shortly.",
   "MetaTitle": "TIVRI",
-  "MetaDescription": "Resilient backends, mobile apps, and modern web systems — built with clean architecture, rigorous testing, and long-term maintainability."
+  "MetaDescription": "Resilient backend, mobile, and web systems built with clean architecture and rigorous testing."
 }

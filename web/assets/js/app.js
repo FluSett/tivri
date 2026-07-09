@@ -3,6 +3,8 @@ if ('scrollRestoration' in history) {
 }
 
 (function() {
+    var footerActive = false;
+
     function updateScrollState() {
         var header = document.getElementById('site-header');
         if (header) {
@@ -17,11 +19,17 @@ if ('scrollRestoration' in history) {
 
         var footer = document.getElementById('site-footer');
         if (footer) {
-            var isAtBottom = (window.innerHeight + window.pageYOffset >= document.documentElement.scrollHeight - 150);
-            if (isAtBottom) {
+            var scrollY = window.pageYOffset || window.scrollY;
+            var maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+            var threshold = footerActive ? 260 : 160;
+            var isAtBottom = (maxScroll - scrollY <= threshold);
+
+            if (isAtBottom && !footerActive) {
+                footerActive = true;
                 footer.classList.add('backdrop-blur-lg', 'bg-black/90', 'border-white/[0.08]', 'py-6', 'shadow-[0_-4px_30px_rgba(0,0,0,0.8)]');
                 footer.classList.remove('bg-transparent', 'border-transparent', 'py-12');
-            } else {
+            } else if (!isAtBottom && footerActive) {
+                footerActive = false;
                 footer.classList.remove('backdrop-blur-lg', 'bg-black/90', 'border-white/[0.08]', 'py-6', 'shadow-[0_-4px_30px_rgba(0,0,0,0.8)]');
                 footer.classList.add('bg-transparent', 'border-transparent', 'py-12');
             }
