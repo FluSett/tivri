@@ -1,5 +1,5 @@
 {{define "content"}}
-<div class="max-w-md mx-auto my-4 md:my-8 border border-white/[0.08] backdrop-blur-md bg-white/[0.02] p-8 md:p-10 rounded-2xl space-y-8 shadow-2xl hover:shadow-[0_0_40px_rgba(255,51,102,0.06)] hover:border-[#FF3366]/20 transition-all duration-500">
+<div class="max-w-md mx-auto my-4 md:my-8 border border-white/8 backdrop-blur-md bg-white/2 p-8 md:p-10 rounded-2xl space-y-8 shadow-2xl hover:shadow-[0_0_40px_rgba(255,51,102,0.06)] hover:border-[#FF3366]/20 transition-all duration-500">
     <div class="text-center space-y-3">
         <h2 class="text-3xl font-black tracking-tight text-white">{{.T.Get "LoginTitle"}}</h2>
         <p class="text-xs text-neutral-400 tracking-wide max-w-[280px] mx-auto leading-relaxed">{{.T.Get "LoginSubtitle"}}</p>
@@ -45,7 +45,7 @@
         </script>
         {{end}}
 
-        <button type="submit" class="w-full bg-[#FF3366] text-white font-bold py-3.5 rounded-xl hover:bg-[#FF3366]/80 hover:shadow-[0_0_15px_rgba(255,51,102,0.4)] transition-all duration-300 text-xs uppercase tracking-widest">
+        <button type="submit" class="w-full bg-[#FF3366] text-white font-bold py-3.5 rounded-xl hover:bg-[#FF3366]/80 hover:shadow-[0_0_15px_rgba(255,51,102,0.4)] transition-all duration-300 text-xs uppercase tracking-widest cursor-pointer">
             {{.T.Get "BtnLogin"}}
         </button>
     </form>
