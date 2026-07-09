@@ -24,19 +24,19 @@
             <div class="space-y-2">
                 <label class="form-label-admin">Media Files (Images/Videos, Max 5MB per file)</label>
                 <div class="relative group">
-                    <input type="file" multiple accept="image/*,video/*" @change="handleFiles($el)" class="form-input file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-white/[0.08] file:text-white hover:file:bg-white/[0.15] text-xs">
+                    <input type="file" multiple accept="image/*,video/*" @change="handleFiles($el)" class="form-input file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-white/8 file:text-white hover:file:bg-white/15 text-xs">
                 </div>
             </div>
 
             <!-- Interactive File Row / Reordering / Removing List -->
             <template x-if="mediaPreviews.length > 0">
-                <div class="space-y-3 bg-black/30 border border-white/[0.08] p-4 rounded-xl">
+                <div class="space-y-3 bg-black/30 border border-white/8 p-4 rounded-xl">
                     <h4 class="text-xs font-bold text-neutral-400 uppercase tracking-wider">Arrange Upload Media</h4>
                     <div class="space-y-2">
                         <template x-for="(item, index) in mediaPreviews" :key="item.id">
-                            <div class="flex items-center justify-between bg-white/[0.02] border border-white/[0.05] p-2.5 rounded-lg gap-3">
+                            <div class="flex items-center justify-between bg-white/2 border border-white/5 p-2.5 rounded-lg gap-3">
                                 <div class="flex items-center space-x-3 min-w-0">
-                                    <div class="w-12 h-12 rounded bg-black/40 overflow-hidden flex-shrink-0 border border-white/[0.08] relative">
+                                    <div class="w-12 h-12 rounded bg-black/40 overflow-hidden shrink-0 border border-white/8 relative">
                                         <template x-if="item.isVideo">
                                             <div class="absolute inset-0 flex items-center justify-center text-neutral-400">
                                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"></path></svg>
@@ -48,11 +48,11 @@
                                     </div>
                                     <span class="text-xs text-neutral-300 truncate max-w-[200px]" x-text="item.name"></span>
                                 </div>
-                                <div class="flex items-center space-x-1.5 flex-shrink-0">
-                                    <button type="button" @click="moveItem(index, -1)" :disabled="index === 0" class="w-7 h-7 flex items-center justify-center bg-white/[0.04] hover:bg-white/[0.1] disabled:opacity-30 disabled:pointer-events-none rounded border border-white/[0.08] text-white transition-colors">
+                                <div class="flex items-center space-x-1.5 shrink-0">
+                                    <button type="button" @click="moveItem(index, -1)" :disabled="index === 0" class="w-7 h-7 flex items-center justify-center bg-white/4 hover:bg-white/10 disabled:opacity-30 disabled:pointer-events-none rounded border border-white/8 text-white transition-colors">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"></path></svg>
                                     </button>
-                                    <button type="button" @click="moveItem(index, 1)" :disabled="index === mediaPreviews.length - 1" class="w-7 h-7 flex items-center justify-center bg-white/[0.04] hover:bg-white/[0.1] disabled:opacity-30 disabled:pointer-events-none rounded border border-white/[0.08] text-white transition-colors">
+                                    <button type="button" @click="moveItem(index, 1)" :disabled="index === mediaPreviews.length - 1" class="w-7 h-7 flex items-center justify-center bg-white/4 hover:bg-white/10 disabled:opacity-30 disabled:pointer-events-none rounded border border-white/8 text-white transition-colors">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
                                     </button>
                                     <button type="button" @click="removeItem(index)" class="w-7 h-7 flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 rounded border border-red-500/20 text-red-400 transition-colors ml-2">
@@ -76,7 +76,7 @@
         <div class="portfolio-card">
             <div x-data="{ activeIndex: 0 }" class="space-y-4">
                 <template x-if="mediaPreviews.length > 0">
-                    <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-black/40 border border-white/[0.08]">
+                    <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-black/40 border border-white/8">
                         <template x-for="(item, index) in mediaPreviews" :key="item.id">
                             <div x-show="activeIndex === index" class="absolute inset-0 w-full h-full">
                                 <template x-if="item.isVideo">
@@ -114,14 +114,14 @@
                 </div>
                 <p class="text-neutral-400 text-sm leading-relaxed tracking-tight" x-text="description || 'Description'"></p>
                 <div class="flex flex-wrap gap-2">
-                    <span class="bg-white/[0.04] text-neutral-300 text-xs px-2.5 py-1 rounded-lg border border-white/[0.06] tracking-tight font-medium" x-text="techStack || 'Tech Stack'"></span>
+                    <span class="bg-white/4 text-neutral-300 text-xs px-2.5 py-1 rounded-lg border border-white/6 tracking-tight font-medium" x-text="techStack || 'Tech Stack'"></span>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="border-t border-white/[0.08] pt-8 space-y-6">
+<div class="border-t border-white/8 pt-8 space-y-6">
     <h3 class="text-lg font-bold text-neutral-200 tracking-tight">{{.T.Get "PortfolioCurrentItems"}}</h3>
     <div id="portfolio-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {{range .PortfolioItems}}

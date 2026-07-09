@@ -1,11 +1,11 @@
 {{define "home.intake.html"}}
-<div class="border border-white/[0.08] bg-white/[0.02] p-8 rounded-xl hover:border-[#FF3366]/30 hover:shadow-[0_0_30px_rgba(255,51,102,0.05)] transition-all duration-500"
+<div class="border border-white/8 bg-white/2 p-8 rounded-xl hover:border-[#FF3366]/30 hover:shadow-[0_0_30px_rgba(255,51,102,0.05)] transition-all duration-500"
      x-data="stepper({{.HighQueueActive}})">
-    
+
     <div x-show="!openStepper" x-collapse class="space-y-6">
         <h3 class="text-xl font-bold text-white tracking-tight">{{.T.Get "ContactHeadline"}}</h3>
         <p class="text-sm text-neutral-400 leading-relaxed">{{.T.Get "ContactSub"}}</p>
-        <button @click="openStepper = true" class="flex items-center space-x-3 bg-transparent text-white border border-[#FF3366] hover:bg-[#FF3366] hover:text-white hover:shadow-[0_0_15px_rgba(255,51,102,0.4)] font-bold text-xs uppercase tracking-wider px-8 py-3.5 rounded-lg transition-all duration-300">
+        <button @click="openStepper = true" class="flex items-center space-x-3 bg-transparent text-white border border-[#FF3366] hover:bg-[#FF3366] hover:text-white hover:shadow-[0_0_15px_rgba(255,51,102,0.4)] font-bold text-xs uppercase tracking-wider px-8 py-3.5 rounded-lg transition-all duration-300 cursor-pointer">
             <span>{{.T.Get "ContactBtn"}}</span>
         </button>
     </div>
@@ -23,7 +23,7 @@
             </div>
             <div class="flex justify-center gap-3 pt-2">
                 <button type="button" @click="resetForm()"
-                        class="btn-secondary">
+                        class="btn-secondary cursor-pointer">
                     {{.T.Get "CloseBtn"}}
                 </button>
             </div>
@@ -33,15 +33,15 @@
              x-transition:enter-start="opacity-0 scale-98"
               x-transition:enter-end="opacity-100 scale-100"
               class="space-y-6">
-            <div class="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+            <div class="flex items-center justify-between pb-3 border-b border-white/8">
                 <h2 class="text-xs font-bold uppercase tracking-widest text-[#FF3366]">{{.T.Get "IntakeTitle"}}</h2>
                 <span class="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
                     {{.T.Get "StepLabel"}} <span x-text="step"></span> / <span x-text="totalSteps"></span>
                 </span>
             </div>
 
-            <div class="h-1.5 bg-white/[0.04] border border-white/[0.08] rounded-full overflow-hidden">
-             <div class="h-full bg-gradient-to-r from-[#FF3366] via-[#ff5c8a] to-[#FF3366] animate-shimmer shadow-[0_0_15px_rgba(255,51,102,0.75)] rounded-full transition-all duration-500"
+            <div class="h-1.5 bg-white/4 border border-white/8 rounded-full overflow-hidden">
+             <div class="h-full bg-linear-to-r from-[#FF3366] via-[#ff5c8a] to-[#FF3366] animate-shimmer shadow-[0_0_15px_rgba(255,51,102,0.75)] rounded-full transition-all duration-500"
                   :style="'width: ' + ((step / totalSteps) * 100) + '%'"></div>
             </div>
 
@@ -97,12 +97,12 @@
                     <div class="flex justify-between items-center">
                         <div class="flex gap-2">
                             <button type="button" @click="openStepper = false"
-                                    class="btn-secondary">
+                                    class="btn-secondary cursor-pointer">
                                 {{.T.Get "CancelBtn"}}
                             </button>
                         </div>
                         <button type="button" @click="step = 2"
-                                class="btn-primary-form"
+                                class="btn-primary-form cursor-pointer disabled:cursor-not-allowed"
                                 :disabled="!canGoNext(1)">
                             {{.T.Get "NextBtn"}}
                         </button>
@@ -133,12 +133,12 @@
                     <div class="flex justify-between items-center">
                         <div class="flex gap-2">
                             <button type="button" @click="step = 1"
-                                    class="btn-secondary">
+                                    class="btn-secondary cursor-pointer">
                                 {{.T.Get "PrevBtn"}}
                             </button>
                         </div>
                         <button type="button" @click="step = 3"
-                                class="btn-primary-form"
+                                class="btn-primary-form cursor-pointer disabled:cursor-not-allowed"
                                 :disabled="!canGoNext(2)">
                             {{.T.Get "NextBtn"}}
                         </button>
@@ -152,25 +152,25 @@
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
-                        <button type="button" 
+                        <button type="button"
                                 @click="if (!highQueueActive) { deadlineNeeded = true }"
                                 :class="deadlineNeeded ? 'btn-choice-active' : 'btn-choice'"
                                 :disabled="highQueueActive"
-                                class="btn-choice flex flex-col justify-between min-h-[70px] disabled:opacity-50 disabled:cursor-not-allowed">
+                                class="btn-choice cursor-pointer flex flex-col justify-between min-h-[70px] disabled:opacity-50 disabled:cursor-not-allowed">
                             <span class="text-xs font-bold uppercase tracking-wider">{{.T.Get "DeadlineStrictTitle"}}</span>
                             <span class="text-[10px] text-neutral-500 mt-1">{{.T.Get "DeadlineStrictDesc"}}</span>
                         </button>
-                        <button type="button" 
+                        <button type="button"
                                 @click="deadlineNeeded = false"
                                 :class="!deadlineNeeded ? 'btn-choice-active' : 'btn-choice'"
                                 :disabled="highQueueActive"
-                                class="btn-choice flex flex-col justify-between min-h-[70px] disabled:opacity-50 disabled:cursor-not-allowed">
+                                class="btn-choice cursor-pointer flex flex-col justify-between min-h-[70px] disabled:opacity-50 disabled:cursor-not-allowed">
                             <span class="text-xs font-bold uppercase tracking-wider">{{.T.Get "DeadlineStandardTitle"}}</span>
                             <span class="text-[10px] text-neutral-500 mt-1">{{.T.Get "DeadlineStandardDesc"}}</span>
                         </button>
                     </div>
 
-                    <div x-show="highQueueActive" class="text-[11px] text-neutral-400 bg-white/[0.02] border border-white/[0.08] p-3 rounded-lg leading-normal">
+                    <div x-show="highQueueActive" class="text-[11px] text-neutral-400 bg-white/2 border border-white/8 p-3 rounded-lg leading-normal">
                         {{.T.Get "DeadlineUnavailableMsg"}}
                     </div>
 
@@ -195,12 +195,12 @@
                     <div class="flex justify-between items-center pt-2">
                         <div class="flex gap-2">
                             <button type="button" @click="step = 2"
-                                    class="btn-secondary">
+                                    class="btn-secondary cursor-pointer">
                                 {{.T.Get "PrevBtn"}}
                             </button>
                         </div>
                         <button type="button" @click="step = 4"
-                                class="btn-primary-form"
+                                class="btn-primary-form cursor-pointer disabled:cursor-not-allowed"
                                 :disabled="!canGoNext(3)">
                             {{.T.Get "NextBtn"}}
                         </button>
@@ -214,43 +214,43 @@
                     <div class="grid grid-cols-2 gap-3">
                         <button type="button" @click="budget = '250000'"
                                 :class="budget === '250000' ? 'btn-choice-active' : 'btn-choice'"
-                                class="btn-choice">
+                                class="btn-choice cursor-pointer">
                             <span class="block text-[10px] text-neutral-500 mb-0.5">{{.T.Get "BudgetSmall"}}</span>
                             <span class="text-xs font-bold">{{.T.Get "BudgetSmallRange"}}</span>
                         </button>
                         <button type="button" @click="budget = '750000'"
                                 :class="budget === '750000' ? 'btn-choice-active' : 'btn-choice'"
-                                class="btn-choice">
+                                class="btn-choice cursor-pointer">
                             <span class="block text-[10px] text-neutral-500 mb-0.5">{{.T.Get "BudgetStarter"}}</span>
                             <span class="text-xs font-bold">{{.T.Get "BudgetStarterRange"}}</span>
                         </button>
                         <button type="button" @click="budget = '1750000'"
                                 :class="budget === '1750000' ? 'btn-choice-active' : 'btn-choice'"
-                                class="btn-choice">
+                                class="btn-choice cursor-pointer">
                             <span class="block text-[10px] text-neutral-500 mb-0.5">{{.T.Get "BudgetGrowth"}}</span>
                             <span class="text-xs font-bold">{{.T.Get "BudgetGrowthRange"}}</span>
                         </button>
                         <button type="button" @click="budget = '5000000'"
                                 :class="budget === '5000000' ? 'btn-choice-active' : 'btn-choice'"
-                                class="btn-choice">
+                                class="btn-choice cursor-pointer">
                             <span class="block text-[10px] text-neutral-500 mb-0.5">{{.T.Get "BudgetScale"}}</span>
                             <span class="text-xs font-bold">{{.T.Get "BudgetScaleRange"}}</span>
                         </button>
                         <button type="button" @click="budget = '11250000'"
                                 :class="budget === '11250000' ? 'btn-choice-active' : 'btn-choice'"
-                                class="btn-choice">
+                                class="btn-choice cursor-pointer">
                             <span class="block text-[10px] text-neutral-500 mb-0.5">{{.T.Get "BudgetEnterprise"}}</span>
                             <span class="text-xs font-bold">{{.T.Get "BudgetEnterpriseRange"}}</span>
                         </button>
                         <button type="button" @click="budget = '20000000'"
                                 :class="budget === '20000000' ? 'btn-choice-active' : 'btn-choice'"
-                                class="btn-choice">
+                                class="btn-choice cursor-pointer">
                             <span class="block text-[10px] text-neutral-500 mb-0.5">{{.T.Get "BudgetPremium"}}</span>
                             <span class="text-xs font-bold">{{.T.Get "BudgetPremiumRange"}}</span>
                         </button>
                         <button type="button" @click="budget = 'other'"
                                 :class="budget === 'other' ? 'btn-choice-active' : 'btn-choice'"
-                                class="col-span-2 btn-choice">
+                                class="col-span-2 btn-choice cursor-pointer">
                             <span class="block text-[10px] text-neutral-500 mb-0.5">{{.T.Get "BudgetCustomLabel"}}</span>
                             <span class="text-xs font-bold">{{.T.Get "BudgetOtherLabel"}}</span>
                         </button>
@@ -272,16 +272,16 @@
                              </span>
                          </div>
                     </div>
-                    
+
                     <div class="flex justify-between items-center pt-2">
                         <div class="flex gap-2">
                             <button type="button" @click="step = 3"
-                                    class="btn-secondary">
+                                    class="btn-secondary cursor-pointer">
                                 {{.T.Get "PrevBtn"}}
                             </button>
                         </div>
                         <button type="button" @click="step = 5"
-                                class="btn-primary-form"
+                                class="btn-primary-form cursor-pointer disabled:cursor-not-allowed"
                                 :disabled="!canGoNext(4)">
                             {{.T.Get "NextBtn"}}
                         </button>
@@ -331,12 +331,12 @@
 
                     <div class="flex justify-between pt-2">
                         <button type="button" @click="step = 4"
-                                class="btn-secondary">
+                                class="btn-secondary cursor-pointer">
                             {{.T.Get "PrevBtn"}}
                         </button>
                         <button type="submit"
                                 :disabled="submitStatus !== 'idle' || !contactEmail.includes('@') || !contactEmail.includes('.')"
-                                :class="(!contactEmail.includes('@') || !contactEmail.includes('.')) ? 'bg-white/10 text-neutral-500 cursor-not-allowed border-transparent' : (submitStatus !== 'idle' ? 'bg-[#FF3366] text-white border border-[#FF3366] cursor-wait shadow-[0_0_15px_rgba(255,51,102,0.4)]' : 'bg-transparent text-white border border-[#FF3366] hover:bg-[#FF3366] hover:shadow-[0_0_15px_rgba(255,51,102,0.4)]')"
+                                :class="(!contactEmail.includes('@') || !contactEmail.includes('.')) ? 'bg-white/10 text-neutral-500 cursor-not-allowed border-transparent' : (submitStatus !== 'idle' ? 'bg-[#FF3366] text-white border border-[#FF3366] cursor-wait shadow-[0_0_15px_rgba(255,51,102,0.4)]' : 'bg-transparent text-white border border-[#FF3366] hover:bg-[#FF3366] hover:shadow-[0_0_15px_rgba(255,51,102,0.4)] cursor-pointer')"
                                 class="font-bold text-xs uppercase tracking-wider py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center space-x-2 min-w-[120px] border">
                             <span x-show="submitStatus === 'idle'">{{.T.Get "SubmitBtn"}}</span>
                             <span x-show="submitStatus !== 'idle'" class="flex items-center space-x-2">

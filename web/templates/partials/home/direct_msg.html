@@ -1,8 +1,8 @@
 {{define "home.direct_msg.html"}}
-<div class="border border-white/[0.08] bg-white/[0.02] p-8 rounded-xl hover:border-[#FF3366]/30 hover:shadow-[0_0_30px_rgba(255,51,102,0.05)] transition-all duration-500"
+<div class="border border-white/8 bg-white/2 p-8 rounded-xl hover:border-[#FF3366]/30 hover:shadow-[0_0_30px_rgba(255,51,102,0.05)] transition-all duration-500"
      x-data="contact">
     <div>
-        <div @click="showForm = !showForm" class="pb-3 border-b border-white/[0.08] flex justify-between items-center cursor-pointer group">
+        <div @click="showForm = !showForm" class="pb-3 border-b border-white/8 flex justify-between items-center cursor-pointer group">
             <div class="space-y-1">
                 <h3 class="text-xl font-bold text-white group-hover:text-[#FF3366] transition-colors tracking-tight">{{.T.Get "DirectMsgTitle"}}</h3>
                 <p class="text-xs text-neutral-400 mt-1">{{.T.Get "DirectMsgSub"}}</p>
@@ -17,7 +17,7 @@
                 <template x-if="submitted">
                     <div class="backdrop-blur-md bg-green-500/10 border border-green-500/20 text-green-400 p-6 rounded-xl flex flex-col items-center space-y-3 text-center">
                         <div class="flex items-center space-x-3 justify-center">
-                            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                             <div class="text-sm font-semibold tracking-tight">{{.T.Get "SuccessMsg"}}</div>
@@ -83,7 +83,7 @@
                         <div id="contact-status">
                             <button type="submit"
                                     :disabled="submitStatus !== 'idle' || email.trim().length < 5 || !email.includes('@') || !email.includes('.') || topic.trim().length < 3 || message.trim().length < 10"
-                                    :class="(email.trim().length < 5 || !email.includes('@') || !email.includes('.') || topic.trim().length < 3 || message.trim().length < 10) ? 'bg-white/10 text-neutral-500 cursor-not-allowed border-transparent' : (submitStatus !== 'idle' ? 'bg-[#FF3366] text-white border border-[#FF3366] cursor-wait shadow-[0_0_15px_rgba(255,51,102,0.4)]' : 'bg-transparent text-white border border-[#FF3366] hover:bg-[#FF3366] hover:shadow-[0_0_15px_rgba(255,51,102,0.4)]')"
+                                    :class="(email.trim().length < 5 || !email.includes('@') || !email.includes('.') || topic.trim().length < 3 || message.trim().length < 10) ? 'bg-white/10 text-neutral-500 cursor-not-allowed border-transparent' : (submitStatus !== 'idle' ? 'bg-[#FF3366] text-white border border-[#FF3366] cursor-wait shadow-[0_0_15px_rgba(255,51,102,0.4)]' : 'bg-transparent text-white border border-[#FF3366] hover:bg-[#FF3366] hover:shadow-[0_0_15px_rgba(255,51,102,0.4)] cursor-pointer')"
                                     class="w-full font-bold text-xs uppercase tracking-wider py-3 rounded-lg transition-all duration-300 flex items-center justify-center space-x-2">
                                 <span x-show="submitStatus === 'idle'">{{.T.Get "FormSubmitBtn"}}</span>
                                 <span x-show="submitStatus !== 'idle'" class="flex items-center space-x-2">
