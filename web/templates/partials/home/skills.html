@@ -1,19 +1,19 @@
 {{define "section.skills.html"}}
 <section id="skills" class="relative min-h-[80vh] flex flex-col justify-between py-8 md:py-12 scroll-mt-16 md:scroll-mt-28">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center my-auto flex-grow">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center my-auto grow">
         <div class="section-sidebar">
             <div class="section-marker-container">
                  <span class="text-xs font-bold tracking-widest text-[#FF3366] rotate-90 my-4">03</span>
                  <div class="section-marker-line"></div>
             </div>
         </div>
-        
+
         <div class="lg:col-span-11 space-y-8">
             <div class="section-title-wrap">
                 <div class="section-accent-line"></div>
                 <h2 class="section-accent-text">{{.T.Get "SkillsTitle"}}</h2>
             </div>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
                 <div class="lg:col-span-2 skill-card space-y-2">
                     <div class="space-y-1">
@@ -39,7 +39,7 @@
                         <p class="text-xs text-neutral-400 leading-relaxed">{{.T.Get "Skills4Desc"}}</p>
                     </div>
                 </div>
-                
+
                 <div class="lg:col-span-4 skill-card p-8 flex flex-col justify-center space-y-4">
                     <h3 class="text-xl font-bold text-white tracking-tight leading-tight">{{.T.Get "SkillsBadgeTitle"}}</h3>
                     <p class="text-xs text-neutral-400 leading-relaxed tracking-tight">{{.T.Get "SkillsBadgeDesc"}}</p>

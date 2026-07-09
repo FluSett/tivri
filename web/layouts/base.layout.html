@@ -76,15 +76,15 @@
       x-data="{ mobileMenuOpen: false, openStepper: sessionStorage.getItem('openStepper') === 'true', init() { this.$watch('openStepper', val => sessionStorage.setItem('openStepper', val)) } }"
       x-on:resize.window="if (window.innerWidth >= 768) mobileMenuOpen = false">
     <div class="fixed inset-0 pointer-events-none z-0 flex justify-between w-full px-4 md:px-16 lg:px-24">
-        <div class="w-px h-full bg-white/[0.03]"></div>
-        <div class="w-px h-full bg-white/[0.03] hidden md:block"></div>
-        <div class="w-px h-full bg-white/[0.03] hidden md:block"></div>
-        <div class="w-px h-full bg-white/[0.03] hidden md:block"></div>
-        <div class="w-px h-full bg-white/[0.03]"></div>
+        <div class="w-px h-full bg-white/3"></div>
+        <div class="w-px h-full bg-white/3 hidden md:block"></div>
+        <div class="w-px h-full bg-white/3 hidden md:block"></div>
+        <div class="w-px h-full bg-white/3 hidden md:block"></div>
+        <div class="w-px h-full bg-white/3"></div>
     </div>
-    
+
     <!-- Beautiful Global Error UI Alert Box -->
-    <div x-data="{ 
+    <div x-data="{
             errorMessage: '',
             showError: false,
             init() {
@@ -103,17 +103,17 @@
          x-transition:leave="transition ease-in duration-200"
          x-transition:leave-start="opacity-100 translate-y-0 scale-100"
          x-transition:leave-end="opacity-0 translate-y-4 scale-95"
-         class="fixed bottom-6 right-6 z-[999] max-w-sm w-full bg-[#0A0A0A] border border-[#FF3366]/40 shadow-[0_0_30px_rgba(255,51,102,0.15)] rounded-xl p-4 flex items-start space-x-3 backdrop-blur-md">
-        <div class="flex-shrink-0 text-[#FF3366] mt-0.5">
+          class="fixed bottom-6 right-6 z-999 max-w-sm w-full bg-[#0A0A0A] border border-[#FF3366]/40 shadow-[0_0_30px_rgba(255,51,102,0.15)] rounded-xl p-4 flex items-start space-x-3 backdrop-blur-md">
+        <div class="shrink-0 text-[#FF3366] mt-0.5">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
             </svg>
         </div>
-        <div class="flex-grow space-y-1">
+        <div class="grow space-y-1">
             <h4 class="text-xs font-black uppercase tracking-wider text-white">System Notice</h4>
             <p class="text-xs text-neutral-300 leading-normal" x-text="errorMessage"></p>
         </div>
-        <button @click="showError = false" class="text-neutral-500 hover:text-white transition-colors flex-shrink-0">
+        <button @click="showError = false" class="text-neutral-500 hover:text-white transition-colors shrink-0">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
             </svg>
@@ -126,7 +126,7 @@
             {{if .IsAdmin}}
             <div class="flex items-center space-x-2">
                 <a href="/admin" onclick="if (window.location.pathname === '/admin') { event.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); } else { window.location.href = '/admin'; }" class="flex items-center space-x-3 group">
-                    <div class="relative w-6 h-6 flex items-center justify-center flex-shrink-0 logo-glow-anim">
+                    <div class="relative w-6 h-6 flex items-center justify-center shrink-0 logo-glow-anim">
                         <div class="absolute inset-0 bg-[#FF3366] rounded-sm transform rotate-45 group-hover:rotate-90 transition-transform duration-500"></div>
                         <div class="absolute w-2 h-2 bg-[#0A0A0A] rounded-full"></div>
                     </div>
@@ -137,7 +137,7 @@
             {{else}}
             <div>
                 <a href="/" onclick="if (window.location.pathname === '/') { event.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); } else { window.location.href = '/'; }" class="flex items-center space-x-3 group">
-                    <div class="relative w-6 h-6 flex items-center justify-center flex-shrink-0 logo-glow-anim">
+                    <div class="relative w-6 h-6 flex items-center justify-center shrink-0 logo-glow-anim">
                         <div class="absolute inset-0 bg-[#FF3366] rounded-sm transform rotate-45 group-hover:rotate-90 transition-transform duration-500"></div>
                         <div class="absolute w-2 h-2 bg-[#0A0A0A] rounded-full"></div>
                     </div>
@@ -170,7 +170,7 @@
                 <!-- Header Language Selector -->
                 <div class="h-4 w-px bg-white/20 hidden md:block mx-2"></div>
                 <div class="relative {{if not .IsAdminLogin}}hidden md:block{{end}}" x-data="{ open: false }">
-                    <button @click="open = !open" class="flex items-center space-x-1 text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white focus:outline-none transition-colors">
+                    <button @click="open = !open" class="flex items-center space-x-1 text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white focus:outline-none transition-colors cursor-pointer">
                         <span>{{if eq .Lang "en"}}EN{{else if eq .Lang "uk"}}UA{{else}}RU{{end}}</span>
                         <svg class="w-3 h-3 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path>
@@ -184,11 +184,11 @@
                           x-transition:leave="transition ease-in duration-75"
                           x-transition:leave-start="opacity-100 scale-100"
                           x-transition:leave-end="opacity-0 scale-95"
-                          class="absolute right-0 mt-2 w-20 bg-[#0A0A0A] border border-white/[0.08] rounded-lg shadow-xl py-1 z-50 text-left"
-                          x-cloak>
-                        <button type="button" {{if eq .Lang "en"}}disabled class="w-full text-left block px-4 py-2 text-xs font-semibold text-[#FF3366] pointer-events-none cursor-default"{{else}}hx-get="/api/lang?lang=en" hx-target="body" hx-swap="outerHTML" class="w-full text-left block px-4 py-2 text-xs font-semibold text-neutral-400 hover:text-white hover:bg-white/[0.04] transition-colors"{{end}}>EN</button>
-                        <button type="button" {{if eq .Lang "uk"}}disabled class="w-full text-left block px-4 py-2 text-xs font-semibold text-[#FF3366] pointer-events-none cursor-default"{{else}}hx-get="/api/lang?lang=uk" hx-target="body" hx-swap="outerHTML" class="w-full text-left block px-4 py-2 text-xs font-semibold text-neutral-400 hover:text-white hover:bg-white/[0.04] transition-colors"{{end}}>UA</button>
-                        <button type="button" {{if eq .Lang "ru"}}disabled class="w-full text-left block px-4 py-2 text-xs font-semibold text-[#FF3366] pointer-events-none cursor-default"{{else}}hx-get="/api/lang?lang=ru" hx-target="body" hx-swap="outerHTML" class="w-full text-left block px-4 py-2 text-xs font-semibold text-neutral-400 hover:text-white hover:bg-white/[0.04] transition-colors"{{end}}>RU</button>
+                           class="absolute right-0 mt-2 w-20 bg-[#0A0A0A] border border-white/8 rounded-lg shadow-xl py-1 z-50 text-left"
+                           x-cloak>
+                        <button type="button" {{if eq .Lang "en"}}disabled class="w-full text-left block px-4 py-2 text-xs font-semibold text-[#FF3366] pointer-events-none cursor-default"{{else}}hx-get="/api/lang?lang=en" hx-target="body" hx-swap="outerHTML" class="w-full text-left block px-4 py-2 text-xs font-semibold text-neutral-400 hover:text-white hover:bg-white/4 transition-colors cursor-pointer"{{end}}>EN</button>
+                        <button type="button" {{if eq .Lang "uk"}}disabled class="w-full text-left block px-4 py-2 text-xs font-semibold text-[#FF3366] pointer-events-none cursor-default"{{else}}hx-get="/api/lang?lang=uk" hx-target="body" hx-swap="outerHTML" class="w-full text-left block px-4 py-2 text-xs font-semibold text-neutral-400 hover:text-white hover:bg-white/4 transition-colors cursor-pointer"{{end}}>UA</button>
+                        <button type="button" {{if eq .Lang "ru"}}disabled class="w-full text-left block px-4 py-2 text-xs font-semibold text-[#FF3366] pointer-events-none cursor-default"{{else}}hx-get="/api/lang?lang=ru" hx-target="body" hx-swap="outerHTML" class="w-full text-left block px-4 py-2 text-xs font-semibold text-neutral-400 hover:text-white hover:bg-white/4 transition-colors cursor-pointer"{{end}}>RU</button>
                     </div>
                 </div>
 
@@ -203,7 +203,7 @@
                 {{end}}
 
                 {{if and (not .IsAdminLogin) (not .MaintenanceActive)}}
-                <button class="md:hidden text-neutral-400 hover:text-white focus:outline-none transition-colors"
+                <button class="md:hidden text-neutral-400 hover:text-white focus:outline-none transition-colors cursor-pointer"
                         @click="mobileMenuOpen = true">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
@@ -214,7 +214,7 @@
     </header>
 
     <!-- Mobile Slide Menu Container -->
-    <div x-show="mobileMenuOpen" x-cloak class="fixed inset-0 z-[100] md:hidden" role="dialog" aria-modal="true">
+    <div x-show="mobileMenuOpen" x-cloak class="fixed inset-0 z-100 md:hidden" role="dialog" aria-modal="true">
         <!-- Mobile Menu Backdrop -->
         <div x-show="mobileMenuOpen"
              x-transition:enter="transition-opacity ease-linear duration-300"
@@ -228,7 +228,7 @@
         </div>
 
         <!-- Mobile Menu Slide-Out Panel Wrapper -->
-        <div class="fixed inset-0 flex z-[110] pointer-events-none">
+        <div class="fixed inset-0 flex z-110 pointer-events-none">
             <!-- Mobile Menu Slide-Out Panel -->
             <div x-show="mobileMenuOpen"
                  x-transition:enter="transition ease-in-out duration-300 transform"
@@ -237,11 +237,11 @@
                  x-transition:leave="transition ease-in-out duration-300 transform"
                  x-transition:leave-start="translate-x-0"
                  x-transition:leave-end="translate-x-full"
-                 class="relative ml-auto flex h-full w-[80%] max-w-[280px] flex-col justify-between bg-black/40 backdrop-blur-md border-l border-white/[0.08] p-8 shadow-2xl pointer-events-auto">
-                 
+                 class="relative ml-auto flex h-full w-[80%] max-w-[280px] flex-col justify-between bg-black/40 backdrop-blur-md border-l border-white/8 p-8 shadow-2xl pointer-events-auto">
+
                  <!-- Close Button Row -->
                  <div class="flex justify-end w-full pt-2">
-                     <button class="text-neutral-400 hover:text-white focus:outline-none focus:ring-0 select-none outline-none transition-all duration-300 hover:rotate-90 transform"
+                     <button class="text-neutral-400 hover:text-white focus:outline-none focus:ring-0 select-none outline-none transition-all duration-300 hover:rotate-90 transform cursor-pointer"
                              @click="mobileMenuOpen = false">
                          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -252,7 +252,7 @@
                  <!-- Centered Logo inside Mobile Panel -->
                  <div class="w-full flex justify-center mt-6">
                     <a href="/" x-on:click="if (window.location.pathname === '/' || window.location.pathname === '/admin') { $event.preventDefault(); mobileMenuOpen = false; window.scrollTo({ top: 0, behavior: 'smooth' }); }" class="flex items-center space-x-3 group">
-                        <div class="relative w-6 h-6 flex items-center justify-center flex-shrink-0 logo-glow-anim">
+                        <div class="relative w-6 h-6 flex items-center justify-center shrink-0 logo-glow-anim">
                             <div class="absolute inset-0 bg-[#FF3366] rounded-sm transform rotate-45 group-hover:rotate-90 transition-transform duration-500"></div>
                             <div class="absolute w-2 h-2 bg-[#0A0A0A] rounded-full"></div>
                         </div>
@@ -264,7 +264,7 @@
                  </div>
 
                  <!-- Mobile Panel Links -->
-                 <div class="flex-grow flex flex-col justify-center py-8">
+                 <div class="grow flex flex-col justify-center py-8">
                      {{if and .IsAdmin (not .IsAdminLogin)}}
                      <div class="flex flex-col items-start space-y-6">
                          <a href="/admin?tab=portfolio" @click="mobileMenuOpen = false" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "TabPortfolio"}}</a>
@@ -292,9 +292,9 @@
                  <div class="pb-2 text-center">
                      <div class="h-px w-full bg-white/10 mb-8"></div>
                      <div class="flex items-center justify-center space-x-5">
-                          <button type="button" {{if eq .Lang "en"}}disabled class="text-xs font-bold uppercase tracking-wider text-[#FF3366] pointer-events-none cursor-default"{{else}}@click="mobileMenuOpen = false; setTimeout(() => htmx.ajax('GET', '/api/lang?lang=en', {target: 'body', swap: 'outerHTML'}), 350)" class="text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white hover:scale-105 transition-all duration-200"{{end}}>EN</button>
-                          <button type="button" {{if eq .Lang "uk"}}disabled class="text-xs font-bold uppercase tracking-wider text-[#FF3366] pointer-events-none cursor-default"{{else}}@click="mobileMenuOpen = false; setTimeout(() => htmx.ajax('GET', '/api/lang?lang=uk', {target: 'body', swap: 'outerHTML'}), 350)" class="text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white hover:scale-105 transition-all duration-200"{{end}}>UA</button>
-                          <button type="button" {{if eq .Lang "ru"}}disabled class="text-xs font-bold uppercase tracking-wider text-[#FF3366] pointer-events-none cursor-default"{{else}}@click="mobileMenuOpen = false; setTimeout(() => htmx.ajax('GET', '/api/lang?lang=ru', {target: 'body', swap: 'outerHTML'}), 350)" class="text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white hover:scale-105 transition-all duration-200"{{end}}>RU</button>
+                          <button type="button" {{if eq .Lang "en"}}disabled class="text-xs font-bold uppercase tracking-wider text-[#FF3366] pointer-events-none cursor-default"{{else}}@click="mobileMenuOpen = false; setTimeout(() => htmx.ajax('GET', '/api/lang?lang=en', {target: 'body', swap: 'outerHTML'}), 350)" class="text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white hover:scale-105 transition-all duration-200 cursor-pointer"{{end}}>EN</button>
+                          <button type="button" {{if eq .Lang "uk"}}disabled class="text-xs font-bold uppercase tracking-wider text-[#FF3366] pointer-events-none cursor-default"{{else}}@click="mobileMenuOpen = false; setTimeout(() => htmx.ajax('GET', '/api/lang?lang=uk', {target: 'body', swap: 'outerHTML'}), 350)" class="text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white hover:scale-105 transition-all duration-200 cursor-pointer"{{end}}>UA</button>
+                          <button type="button" {{if eq .Lang "ru"}}disabled class="text-xs font-bold uppercase tracking-wider text-[#FF3366] pointer-events-none cursor-default"{{else}}@click="mobileMenuOpen = false; setTimeout(() => htmx.ajax('GET', '/api/lang?lang=ru', {target: 'body', swap: 'outerHTML'}), 350)" class="text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white hover:scale-105 transition-all duration-200 cursor-pointer"{{end}}>RU</button>
                      </div>
                      <p class="text-xs text-neutral-500 tracking-wider mt-12 pb-1">&copy; 2026 TIVRI. {{.T.Get "RightsReserved"}}</p>
                  </div>
@@ -302,7 +302,7 @@
         </div>
     </div>
 
-    <main class="w-full max-w-[1600px] mx-auto px-6 md:px-16 lg:px-24 pt-32 pb-16 flex-grow relative z-10">
+    <main class="w-full max-w-[1600px] mx-auto px-6 md:px-16 lg:px-24 pt-32 pb-16 grow relative z-10">
         {{template "content" .}}
     </main>
 
@@ -311,7 +311,7 @@
             <div class="md:col-span-5 space-y-4">
                 <div class="flex items-center space-x-3">
                     <a href="/" onclick="if (window.location.pathname === '/') { event.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); } else { window.location.href = '/'; }" class="flex items-center space-x-3 group">
-                        <div class="relative w-6 h-6 flex items-center justify-center flex-shrink-0 logo-glow-anim">
+                        <div class="relative w-6 h-6 flex items-center justify-center shrink-0 logo-glow-anim">
                             <div class="absolute inset-0 bg-[#FF3366] rounded-sm transform rotate-45 group-hover:rotate-90 transition-transform duration-500"></div>
                             <div class="absolute w-2 h-2 bg-[#0A0A0A] rounded-full"></div>
                         </div>
@@ -355,26 +355,26 @@
                     <h4 class="text-xs font-bold uppercase tracking-wider text-neutral-500">{{.T.Get "SocialTitle"}}</h4>
                     <div class="flex items-center gap-4">
                         <a href="https://x.com" target="_blank" rel="noopener noreferrer" class="relative w-9 h-9 flex items-center justify-center group logo-glow-anim">
-                            <div class="absolute inset-0 bg-white/[0.03] border border-white/[0.08] rounded-sm transform rotate-45 group-hover:rotate-90 group-hover:border-[#FF3366] group-hover:bg-[#FF3366]/10 transition-all duration-500"></div>
+                            <div class="absolute inset-0 bg-white/3 border border-white/8 rounded-sm transform rotate-45 group-hover:rotate-90 group-hover:border-[#FF3366] group-hover:bg-[#FF3366]/10 transition-all duration-500"></div>
                             <svg class="w-4 h-4 text-neutral-400 group-hover:text-white transition-colors relative z-10" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                             </svg>
                         </a>
                         <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="relative w-9 h-9 flex items-center justify-center group logo-glow-anim">
-                            <div class="absolute inset-0 bg-white/[0.03] border border-white/[0.08] rounded-sm transform rotate-45 group-hover:rotate-90 group-hover:border-[#FF3366] group-hover:bg-[#FF3366]/10 transition-all duration-500"></div>
+                            <div class="absolute inset-0 bg-white/3 border border-white/8 rounded-sm transform rotate-45 group-hover:rotate-90 group-hover:border-[#FF3366] group-hover:bg-[#FF3366]/10 transition-all duration-500"></div>
                             <svg class="w-4 h-4 text-neutral-400 group-hover:text-white transition-colors relative z-10" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.8v8.37h2.8v-4.67c0-.25.02-.5.1-.68a1.14 1.14 0 0 1 1-.77c.76 0 1 .56 1 1.39v4.73h2.8M6.5 8.37a1.37 1.37 0 0 0 1.3-1.3A1.3 1.3 0 0 0 6.5 5.7a1.3 1.3 0 0 0-1.3 1.3A1.37 1.37 0 0 0 6.5 8.37M8 18.5V10.1H5.2v8.4H8z"/>
                             </svg>
                         </a>
                         <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" class="relative w-9 h-9 flex items-center justify-center group logo-glow-anim">
-                            <div class="absolute inset-0 bg-white/[0.03] border border-white/[0.08] rounded-sm transform rotate-45 group-hover:rotate-90 group-hover:border-[#FF3366] group-hover:bg-[#FF3366]/10 transition-all duration-500"></div>
+                            <div class="absolute inset-0 bg-white/3 border border-white/8 rounded-sm transform rotate-45 group-hover:rotate-90 group-hover:border-[#FF3366] group-hover:bg-[#FF3366]/10 transition-all duration-500"></div>
                             <svg class="w-4 h-4 text-neutral-400 group-hover:text-white transition-colors relative z-10" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.06-2.89-.52-4.06-1.39-.17-.13-.32-.27-.47-.41v5.3c-.07 1.7-.58 3.44-1.74 4.67-1.25 1.34-3.14 2.04-4.94 1.94-2.12-.13-4.16-1.42-4.96-3.39-.9-2.22-.3-4.95 1.48-6.52 1.4-1.23 3.39-1.71 5.21-1.27v4.11c-1.04-.37-2.23-.1-2.98.67-.7.72-.88 1.88-.42 2.78.47.92 1.55 1.44 2.58 1.31 1.05-.13 1.89-.98 1.99-2.03.04-1.72.01-10.75.01-10.75z"/>
                             </svg>
                         </a>
                     </div>
                     <div class="text-[11px] text-neutral-500 leading-normal max-w-xs flex items-start gap-1.5 pt-2">
-                        <svg class="w-3.5 h-3.5 text-[#FF3366] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <svg class="w-3.5 h-3.5 text-[#FF3366] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                         </svg>
                         <span>{{.T.Get "SocialsWarning"}}</span>
@@ -382,7 +382,7 @@
                 </div>
             </div>
         </div>
-        <div class="max-w-[1600px] mx-auto w-full border-t border-white/[0.05] mt-8 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-neutral-500">
+        <div class="max-w-[1600px] mx-auto w-full border-t border-white/5 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-neutral-500">
             <p class="tracking-tight">&copy; 2026 TIVRI. {{.T.Get "RightsReserved"}}</p>
             <p class="tracking-tight">{{.T.Get "CraftedWith"}}</p>
         </div>
