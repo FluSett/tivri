@@ -130,6 +130,12 @@ func (w *TelegramWorker) HandleEvent(ctx context.Context, e eventbus.Event) erro
 			statusStr,
 		)
 
+	case "system.booted":
+		return w.NotifySystemUp(ctx)
+
+	case "system.shutdown":
+		return w.NotifySystemDown(ctx)
+
 	default:
 		return nil
 	}
@@ -185,7 +191,14 @@ func (w *TelegramWorker) sendTelegramMessage(ctx context.Context, text string) e
 			if resp.StatusCode == http.StatusOK {
 				return nil
 			}
-			lastErr = fmt.Errorf("telegram api returned status: %d", resp.StatusCode)
+			var errResp struct {
+				Description string `json:"description"`
+			}
+			if json.NewDecoder(resp.Body).Decode(&errResp) == nil && errResp.Description != "" {
+				lastErr = fmt.Errorf("telegram api returned status %d: %s", resp.StatusCode, errResp.Description)
+			} else {
+				lastErr = fmt.Errorf("telegram api returned status: %d", resp.StatusCode)
+			}
 		} else {
 			lastErr = err
 		}

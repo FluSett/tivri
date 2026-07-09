@@ -62,7 +62,13 @@
                     <tr class="hover:bg-white/[0.02] transition-colors">
                         <td class="py-3 px-4 font-bold text-white tracking-tight" x-text="m.email"></td>
                         <td class="py-3 px-4 text-[#FF3366] font-medium" x-text="m.topic"></td>
-                        <td class="py-3 px-4 text-neutral-400 leading-relaxed" x-text="m.message"></td>
+                        <td class="py-3 px-4 text-neutral-400 leading-relaxed max-w-md" x-data="{ expanded: false }">
+                            <div :class="m.message.length > 80 ? 'cursor-pointer hover:text-neutral-200 transition-colors' : ''"
+                                 @click="if (m.message.length > 80) expanded = !expanded">
+                                <span x-show="!expanded" x-text="m.message.length > 80 ? m.message.substring(0, 80) + '...' : m.message"></span>
+                                <span x-show="expanded" x-text="m.message" class="whitespace-pre-wrap" x-cloak></span>
+                            </div>
+                        </td>
                         <td class="py-3 px-4">
                             <div x-data="{ open: false }" class="relative inline-block text-left">
                                 <button @click="open = !open"

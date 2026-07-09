@@ -122,14 +122,32 @@
                 <template x-for="l in filteredLeads" :key="l.id">
                     <tr class="hover:bg-white/[0.02] transition-colors">
                         <td class="py-3 px-4 font-bold text-white tracking-tight" x-text="l.companyName"></td>
-                        <td class="py-3 px-4 text-neutral-400 leading-relaxed max-w-xs truncate" :title="l.projectScope" x-text="l.projectScope"></td>
+                        <td class="py-3 px-4 text-neutral-400 leading-relaxed max-w-xs" x-data="{ expanded: false }">
+                            <div :class="l.projectScope.length > 50 ? 'cursor-pointer hover:text-neutral-200 transition-colors' : ''"
+                                 @click="if (l.projectScope.length > 50) expanded = !expanded">
+                                <span x-show="!expanded" x-text="l.projectScope.length > 50 ? l.projectScope.substring(0, 50) + '...' : l.projectScope"></span>
+                                <span x-show="expanded" x-text="l.projectScope" class="whitespace-pre-wrap" x-cloak></span>
+                            </div>
+                        </td>
                         <td class="py-3 px-4 text-neutral-400 font-medium" x-text="l.contactEmail"></td>
-                        <td class="py-3 px-4 text-neutral-400 max-w-[180px] truncate" :title="l.contactInfo" x-text="l.contactInfo || '-'"></td>
+                        <td class="py-3 px-4 text-neutral-400 max-w-[180px]" x-data="{ expanded: false }">
+                            <div :class="(l.contactInfo && l.contactInfo.length > 25) ? 'cursor-pointer hover:text-neutral-200 transition-colors' : ''"
+                                 @click="if (l.contactInfo && l.contactInfo.length > 25) expanded = !expanded">
+                                <span x-show="!expanded" x-text="(l.contactInfo && l.contactInfo.length > 25) ? l.contactInfo.substring(0, 25) + '...' : (l.contactInfo || '-')"></span>
+                                <span x-show="expanded" x-text="l.contactInfo" class="whitespace-pre-wrap" x-cloak></span>
+                            </div>
+                        </td>
                         <td class="py-3 px-4">
                             <template x-if="l.deadlineNeeded">
                                 <div class="space-y-0.5">
                                     <span class="inline-block bg-[#FF3366]/25 border border-[#FF3366]/40 text-[#FF3366] font-semibold text-[9.5px] uppercase tracking-widest px-1.5 py-0.5 rounded shadow-[0_0_10px_rgba(255,51,102,0.1)]">Strict</span>
-                                    <p class="text-xs text-neutral-400 truncate max-w-[150px] mt-1" :title="l.deadlineSpec" x-text="l.deadlineSpec"></p>
+                                    <p class="text-xs text-neutral-400 mt-1 max-w-[150px]"
+                                       x-data="{ expanded: false }"
+                                       :class="l.deadlineSpec.length > 20 ? 'cursor-pointer hover:text-neutral-200 transition-colors' : ''"
+                                       @click="if (l.deadlineSpec.length > 20) expanded = !expanded">
+                                        <span x-show="!expanded" x-text="l.deadlineSpec.length > 20 ? l.deadlineSpec.substring(0, 20) + '...' : l.deadlineSpec"></span>
+                                        <span x-show="expanded" x-text="l.deadlineSpec" class="whitespace-pre-wrap" x-cloak></span>
+                                    </p>
                                 </div>
                             </template>
                             <template x-if="!l.deadlineNeeded">
