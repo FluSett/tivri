@@ -99,13 +99,26 @@ jobs:
           source: "docker-compose.yml,web"
           target: "/var/www/tivri"
 
-      - name: Check if Nginx configuration changed
+      - name: Check if configuration or scripts changed
         uses: dorny/paths-filter@v3
         id: filter
         with:
           filters: |
             nginx:
               - 'nginx/tivri.conf'
+            scripts:
+              - 'scripts/**'
+
+      - name: Copy scripts to Droplet
+        if: steps.filter.outputs.scripts == 'true'
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DROPLET_IP }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          port: ${{ secrets.DROPLET_SSH_PORT }}
+          source: "scripts"
+          target: "/var/www/tivri"
 
       - name: Copy Nginx configuration to Droplet
         if: steps.filter.outputs.nginx == 'true'
@@ -143,3 +156,12 @@ jobs:
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker compose pull
             docker compose up -d --remove-orphans
+            chmod +x /var/www/tivri/scripts/health_check.sh
+            if [ -f /var/www/tivri/.env ]; then
+              BOT_TOKEN=$(grep -E "^TELEGRAM_BOT_TOKEN=" /var/www/tivri/.env | cut -d'=' -f2- | tr -d '"'\''\r')
+              CHAT_ID=$(grep -E "^TELEGRAM_CHAT_ID=" /var/www/tivri/.env | cut -d'=' -f2- | tr -d '"'\''\r')
+              if [ -n "$BOT_TOKEN" ] && [ -n "$CHAT_ID" ]; then
+                CRON_LINE="*/5 * * * * /var/www/tivri/scripts/health_check.sh \"http://127.0.0.1:8080\" \"$BOT_TOKEN\" \"$CHAT_ID\" >> /var/log/tivri_health.log 2>&1"
+                (crontab -l 2>/dev/null | grep -F "health_check.sh" >/dev/null) || (crontab -l 2>/dev/null; echo "$CRON_LINE") | crontab -
+              fi
+            fi

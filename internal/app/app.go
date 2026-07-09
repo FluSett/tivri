@@ -221,6 +221,8 @@ func New(ctx context.Context) (*App, error) {
 	eventBus.Subscribe("contact.created", telegramWorker.HandleEvent)
 	eventBus.Subscribe("settings.high_queue_changed", telegramWorker.HandleEvent)
 	eventBus.Subscribe("settings.maintenance_changed", telegramWorker.HandleEvent)
+	eventBus.Subscribe("system.booted", telegramWorker.HandleEvent)
+	eventBus.Subscribe("system.shutdown", telegramWorker.HandleEvent)
 
 	securityMgr := security.NewSecurityManager(ctx, logger)
 
@@ -322,11 +324,7 @@ func (a *App) Start(ctx context.Context) error {
 		}
 	}()
 
-	bootCtx, bootCancel := context.WithTimeout(context.Background(), 5*time.Second)
-	if err := a.telegramWorker.NotifySystemUp(bootCtx); err != nil {
-		a.logger.Error("failed to send telegram boot notification", slog.String("error", err.Error()))
-	}
-	bootCancel()
+	a.eventBus.Publish(ctx, eventbus.Event{Type: "system.booted"})
 
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		return err
