@@ -26,7 +26,7 @@ func (r *PostgresRepository) Save(ctx context.Context, msg *ContactMessage) erro
 }
 
 func (r *PostgresRepository) List(ctx context.Context) ([]ContactMessage, error) {
-	query := "SELECT id, email, topic, message, status, created_at FROM contact_messages ORDER BY id DESC"
+	query := "SELECT id, email, topic, message, status, created_at, updated_at FROM contact_messages ORDER BY id DESC"
 	rows, err := r.pool.Query(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("messaging: query failed: %w", err)
@@ -36,7 +36,7 @@ func (r *PostgresRepository) List(ctx context.Context) ([]ContactMessage, error)
 	var list []ContactMessage
 	for rows.Next() {
 		var m ContactMessage
-		err := rows.Scan(&m.ID, &m.Email, &m.Topic, &m.Message, &m.Status, &m.CreatedAt)
+		err := rows.Scan(&m.ID, &m.Email, &m.Topic, &m.Message, &m.Status, &m.CreatedAt, &m.UpdatedAt)
 		if err != nil {
 			return nil, fmt.Errorf("messaging: scan failed: %w", err)
 		}
@@ -52,7 +52,7 @@ func (r *PostgresRepository) List(ctx context.Context) ([]ContactMessage, error)
 }
 
 func (r *PostgresRepository) UpdateStatus(ctx context.Context, id int64, status string) error {
-	query := "UPDATE contact_messages SET status = $1 WHERE id = $2"
+	query := "UPDATE contact_messages SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2"
 	_, err := r.pool.Exec(ctx, query, status, id)
 	if err != nil {
 		return fmt.Errorf("messaging: update status failed: %w", err)
