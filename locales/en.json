@@ -17,6 +17,7 @@
   "BudgetCol": "Budget ($)",
   "ScopeCol": "Scope",
   "CreatedCol": "Received At",
+  "UpdatedCol": "Updated At",
   "AdminTitle": "Management Console",
   "AddPortfolio": "Add New Portfolio Item",
   "LeadDashboard": "Requests Dashboard",

@@ -55,6 +55,7 @@
                     <th class="py-3 px-4">{{.T.Get "DirectMessagesMessage"}}</th>
                     <th class="py-3 px-4">{{.T.Get "DirectMessagesStatus"}}</th>
                     <th class="py-3 px-4 text-right">{{.T.Get "CreatedCol"}}</th>
+                    <th class="py-3 px-4 text-right">{{.T.Get "UpdatedCol"}}</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-white/[0.04] text-sm text-neutral-300">
@@ -94,6 +95,7 @@
                             </div>
                         </td>
                         <td class="py-3 px-4 table-cell-meta" x-text="m.createdAtStr"></td>
+                        <td class="py-3 px-4 table-cell-meta" x-text="m.updatedAtStr"></td>
                     </tr>
                 </template>
             </tbody>

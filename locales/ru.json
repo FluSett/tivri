@@ -17,6 +17,7 @@
   "BudgetCol": "Бюджет ($)",
   "ScopeCol": "Объем",
   "CreatedCol": "Получено",
+  "UpdatedCol": "Обновлено",
   "AdminTitle": "Консоль управления",
   "AddPortfolio": "Добавить новое портфолио",
   "LeadDashboard": "Панель запросов",

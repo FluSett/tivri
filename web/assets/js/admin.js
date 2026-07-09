@@ -85,6 +85,10 @@ document.addEventListener('alpine:init', () => {
                 body: new URLSearchParams({ id: msg.id, status: status })
             });
             msg.status = status;
+            const now = new Date();
+            msg.updatedAt = Math.floor(now.getTime() / 1000);
+            const pad = (n) => String(n).padStart(2, '0');
+            msg.updatedAtStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
         }
     }));
 

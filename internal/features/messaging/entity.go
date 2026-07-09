@@ -13,6 +13,7 @@ type ContactMessage struct {
 	Message   string    `json:"message"`
 	Status    string    `json:"status"`
 	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 func (c ContactMessage) MarshalJSON() ([]byte, error) {
@@ -20,9 +21,11 @@ func (c ContactMessage) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
 		Alias
 		CreatedAtStr string `json:"createdAtStr"`
+		UpdatedAtStr string `json:"updatedAtStr"`
 	}{
 		Alias:        Alias(c),
 		CreatedAtStr: c.CreatedAt.Format("2006-01-02 15:04"),
+		UpdatedAtStr: c.UpdatedAt.Format("2006-01-02 15:04"),
 	})
 }
 
