@@ -93,7 +93,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Copy docker-compose.yml and web assets to Droplet
-        uses: appleboy/scp-action@v0.1.8
+        uses: appleboy/scp-action@v1.0.0
         with:
           host: ${{ secrets.DROPLET_IP }}
           username: ${{ secrets.DROPLET_USER }}
@@ -114,7 +114,7 @@ jobs:
 
       - name: Copy scripts to Droplet
         if: steps.filter.outputs.scripts == 'true'
-        uses: appleboy/scp-action@v0.1.8
+        uses: appleboy/scp-action@v1.0.0
         with:
           host: ${{ secrets.DROPLET_IP }}
           username: ${{ secrets.DROPLET_USER }}
@@ -125,7 +125,7 @@ jobs:
 
       - name: Copy Nginx configuration to Droplet
         if: steps.filter.outputs.nginx == 'true'
-        uses: appleboy/scp-action@v0.1.8
+        uses: appleboy/scp-action@v1.0.0
         with:
           host: ${{ secrets.DROPLET_IP }}
           username: ${{ secrets.DROPLET_USER }}
@@ -137,7 +137,7 @@ jobs:
 
       - name: Reload Nginx configuration
         if: steps.filter.outputs.nginx == 'true'
-        uses: appleboy/ssh-action@v1.2.0
+        uses: appleboy/ssh-action@v1.2.1
         with:
           host: ${{ secrets.DROPLET_IP }}
           username: ${{ secrets.DROPLET_USER }}
@@ -147,7 +147,7 @@ jobs:
           script: nginx -t && systemctl reload nginx
 
       - name: Deploy to DigitalOcean
-        uses: appleboy/ssh-action@v1.2.0
+        uses: appleboy/ssh-action@v1.2.1
         with:
           host: ${{ secrets.DROPLET_IP }}
           username: ${{ secrets.DROPLET_USER }}
