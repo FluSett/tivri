@@ -59,14 +59,16 @@ TELEGRAM_CHAT_ID=xxxxxx
    ```bash
    docker compose up --build
    ```
-2. Build Tailwind CSS:
+2. Compile Assets locally (only needed if running the Go app directly without Docker):
    ```bash
-   npx tailwindcss -i web/assets/css/input.css -o web/assets/css/theme.css --minify
+   npm install
+   npm run build
    ```
 3. Endpoints: Public: `http://localhost:8080` | Console: `http://localhost:8080/admin`
 
 ## ✈️ Automated Deploy & Uptime Monitoring (CI/CD)
 Deploys to DigitalOcean Droplets on every commit push to `main` branch.
+* **Automated Asset Generation**: Assets (Tailwind CSS compilation & JS minification) are built dynamically in Node.js builder stages inside Docker, keeping Git clean.
 * **Filter copying**: The `scripts/` folder is conditionally uploaded only if files are changed.
 * **Cron Auto-Config**: The pipeline automatically configures and schedules host crontab tasks utilizing `.env` secrets:
   ```bash

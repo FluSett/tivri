@@ -22,6 +22,26 @@ func (a *App) newRouter() (http.Handler, error) {
 
 	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.FS(subAssetsFS))))
 
+	mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		data, err := fs.ReadFile(subAssetsFS, "favicons/favicon.png")
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		w.Header().Set("Content-Type", "image/png")
+		_, _ = w.Write(data)
+	})
+
+	mux.HandleFunc("/favicon.png", func(w http.ResponseWriter, r *http.Request) {
+		data, err := fs.ReadFile(subAssetsFS, "favicons/favicon.png")
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		w.Header().Set("Content-Type", "image/png")
+		_, _ = w.Write(data)
+	})
+
 	mux.HandleFunc("/robots.txt", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		_, _ = w.Write([]byte("User-agent: *\nDisallow: /admin/\nDisallow: /admin\nAllow: /\n\nSitemap: https://tivri.cc/sitemap.xml\n"))
@@ -435,11 +455,40 @@ func (a *App) newRouter() (http.Handler, error) {
 		})(w, r)
 	})
 
+	mux.HandleFunc("/privacy", func(w http.ResponseWriter, r *http.Request) {
+		lang := security.ResolveLocale(r)
+		data := PageData{
+			CurrentPath:      "/privacy",
+			Lang:             lang,
+			T:                a.translator.Get(lang),
+			TurnstileSiteKey: a.cfg.TurnstileSiteKey,
+		}
+		err = a.templates["privacy"].ExecuteTemplate(w, "base.layout.html", data)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	})
+
+	mux.HandleFunc("/terms", func(w http.ResponseWriter, r *http.Request) {
+		lang := security.ResolveLocale(r)
+		data := PageData{
+			CurrentPath:      "/terms",
+			Lang:             lang,
+			T:                a.translator.Get(lang),
+			TurnstileSiteKey: a.cfg.TurnstileSiteKey,
+		}
+		err = a.templates["terms"].ExecuteTemplate(w, "base.layout.html", data)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	})
+
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
 			w.WriteHeader(http.StatusNotFound)
 			lang := security.ResolveLocale(r)
 			data := PageData{
+				CurrentPath:      r.URL.Path,
 				Lang:             lang,
 				T:                a.translator.Get(lang),
 				TurnstileSiteKey: a.cfg.TurnstileSiteKey,
@@ -461,6 +510,7 @@ func (a *App) newRouter() (http.Handler, error) {
 
 		highQueueActive, _ := a.getHighQueueSetting(r.Context())
 		data := PageData{
+			CurrentPath:     "/",
 			Lang:            lang,
 			T:               a.translator.Get(lang),
 			PortfolioItems:  items,
