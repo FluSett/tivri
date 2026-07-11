@@ -171,6 +171,6 @@
   "AdminMaintenanceHint": "Restrict public access and show a 503 maintenance page.",
   "MaintenanceTitle": "We'll Be Right Back",
   "MaintenanceText": "We are currently conducting scheduled system maintenance. Please check back shortly.",
-  "MetaTitle": "TIVRI | Premium Systems & Software Architecture",
-  "MetaDescription": "Resilient web systems, cross-platform apps, custom scripting, and secure backend solutions engineered using clean architecture and rigorous testing for long-term scalability."
+  "MetaTitle": "TIVRI | Clean & Maintainable Software Solutions",
+  "MetaDescription": "Custom web systems, cross-platform apps, scripting, and secure backends engineered using clean architecture and rigorous testing for long-term scalability."
 }
