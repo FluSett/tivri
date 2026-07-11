@@ -9,7 +9,7 @@
                             <video :src="item" class="w-full h-full object-cover" controls muted playsinline></video>
                         </template>
                         <template x-if="!(item.endsWith('.mp4') || item.endsWith('.webm'))">
-                            <img :src="item" class="w-full h-full object-cover" alt="Portfolio media">
+                            <img :src="item" class="w-full h-full object-cover" alt="{{.Title}} - Portfolio Project Showcase">
                         </template>
                     </div>
                 </template>
