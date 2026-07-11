@@ -1387,6 +1387,9 @@
     --tw-tracking: var(--tracking-widest);
     letter-spacing: var(--tracking-widest);
   }
+  .wrap-break-word {
+    overflow-wrap: break-word;
+  }
   .whitespace-nowrap {
     white-space: nowrap;
   }
@@ -2564,6 +2567,11 @@ button, [role="button"], select, input[type="button"], input[type="submit"], inp
 }
 button:disabled, button[disabled], [role="button"]:disabled, select:disabled, input:disabled {
   cursor: not-allowed !important;
+}
+.wrap-break-word {
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
 }
 @property --tw-translate-x {
   syntax: "*";
