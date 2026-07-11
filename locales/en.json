@@ -1,6 +1,6 @@
 {
   "HeroClaim": "Engineering premium software architectures with unmatched technical integrity and aesthetic distinction.",
-  "PortfolioIntro": "We architect and develop custom web systems, cross-platform mobile apps, and robust backend software solutions. Our focus is on clean architecture, database design optimization, and rapid feature development.",
+  "PortfolioIntro": "We architect and develop custom web systems, cross-platform mobile apps, and robust backend software. We prioritize software integrity over code volume, engineering clean architecture and optimized databases for rapid feature development.",
   "CompanyNameLabel": "Your Name / Company",
   "ProjectScopeLabel": "Project Scope Description",
   "BudgetValueLabel": "Budget",
@@ -65,7 +65,7 @@
   "SocialTitle": "Social",
   "SocialsWarning": "We are new and haven't launched our socials yet — coming soon.",
   "RightsReserved": "All rights reserved.",
-  "CraftedWith": "Crafted with modern high-performance technologies",
+  "CraftedWith": "Crafted with Go, HTMX & Alpine.js",
   "LanguageLabel": "Language",
   "PlaceholderEmail": "your@email.com",
   "PlaceholderTopic": "e.g. Vacancies, general query, greeting",
