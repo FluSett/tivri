@@ -25,6 +25,7 @@ import (
 )
 
 type PageData struct {
+	CurrentPath     string
 	Lang            string
 	T               i18n.Translation
 	PortfolioItems  []portfolio.PortfolioItem
@@ -198,12 +199,34 @@ func New(ctx context.Context) (*App, error) {
 		return nil, err
 	}
 
+	privacyTmpl, err := template.New("base.layout.html").Funcs(funcMap).ParseFS(
+		webUIFS,
+		"layouts/base.layout.html",
+		"templates/pages/public/privacy.html",
+	)
+	if err != nil {
+		db.Close()
+		return nil, err
+	}
+
+	termsTmpl, err := template.New("base.layout.html").Funcs(funcMap).ParseFS(
+		webUIFS,
+		"layouts/base.layout.html",
+		"templates/pages/public/terms.html",
+	)
+	if err != nil {
+		db.Close()
+		return nil, err
+	}
+
 	templates := map[string]*template.Template{
 		"home":        homeTmpl,
 		"admin":       adminTmpl,
 		"notFound":    notFoundTmpl,
 		"login":       loginTmpl,
 		"maintenance": maintenanceTmpl,
+		"privacy":     privacyTmpl,
+		"terms":       termsTmpl,
 	}
 
 	portfolioHandler := portfolio.NewHandler(portfolioRepo, eventBus, homeTmpl)
@@ -354,6 +377,9 @@ func ensureAssetDirectories() error {
 		base + "/bg-lg.jpg":   base + "/img/backgrounds/bg-lg.jpg",
 		base + "/bg-md.jpg":   base + "/img/backgrounds/bg-md.jpg",
 		base + "/bg-sm.jpg":   base + "/img/backgrounds/bg-sm.jpg",
+		base + "/bg-lg.webp":  base + "/img/backgrounds/bg-lg.webp",
+		base + "/bg-md.webp":  base + "/img/backgrounds/bg-md.webp",
+		base + "/bg-sm.webp":  base + "/img/backgrounds/bg-sm.webp",
 		base + "/logo.png":    base + "/img/branding/logo.png",
 		base + "/logo.webp":   base + "/img/branding/logo.webp",
 		base + "/favicon.png": base + "/favicons/favicon.png",

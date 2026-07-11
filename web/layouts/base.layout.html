@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{.T.Get "MetaTitle"}}</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22&gt;&lt;polygon points=%2250,15 85,50 50,85 15,50%22 fill=%22%23FF3366%22/&gt;&lt;/svg&gt;">
+    <link rel="icon" type="image/png" href="/favicon.png">
     <meta name="description" content="{{.T.Get "MetaDescription"}}">
     <link rel="canonical" href="https://tivri.cc/">
     <link rel="alternate" hreflang="en" href="https://tivri.cc/?lang=en" />
@@ -48,12 +49,14 @@
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <script src="/assets/js/app.js?v=1.0.1" defer></script>
-    <script src="/assets/js/admin.js?v=1.0.1" defer></script>
-    <script src="/assets/js/components/stepper.js?v=1.0.1" defer></script>
-    <script src="/assets/js/components/contact.js?v=1.0.1" defer></script>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"></noscript>
+    <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
+    <script src="/assets/js/app.min.js?v=1.0.1" defer></script>
+    <script src="/assets/js/admin.min.js?v=1.0.1" defer></script>
+    <script src="/assets/js/components/stepper.min.js?v=1.0.1" defer></script>
+    <script src="/assets/js/components/contact.min.js?v=1.0.1" defer></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/intersect@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -347,6 +350,9 @@
                     {{end}}
                 </div>
                 <p class="text-sm text-neutral-400 max-w-sm leading-relaxed">{{.T.Get "FooterIntro"}}</p>
+                <div class="text-xs text-neutral-500 font-mono pt-1">
+                    <span>{{.T.Get "ContactLabel"}} </span><a href="mailto:contact@tivri.cc" class="text-neutral-400 hover:text-[#FF3366] transition-colors">contact@tivri.cc</a>
+                </div>
             </div>
 
             <div class="md:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-8">
@@ -408,7 +414,21 @@
             </div>
         </div>
         <div class="max-w-[1600px] mx-auto w-full border-t border-white/5 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-neutral-500">
-            <p class="tracking-tight">&copy; 2026 TIVRI. {{.T.Get "RightsReserved"}}</p>
+            <div class="flex flex-wrap items-center justify-center md:justify-start gap-3 tracking-tight">
+                <span>&copy; 2026 TIVRI. {{.T.Get "RightsReserved"}}</span>
+                <span class="hidden md:inline text-white/10">|</span>
+                {{if eq .CurrentPath "/privacy"}}
+                <span class="text-white font-semibold cursor-default select-none border-b border-[#FF3366]/40 pb-[2px]">{{.T.Get "PrivacyTitle"}}</span>
+                {{else}}
+                <a href="/privacy" class="hover:text-white transition-colors duration-200">{{.T.Get "PrivacyTitle"}}</a>
+                {{end}}
+                <span class="text-white/10">|</span>
+                {{if eq .CurrentPath "/terms"}}
+                <span class="text-white font-semibold cursor-default select-none border-b border-[#FF3366]/40 pb-[2px]">{{.T.Get "TermsTitle"}}</span>
+                {{else}}
+                <a href="/terms" class="hover:text-white transition-colors duration-200">{{.T.Get "TermsTitle"}}</a>
+                {{end}}
+            </div>
             <p class="tracking-tight">{{.T.Get "CraftedWith"}}</p>
         </div>
     </footer>
