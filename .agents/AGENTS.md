@@ -118,8 +118,11 @@ Audit all implementations and document:
 
 ---
 
-## 9. 📄 Documentation Synchronization Mandate
+## 9. 📄 Documentation & Pipeline Synchronization Mandate
 
-* **README Sync:** Update the `README.md` concurrently with any changes to features, schemas, configurations, directories, or deployment workflows.
+* **README & CI/CD Sync:** Update the `README.md` and CI/CD workflow pipelines concurrently with changes to features, compile schemas, configurations, directories, or build dependencies.
+* **Automated Asset Generation:** All compiled stylesheets (`theme.css`), minified scripts (`.min.js`), and program binaries (`.exe`) must be kept out of version control via `.gitignore` and compiled dynamically inside Docker builders or local build scripts (`npm run build`).
 * **Prerequisites:** Keep setup manuals and host scripts (e.g., `scripts/health_check.sh`) in sync.
+* **Minimalist Git Commits:** Enforce compact, lowercase Conventional Commits (e.g., `feat: ...`, `fix: ...`, `docs: ...`, `ci: ...`) with titles under 50 characters. Keep branch names short and kebab-cased (e.g., `dev`, `feature/x`).
 * **Single Source of Truth:** Platform documentation must always represent the current production state.
+
