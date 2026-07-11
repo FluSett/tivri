@@ -21,6 +21,31 @@
     <meta name="twitter:title" content="{{.T.Get "MetaTitle"}}">
     <meta name="twitter:description" content="{{.T.Get "MetaDescription"}}">
     <meta name="twitter:image" content="https://tivri.cc/assets/img/branding/logo.png">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ProfessionalService",
+      "name": "TIVRI",
+      "image": "https://tivri.cc/assets/img/branding/logo.png",
+      "@id": "https://tivri.cc/#organization",
+      "url": "https://tivri.cc/",
+      "telephone": "",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "",
+        "addressLocality": "",
+        "addressRegion": "",
+        "postalCode": "",
+        "addressCountry": ""
+      },
+      "sameAs": [
+        "https://x.com",
+        "https://linkedin.com",
+        "https://tiktok.com"
+      ],
+      "description": "{{.T.Get "MetaDescription"}}"
+    }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">

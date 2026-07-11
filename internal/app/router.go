@@ -31,27 +31,43 @@ func (a *App) newRouter() (http.Handler, error) {
 		w.Header().Set("Content-Type", "application/xml; charset=utf-8")
 		now := time.Now().Format("2006-01-02")
 		sitemap := `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://tivri.cc/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tivri.cc/?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://tivri.cc/?lang=uk"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://tivri.cc/?lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tivri.cc/"/>
     <lastmod>` + now + `</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://tivri.cc/?lang=en</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tivri.cc/?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://tivri.cc/?lang=uk"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://tivri.cc/?lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tivri.cc/"/>
     <lastmod>` + now + `</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tivri.cc/?lang=uk</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tivri.cc/?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://tivri.cc/?lang=uk"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://tivri.cc/?lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tivri.cc/"/>
     <lastmod>` + now + `</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tivri.cc/?lang=ru</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tivri.cc/?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://tivri.cc/?lang=uk"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://tivri.cc/?lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tivri.cc/"/>
     <lastmod>` + now + `</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
