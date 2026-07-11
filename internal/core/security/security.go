@@ -194,6 +194,11 @@ func (sm *SecurityManager) BasicAuth(adminUsername, adminPassword string, next h
 }
 
 func ResolveLocale(r *http.Request) string {
+	queryLang := r.URL.Query().Get("lang")
+	if queryLang == "en" || queryLang == "uk" || queryLang == "ru" {
+		return queryLang
+	}
+
 	path := r.URL.Path
 	if strings.HasPrefix(path, "/en/") || path == "/en" {
 		return "en"
@@ -217,11 +222,9 @@ func ResolveLocale(r *http.Request) string {
 	if strings.Contains(accept, "uk") {
 		return "uk"
 	}
-
 	if strings.Contains(accept, "ru") {
 		return "ru"
 	}
-
 	return "en"
 }
 
