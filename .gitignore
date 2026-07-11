@@ -9,3 +9,7 @@ dist/
 /tmp/
 /web/assets/img/uploads/
 node_modules/
+/web/assets/css/theme.css
+/web/assets/js/**/*.min.js
+web/assets/js/components/**/*.min.js
+*.webp
