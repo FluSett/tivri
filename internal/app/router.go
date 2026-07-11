@@ -23,6 +23,19 @@ func (a *App) newRouter() (http.Handler, error) {
 	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.FS(subAssetsFS))))
 
 	mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		data, err := fs.ReadFile(subAssetsFS, "favicons/favicon.ico")
+		if err != nil {
+			data, err = fs.ReadFile(subAssetsFS, "favicons/favicon.png")
+			if err != nil {
+				w.WriteHeader(http.StatusNotFound)
+				return
+			}
+		}
+		w.Header().Set("Content-Type", "image/x-icon")
+		_, _ = w.Write(data)
+	})
+
+	mux.HandleFunc("/favicon.png", func(w http.ResponseWriter, r *http.Request) {
 		data, err := fs.ReadFile(subAssetsFS, "favicons/favicon.png")
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
@@ -32,11 +45,24 @@ func (a *App) newRouter() (http.Handler, error) {
 		_, _ = w.Write(data)
 	})
 
-	mux.HandleFunc("/favicon.png", func(w http.ResponseWriter, r *http.Request) {
-		data, err := fs.ReadFile(subAssetsFS, "favicons/favicon.png")
+	mux.HandleFunc("/favicon.svg", func(w http.ResponseWriter, r *http.Request) {
+		data, err := fs.ReadFile(subAssetsFS, "favicons/favicon.svg")
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
 			return
+		}
+		w.Header().Set("Content-Type", "image/svg+xml")
+		_, _ = w.Write(data)
+	})
+
+	mux.HandleFunc("/apple-touch-icon.png", func(w http.ResponseWriter, r *http.Request) {
+		data, err := fs.ReadFile(subAssetsFS, "favicons/apple-touch-icon.png")
+		if err != nil {
+			data, err = fs.ReadFile(subAssetsFS, "favicons/favicon.png")
+			if err != nil {
+				w.WriteHeader(http.StatusNotFound)
+				return
+			}
 		}
 		w.Header().Set("Content-Type", "image/png")
 		_, _ = w.Write(data)
@@ -510,11 +536,11 @@ func (a *App) newRouter() (http.Handler, error) {
 
 		highQueueActive, _ := a.getHighQueueSetting(r.Context())
 		data := PageData{
-			CurrentPath:     "/",
-			Lang:            lang,
-			T:               a.translator.Get(lang),
-			PortfolioItems:  items,
-			HighQueueActive: highQueueActive,
+			CurrentPath:      "/",
+			Lang:             lang,
+			T:                a.translator.Get(lang),
+			PortfolioItems:   items,
+			HighQueueActive:  highQueueActive,
 			TurnstileSiteKey: a.cfg.TurnstileSiteKey,
 		}
 
