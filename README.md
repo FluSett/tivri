@@ -25,6 +25,18 @@ TIVRI is a premium Go, HTMX, and Alpine.js onboarding and portfolio system desig
 * **Frontend**: HTML templates, Alpine.js (UI state wizard), HTMX (outerHTML locale swaps).
 * **Styling**: Tailwind CSS v4.
 
+## 🌐 Cloud Infrastructure & Integrations
+* **Cloudflare (DNS, SSL, & Security)**:
+  * DNS proxying masks the hosting server's origin IP to prevent direct DDoS attacks.
+  * SSL/TLS encryption is terminated using Cloudflare Origin Certificates (staged inside the container).
+  * Cloudflare Turnstile blocks automated bot spam on client intake and contact forms.
+* **DigitalOcean (Hosting & Environment)**:
+  * Application runs on a DigitalOcean Droplet managed via Docker Compose.
+  * Nginx acts as a reverse proxy, enforcing rate-limiting zones, caching assets, and injecting strict security headers (CSP, XSS protection).
+* **Telegram Notifications (Asynchronous Alerting)**:
+  * Uses Telegram Bot API to notify administrators of incoming leads, messages, and login attempts.
+  * A host-level cron job (`scripts/health_check.sh`) pings the site every 5 minutes, raising critical alerts to Telegram if the site fails to respond or returns 5xx/503 errors.
+
 ## ⚙️ Environment Variables (.env)
 ```env
 APP_ENV=development             # development / production
