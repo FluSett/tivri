@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{.T.Get "MetaTitle"}}</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22&gt;&lt;polygon points=%2250,15 85,50 50,85 15,50%22 fill=%22%23FF3366%22/&gt;&lt;/svg&gt;">
-    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <meta name="description" content="{{.T.Get "MetaDescription"}}">
     <link rel="canonical" href="https://tivri.cc/">
     <link rel="alternate" hreflang="en" href="https://tivri.cc/?lang=en" />
@@ -17,17 +18,17 @@
     <meta property="og:site_name" content="TIVRI">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://tivri.cc/">
-    <meta property="og:image" content="https://tivri.cc/assets/img/branding/logo.png">
+    <meta property="og:image" content="https://tivri.cc/assets/img/branding/logo.webp">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{.T.Get "MetaTitle"}}">
     <meta name="twitter:description" content="{{.T.Get "MetaDescription"}}">
-    <meta name="twitter:image" content="https://tivri.cc/assets/img/branding/logo.png">
+    <meta name="twitter:image" content="https://tivri.cc/assets/img/branding/logo.webp">
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "ProfessionalService",
       "name": "TIVRI",
-      "image": "https://tivri.cc/assets/img/branding/logo.png",
+      "image": "https://tivri.cc/assets/img/branding/logo.webp",
       "@id": "https://tivri.cc/#organization",
       "url": "https://tivri.cc/",
       "telephone": "",
@@ -97,6 +98,7 @@
             sessionStorage.removeItem('admin_portfolio_techStack');
         })();
     </script>
+    <link rel="preload" href="/assets/css/theme.css?v=1.0.1" as="style">
     <link rel="stylesheet" href="/assets/css/theme.css?v=1.0.1">
 </head>
 <body class="min-h-screen flex flex-col justify-between font-sans selection:bg-[#FF3366] selection:text-white relative"
@@ -350,8 +352,8 @@
                     {{end}}
                 </div>
                 <p class="text-sm text-neutral-400 max-w-sm leading-relaxed">{{.T.Get "FooterIntro"}}</p>
-                <div class="text-xs text-neutral-500 font-mono pt-1">
-                    <span>{{.T.Get "ContactLabel"}} </span><a href="mailto:contact@tivri.cc" class="text-neutral-400 hover:text-[#FF3366] transition-colors">contact@tivri.cc</a>
+                <div class="text-xs text-neutral-500 font-mono pt-1" x-data="{ user: 'contact', domain: 'tivri.cc' }">
+                    <span>{{.T.Get "ContactLabel"}} </span><a :href="'mailto:' + user + '@' + domain" class="text-neutral-400 hover:text-[#FF3366] transition-colors" x-text="user + '@' + domain"></a>
                 </div>
             </div>
 
