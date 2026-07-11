@@ -122,4 +122,3 @@ func TestTelegramWorker_HandleEvent(t *testing.T) {
 		}
 	})
 }
-
