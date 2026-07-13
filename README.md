@@ -4,7 +4,8 @@ TIVRI is a premium Go, HTMX, and Alpine.js onboarding and portfolio system desig
 
 ## 🏗️ Architecture: Event-Driven Monolith
 * **Feature-Layered Monolith**: Encapsulated feature domains in `internal/features/`.
-* **In-Memory Event Bus**: Asynchronous communication between domains via channels.
+* **In-Memory Event Bus**: Asynchronous communication between domains via channels and a worker thread pool.
+* **Banned Patterns**: Distributed microservices and structured use-case layers are strictly banned.
 
 ## 📁 Repository Layout
 * `cmd/api/main.go` — Entrypoint.
@@ -24,6 +25,33 @@ TIVRI is a premium Go, HTMX, and Alpine.js onboarding and portfolio system desig
 * **Backend**: Go (Golang), `pgxpool` direct query access (no ORMs).
 * **Frontend**: HTML templates, Alpine.js (UI state wizard), HTMX (outerHTML locale swaps).
 * **Styling**: Tailwind CSS v4.
+
+## ⚙️ Technical & Coding Standards
+
+### Golang & Database Standards
+* **Context Threading**: Pass down `context.Context` explicitly to all database, transaction, and client requests. Use decoupled contexts with timeout for background work.
+* **Direct Access**: Use `jackc/pgx/v5/pgxpool` directly. Standard `database/sql` or ORMs are banned.
+* **Error Hygiene**: Wrap errors explicitly (`fmt.Errorf("layer/component: operation failed: %w", err)`). Never discard errors.
+* **Concurrency**: Dangling goroutines (`go func()`) are banned. Use lifecycle-managed named goroutines or the `MemoryEventBus`.
+
+### Alpine.js, HTMX & Styling
+* **No Build Steps**: Native Go `html/template` rendering backed by Alpine.js declarative bindings.
+* **No Inline Scripts/Styles**: Inline `<script>` tags inside templates and inline style attributes are banned. Use `Alpine.data()` and CSS classes.
+* **State Preservation**: Preserve HTMX body swaps state via the `tivri_htmx_nav` sessionStorage flag handled by `app.js`.
+* **CSS Dryness**: Extract repeated styles (2+ times) into semantic rules in `web/assets/css/theme.css`.
+
+### Security Guardrails
+* **Financial Primitives**: Do not use floats for currency. Use integer subunits (cents) or arbitrary-precision libraries.
+* **SQL Injection & XSS**: Always use parameterized queries (`$1`, `$2`). Encoded dynamic data passed to Alpine.js using JSON serialization.
+* **Sessions & Transactions**: Access tokens stored in `HTTP-Only`, `Secure`, `SameSite=Strict` cookies. Multi-table modifications must run in transaction blocks (`pgx.Tx`) with explicit rollback.
+
+### Infrastructure & i18n
+* **Nginx Policies**: Static assets bypass Go app via `/assets/` aliases. Strict security headers (CSP, Frame options) and rate-limiting zones on form endpoints.
+* **i18n**: Resolve language in order: URL subroute (`/en/`) -> Session Cookie -> `Accept-Language` header.
+
+### Parity & Inspection
+* **Outbox & State Recovery**: Ensure database and event bus consistency asynchronously. Retain onboarding state across refreshes.
+* **Feature Parity**: Admin configs must dynamically update client views. Keep variable and database names matching identical keys.
 
 ## 🌐 Cloud Infrastructure & Integrations
 * **Cloudflare (DNS, SSL, & Security)**:
@@ -67,7 +95,7 @@ TELEGRAM_CHAT_ID=xxxxxx
 3. Endpoints: Public: `http://localhost:8080` | Console: `http://localhost:8080/admin`
 
 ## ✈️ Automated Deploy & Uptime Monitoring (CI/CD)
-Deploys to DigitalOcean Droplets on every commit push to `main` branch.
+Deploys to DigitalOcean Droplets.
 * **Automated Asset Generation**: Assets (Tailwind CSS compilation & JS minification) are built dynamically in Node.js builder stages inside Docker, keeping Git clean.
 * **Filter copying**: The `scripts/` folder is conditionally uploaded only if files are changed.
 * **Cron Auto-Config**: The pipeline automatically configures and schedules host crontab tasks utilizing `.env` secrets:
