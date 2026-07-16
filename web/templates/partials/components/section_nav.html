@@ -1,0 +1,33 @@
+{{define "components.section_nav"}}
+<div class="section-footer-nav">
+    <div class="flex items-center space-x-4">
+        {{if .PrevDisabled}}
+        <span class="w-10 h-10 rounded-full border border-white/4 bg-white/1 flex items-center justify-center text-neutral-700 cursor-not-allowed opacity-40 select-none">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path>
+            </svg>
+        </span>
+        {{else}}
+        <a href="{{.PrevLink}}" class="btn-icon">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path>
+            </svg>
+        </a>
+        {{end}}
+
+        {{if .NextDisabled}}
+        <span class="w-10 h-10 rounded-full border border-white/4 bg-white/1 flex items-center justify-center text-neutral-700 cursor-not-allowed opacity-40 select-none">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
+            </svg>
+        </span>
+        {{else}}
+        <a href="{{.NextLink}}" class="btn-icon">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
+            </svg>
+        </a>
+        {{end}}
+    </div>
+</div>
+{{end}}

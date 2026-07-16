@@ -1,19 +1,19 @@
 document.addEventListener('alpine:init', () => {
     Alpine.data('stepper', (highQueueActive = false) => ({
         highQueueActive: highQueueActive,
-        step: parseInt(sessionStorage.getItem('intake_step')) || 1,
-        totalSteps: 5,
-        budget: sessionStorage.getItem('intake_budget') || '',
-        customBudget: sessionStorage.getItem('intake_customBudget') || '',
-        scopeText: sessionStorage.getItem('intake_scopeText') || '',
+        openStepper: false,
+        step: Alpine.$persist(1).as('intake_step').using(sessionStorage),
+        budget: Alpine.$persist('').as('intake_budget').using(sessionStorage),
+        customBudget: Alpine.$persist('').as('intake_customBudget').using(sessionStorage),
+        scopeText: Alpine.$persist('').as('intake_scopeText').using(sessionStorage),
         scopeMax: 2000,
-        nameText: sessionStorage.getItem('intake_nameText') || '',
+        nameText: Alpine.$persist('').as('intake_nameText').using(sessionStorage),
         nameMax: 150,
-        deadlineNeeded: sessionStorage.getItem('intake_deadlineNeeded') === 'true',
-        deadlineSpec: sessionStorage.getItem('intake_deadlineSpec') || '',
-        contactEmail: sessionStorage.getItem('intake_contactEmail') || '',
-        contactInfo: sessionStorage.getItem('intake_contactInfo') || '',
-        submitted: sessionStorage.getItem('intake_submitted') === 'true',
+        deadlineNeeded: Alpine.$persist(false).as('intake_deadlineNeeded').using(sessionStorage),
+        deadlineSpec: Alpine.$persist('').as('intake_deadlineSpec').using(sessionStorage),
+        contactEmail: Alpine.$persist('').as('intake_contactEmail').using(sessionStorage),
+        contactInfo: Alpine.$persist('').as('intake_contactInfo').using(sessionStorage),
+        submitted: Alpine.$persist(false).as('intake_submitted').using(sessionStorage),
         nameTouched: false,
         scopeTouched: false,
         budgetTouched: false,
@@ -72,45 +72,29 @@ document.addEventListener('alpine:init', () => {
             if (this.highQueueActive) {
                 this.deadlineNeeded = false;
                 this.deadlineSpec = '';
-                sessionStorage.removeItem('intake_deadlineNeeded');
-                sessionStorage.removeItem('intake_deadlineSpec');
             }
 
             this.$watch('step', val => {
-                sessionStorage.setItem('intake_step', val);
                 if (val === 5 && !this.submitted) {
                     this.$nextTick(() => this.renderTurnstile());
                 }
             });
 
             this.$watch('budget', val => {
-                sessionStorage.setItem('intake_budget', val);
                 if (val !== 'other') {
                     this.customBudget = '';
-                    sessionStorage.removeItem('intake_customBudget');
                 }
             });
-
-            this.$watch('customBudget', val => sessionStorage.setItem('intake_customBudget', val));
-            this.$watch('scopeText', val => sessionStorage.setItem('intake_scopeText', val));
-            this.$watch('nameText', val => sessionStorage.setItem('intake_nameText', val));
 
             this.$watch('deadlineNeeded', val => {
-                sessionStorage.setItem('intake_deadlineNeeded', val);
                 if (!val) {
                     this.deadlineSpec = '';
-                    sessionStorage.removeItem('intake_deadlineSpec');
                 }
             });
 
-            this.$watch('deadlineSpec', val => sessionStorage.setItem('intake_deadlineSpec', val));
-            this.$watch('contactEmail', val => sessionStorage.setItem('intake_contactEmail', val));
-            this.$watch('contactInfo', val => sessionStorage.setItem('intake_contactInfo', val));
-
             this.$watch('submitted', val => {
-                sessionStorage.setItem('intake_submitted', val);
                 if (val) {
-                    sessionStorage.setItem('openStepper', 'true');
+                    this.openStepper = true;
                 }
             });
 
@@ -151,18 +135,6 @@ document.addEventListener('alpine:init', () => {
             if (window.turnstile && this.turnstileId !== null) {
                 window.turnstile.reset(this.turnstileId);
             }
-
-            sessionStorage.removeItem('intake_step');
-            sessionStorage.removeItem('intake_budget');
-            sessionStorage.removeItem('intake_customBudget');
-            sessionStorage.removeItem('intake_scopeText');
-            sessionStorage.removeItem('intake_nameText');
-            sessionStorage.removeItem('intake_deadlineNeeded');
-            sessionStorage.removeItem('intake_deadlineSpec');
-            sessionStorage.removeItem('intake_contactEmail');
-            sessionStorage.removeItem('intake_contactInfo');
-            sessionStorage.removeItem('intake_submitted');
-            sessionStorage.removeItem('openStepper');
 
             this.openStepper = false;
             document.getElementById('intake-form').reset();

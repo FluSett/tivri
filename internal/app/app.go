@@ -21,7 +21,15 @@ import (
 	"tivri/internal/features/notifications"
 	"tivri/internal/features/portfolio"
 	"tivri/internal/features/project_intake"
+	"tivri/internal/features/settings"
 	"tivri/internal/i18n"
+)
+
+const (
+	defaultReadTimeout  = 10 * time.Second
+	defaultWriteTimeout = 10 * time.Second
+	gracefulShutdown    = 10 * time.Second
+	notifyTimeout       = 5 * time.Second
 )
 
 type PageData struct {
@@ -40,6 +48,8 @@ type PageData struct {
 	HighQueueActive   bool
 	MaintenanceActive bool
 	TurnstileSiteKey  string
+	AppURL            string
+	ContactEmail      string
 }
 
 type App struct {
@@ -50,6 +60,7 @@ type App struct {
 	portfolioHandler *portfolio.Handler
 	leadHandler      *project_intake.Handler
 	contactHandler   *messaging.Handler
+	settingsRepo     *settings.Repository
 	logger           *slog.Logger
 	webFS            fs.FS
 	securityMgr      *security.SecurityManager
@@ -121,117 +132,23 @@ func New(ctx context.Context) (*App, error) {
 	leadRepo := project_intake.NewPostgresRepository(db)
 	contactRepo := messaging.NewPostgresRepository(db)
 
-	funcMap := template.FuncMap{
-		"formatCents": func(cents int64) string {
-			dollars := cents / 100
-			remainder := cents % 100
-			return fmt.Sprintf("%d.%02d", dollars, remainder)
-		},
-	}
-
 	webUIFS, err := fs.Sub(tivri.WebFS, "web")
 	if err != nil {
 		db.Close()
 		return nil, err
 	}
 
-	homeTmpl, err := template.New("base.layout.html").Funcs(funcMap).ParseFS(
-		webUIFS,
-		"layouts/base.layout.html",
-		"templates/pages/public/home.html",
-		"templates/partials/portfolio.html",
-		"templates/partials/notification.html",
-		"templates/partials/home/about.html",
-		"templates/partials/home/benefits.html",
-		"templates/partials/home/skills.html",
-		"templates/partials/home/portfolio.html",
-		"templates/partials/home/contact.html",
-		"templates/partials/home/intake.html",
-		"templates/partials/home/direct_msg.html",
-	)
+	templates, err := parseTemplates(webUIFS)
 	if err != nil {
 		db.Close()
 		return nil, err
 	}
 
-	adminTmpl, err := template.New("base.layout.html").Funcs(funcMap).ParseFS(
-		webUIFS,
-		"layouts/base.layout.html",
-		"templates/pages/admin/dashboard.html",
-		"templates/partials/portfolio.html",
-		"templates/partials/notification.html",
-		"templates/partials/admin/portfolio.html",
-		"templates/partials/admin/leads.html",
-		"templates/partials/admin/messages.html",
-	)
-	if err != nil {
-		db.Close()
-		return nil, err
-	}
-
-	notFoundTmpl, err := template.New("base.layout.html").Funcs(funcMap).ParseFS(
-		webUIFS,
-		"layouts/base.layout.html",
-		"templates/pages/public/404.html",
-	)
-	if err != nil {
-		db.Close()
-		return nil, err
-	}
-
-	loginTmpl, err := template.New("base.layout.html").Funcs(funcMap).ParseFS(
-		webUIFS,
-		"layouts/base.layout.html",
-		"templates/pages/admin/login.html",
-	)
-	if err != nil {
-		db.Close()
-		return nil, err
-	}
-
-	maintenanceTmpl, err := template.New("base.layout.html").Funcs(funcMap).ParseFS(
-		webUIFS,
-		"layouts/base.layout.html",
-		"templates/pages/public/maintenance.html",
-	)
-	if err != nil {
-		db.Close()
-		return nil, err
-	}
-
-	privacyTmpl, err := template.New("base.layout.html").Funcs(funcMap).ParseFS(
-		webUIFS,
-		"layouts/base.layout.html",
-		"templates/pages/public/privacy.html",
-	)
-	if err != nil {
-		db.Close()
-		return nil, err
-	}
-
-	termsTmpl, err := template.New("base.layout.html").Funcs(funcMap).ParseFS(
-		webUIFS,
-		"layouts/base.layout.html",
-		"templates/pages/public/terms.html",
-	)
-	if err != nil {
-		db.Close()
-		return nil, err
-	}
-
-	templates := map[string]*template.Template{
-		"home":        homeTmpl,
-		"admin":       adminTmpl,
-		"notFound":    notFoundTmpl,
-		"login":       loginTmpl,
-		"maintenance": maintenanceTmpl,
-		"privacy":     privacyTmpl,
-		"terms":       termsTmpl,
-	}
-
-	portfolioHandler := portfolio.NewHandler(portfolioRepo, eventBus, homeTmpl)
-	leadHandler := project_intake.NewHandler(leadRepo, eventBus, homeTmpl, translator, cfg.TurnstileSecretKey)
-	contactHandler := messaging.NewHandler(contactRepo, eventBus, homeTmpl, translator, cfg.TurnstileSecretKey)
+	portfolioHandler := portfolio.NewHandler(portfolioRepo, eventBus, templates["home"])
+	leadHandler := project_intake.NewHandler(leadRepo, eventBus, templates["home"], translator, cfg.TurnstileSecretKey)
+	contactHandler := messaging.NewHandler(contactRepo, eventBus, templates["home"], translator, cfg.TurnstileSecretKey)
+	settingsRepo := settings.NewRepository(db)
+	outboxWorker := eventbus.NewOutboxWorker(db, eventBus, logger)
 	emailWorker := notifications.NewEmailWorker()
 	telegramWorker := notifications.NewTelegramWorker(cfg.TelegramBotToken, cfg.TelegramChatID)
 
@@ -247,7 +164,9 @@ func New(ctx context.Context) (*App, error) {
 	eventBus.Subscribe("system.booted", telegramWorker.HandleEvent)
 	eventBus.Subscribe("system.shutdown", telegramWorker.HandleEvent)
 
-	securityMgr := security.NewSecurityManager(ctx, logger)
+	go outboxWorker.Start(ctx)
+
+	securityMgr := security.NewSecurityManager(ctx, logger, db)
 
 	return &App{
 		cfg:              cfg,
@@ -257,6 +176,7 @@ func New(ctx context.Context) (*App, error) {
 		portfolioHandler: portfolioHandler,
 		leadHandler:      leadHandler,
 		contactHandler:   contactHandler,
+		settingsRepo:     settingsRepo,
 		logger:           logger,
 		webFS:            webUIFS,
 		securityMgr:      securityMgr,
@@ -265,47 +185,6 @@ func New(ctx context.Context) (*App, error) {
 	}, nil
 }
 
-func (a *App) getHighQueueSetting(ctx context.Context) (bool, error) {
-	var val string
-	err := a.db.QueryRow(ctx, "SELECT value FROM system_settings WHERE key = $1", "high_queue").Scan(&val)
-	if err != nil {
-		return false, fmt.Errorf("app: get high_queue setting failed: %w", err)
-	}
-	return val == "true", nil
-}
-
-func (a *App) setHighQueueSetting(ctx context.Context, enabled bool) error {
-	val := "false"
-	if enabled {
-		val = "true"
-	}
-	_, err := a.db.Exec(ctx, "INSERT INTO system_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value", "high_queue", val)
-	if err != nil {
-		return fmt.Errorf("app: set high_queue setting failed: %w", err)
-	}
-	return nil
-}
-
-func (a *App) getMaintenanceSetting(ctx context.Context) (bool, error) {
-	var val string
-	err := a.db.QueryRow(ctx, "SELECT value FROM system_settings WHERE key = $1", "maintenance_mode").Scan(&val)
-	if err != nil {
-		return false, fmt.Errorf("app: get maintenance setting failed: %w", err)
-	}
-	return val == "true", nil
-}
-
-func (a *App) setMaintenanceSetting(ctx context.Context, enabled bool) error {
-	val := "false"
-	if enabled {
-		val = "true"
-	}
-	_, err := a.db.Exec(ctx, "INSERT INTO system_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value", "maintenance_mode", val)
-	if err != nil {
-		return fmt.Errorf("app: set maintenance setting failed: %w", err)
-	}
-	return nil
-}
 
 func (a *App) Close() error {
 	if a.db != nil {
@@ -323,8 +202,8 @@ func (a *App) Start(ctx context.Context) error {
 	server := &http.Server{
 		Addr:         ":" + a.cfg.Port,
 		Handler:      router,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		ReadTimeout:  defaultReadTimeout,
+		WriteTimeout: defaultWriteTimeout,
 	}
 
 	fmt.Printf("Server starting on %s\n", server.Addr)
@@ -333,10 +212,10 @@ func (a *App) Start(ctx context.Context) error {
 		<-ctx.Done()
 		a.logger.Info("shutting down server gracefully...")
 
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), gracefulShutdown)
 		defer cancel()
 
-		notifyCtx, notifyCancel := context.WithTimeout(context.Background(), 5*time.Second)
+		notifyCtx, notifyCancel := context.WithTimeout(context.Background(), notifyTimeout)
 		if err := a.telegramWorker.NotifySystemDown(notifyCtx); err != nil {
 			a.logger.Error("failed to send telegram shutdown notification", slog.String("error", err.Error()))
 		}

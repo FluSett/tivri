@@ -8,29 +8,29 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <meta name="description" content="{{.T.Get "MetaDescription"}}">
-    <link rel="canonical" href="https://tivri.cc/">
-    <link rel="alternate" hreflang="en" href="https://tivri.cc/?lang=en" />
-    <link rel="alternate" hreflang="uk" href="https://tivri.cc/?lang=uk" />
-    <link rel="alternate" hreflang="ru" href="https://tivri.cc/?lang=ru" />
-    <link rel="alternate" hreflang="x-default" href="https://tivri.cc/" />
+    <link rel="canonical" href="{{.AppURL}}/">
+    <link rel="alternate" hreflang="en" href="{{.AppURL}}/?lang=en" />
+    <link rel="alternate" hreflang="uk" href="{{.AppURL}}/?lang=uk" />
+    <link rel="alternate" hreflang="ru" href="{{.AppURL}}/?lang=ru" />
+    <link rel="alternate" hreflang="x-default" href="{{.AppURL}}/" />
     <meta property="og:title" content="{{.T.Get "MetaTitle"}}">
     <meta property="og:description" content="{{.T.Get "MetaDescription"}}">
     <meta property="og:site_name" content="TIVRI">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://tivri.cc/">
-    <meta property="og:image" content="https://tivri.cc/assets/img/branding/logo.webp">
+    <meta property="og:url" content="{{.AppURL}}/">
+    <meta property="og:image" content="{{.AppURL}}/assets/img/branding/logo.webp">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{.T.Get "MetaTitle"}}">
     <meta name="twitter:description" content="{{.T.Get "MetaDescription"}}">
-    <meta name="twitter:image" content="https://tivri.cc/assets/img/branding/logo.webp">
+    <meta name="twitter:image" content="{{.AppURL}}/assets/img/branding/logo.webp">
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "ProfessionalService",
       "name": "TIVRI",
-      "image": "https://tivri.cc/assets/img/branding/logo.webp",
-      "@id": "https://tivri.cc/#organization",
-      "url": "https://tivri.cc/",
+      "image": "{{.AppURL}}/assets/img/branding/logo.webp",
+      "@id": "{{.AppURL}}/#organization",
+      "url": "{{.AppURL}}/",
       "telephone": "",
       "address": {
         "@type": "PostalAddress",
@@ -60,6 +60,7 @@
     <script src="/assets/js/components/contact.min.js?v=1.0.1" defer></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/intersect@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     {{if .TurnstileSiteKey}}
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
@@ -73,37 +74,55 @@
     {{end}}
     <script>
         (function() {
-            if (sessionStorage.getItem('tivri_htmx_nav') === 'true') {
-                sessionStorage.removeItem('tivri_htmx_nav');
-                return;
+            sessionStorage.clear();
+            
+            if ('scrollRestoration' in history) {
+                history.scrollRestoration = 'manual';
             }
-            sessionStorage.removeItem('intake_step');
-            sessionStorage.removeItem('intake_budget');
-            sessionStorage.removeItem('intake_customBudget');
-            sessionStorage.removeItem('intake_scopeText');
-            sessionStorage.removeItem('intake_nameText');
-            sessionStorage.removeItem('intake_deadlineNeeded');
-            sessionStorage.removeItem('intake_deadlineSpec');
-            sessionStorage.removeItem('intake_contactEmail');
-            sessionStorage.removeItem('intake_contactInfo');
-            sessionStorage.removeItem('intake_submitted');
-            sessionStorage.removeItem('openStepper');
-            sessionStorage.removeItem('contact_showForm');
-            sessionStorage.removeItem('contact_email');
-            sessionStorage.removeItem('contact_topic');
-            sessionStorage.removeItem('contact_message');
-            sessionStorage.removeItem('contact_submitted');
-            sessionStorage.removeItem('admin_portfolio_title');
-            sessionStorage.removeItem('admin_portfolio_description');
-            sessionStorage.removeItem('admin_portfolio_techStack');
+            window.scrollTo({ top: 0, behavior: 'instant' });
         })();
+
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('[data-preserve-scroll]')) {
+                sessionStorage.setItem('tivri_scroll', window.scrollY);
+            }
+        });
+
+        document.addEventListener('htmx:beforeSwap', function(e) {
+            if (sessionStorage.getItem('tivri_scroll') !== null) {
+                // Freeze document height so the browser doesn't collapse to 0 during body swap
+                document.documentElement.style.minHeight = document.documentElement.scrollHeight + 'px';
+            }
+        });
+        
+        document.addEventListener('htmx:afterSettle', function(e) {
+            const s = sessionStorage.getItem('tivri_scroll');
+            if (s !== null) {
+                // Wait for Alpine to render x-for lists to ensure full page height
+                setTimeout(() => {
+                    const html = document.documentElement;
+                    const hadSmooth = html.classList.contains('scroll-smooth');
+                    if (hadSmooth) html.classList.remove('scroll-smooth');
+                    
+                    window.scrollTo({ top: parseInt(s), behavior: 'instant' });
+                    sessionStorage.removeItem('tivri_scroll');
+                    
+                    if (hadSmooth) {
+                        setTimeout(() => html.classList.add('scroll-smooth'), 50);
+                    }
+                    
+                    // Unfreeze document height
+                    html.style.minHeight = '';
+                }, 50);
+            }
+        });
     </script>
     <link rel="preload" href="/assets/css/theme.css?v=1.0.1" as="style">
     <link rel="stylesheet" href="/assets/css/theme.css?v=1.0.1">
 </head>
 <body class="min-h-screen flex flex-col justify-between font-sans selection:bg-[#FF3366] selection:text-white relative"
       :class="mobileMenuOpen ? 'overflow-hidden' : ''"
-      x-data="{ mobileMenuOpen: false, openStepper: sessionStorage.getItem('openStepper') === 'true', init() { this.$watch('openStepper', val => sessionStorage.setItem('openStepper', val)) } }"
+      x-data="layout"
       x-on:resize.window="if (window.innerWidth >= 768) mobileMenuOpen = false">
     <div class="fixed inset-0 pointer-events-none z-0 flex justify-between w-full px-4 md:px-16 lg:px-24">
         <div class="w-px h-full bg-white/3"></div>
@@ -114,17 +133,7 @@
     </div>
 
     <!-- Beautiful Global Error UI Alert Box -->
-    <div x-data="{
-            errorMessage: '',
-            showError: false,
-            init() {
-                window.addEventListener('tivri-error', (e) => {
-                    this.errorMessage = e.detail;
-                    this.showError = true;
-                    setTimeout(() => { this.showError = false; }, 6000);
-                });
-            }
-         }"
+    <div x-data="globalError"
          x-show="showError"
          x-cloak
          x-transition:enter="transition ease-out duration-300"
@@ -199,7 +208,7 @@
 
                 <!-- Header Language Selector -->
                 <div class="h-4 w-px bg-white/20 hidden md:block mx-2"></div>
-                <div class="relative {{if not .IsAdminLogin}}hidden md:block{{end}}" x-data="{ open: false }">
+                <div class="relative {{if not .IsAdminLogin}}hidden md:block{{end}}" x-data="dropdown">
                     <button @click="open = !open" class="flex items-center space-x-1 text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white focus:outline-none transition-colors cursor-pointer">
                         <span>{{if eq .Lang "en"}}EN{{else if eq .Lang "uk"}}UA{{else}}RU{{end}}</span>
                         <svg class="w-3 h-3 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -216,9 +225,7 @@
                           x-transition:leave-end="opacity-0 scale-95"
                            class="absolute right-0 mt-2 w-20 bg-[#0A0A0A] border border-white/8 rounded-lg shadow-xl py-1 z-50 text-left"
                            x-cloak>
-                        <button type="button" {{if eq .Lang "en"}}disabled class="w-full text-left block px-4 py-2 text-xs font-semibold text-[#FF3366] pointer-events-none cursor-default"{{else}}hx-get="/api/lang?lang=en" hx-target="body" hx-swap="outerHTML" class="w-full text-left block px-4 py-2 text-xs font-semibold text-neutral-400 hover:text-white hover:bg-white/4 transition-colors cursor-pointer"{{end}}>EN</button>
-                        <button type="button" {{if eq .Lang "uk"}}disabled class="w-full text-left block px-4 py-2 text-xs font-semibold text-[#FF3366] pointer-events-none cursor-default"{{else}}hx-get="/api/lang?lang=uk" hx-target="body" hx-swap="outerHTML" class="w-full text-left block px-4 py-2 text-xs font-semibold text-neutral-400 hover:text-white hover:bg-white/4 transition-colors cursor-pointer"{{end}}>UA</button>
-                        <button type="button" {{if eq .Lang "ru"}}disabled class="w-full text-left block px-4 py-2 text-xs font-semibold text-[#FF3366] pointer-events-none cursor-default"{{else}}hx-get="/api/lang?lang=ru" hx-target="body" hx-swap="outerHTML" class="w-full text-left block px-4 py-2 text-xs font-semibold text-neutral-400 hover:text-white hover:bg-white/4 transition-colors cursor-pointer"{{end}}>RU</button>
+                        {{template "components.lang_switcher" dict "Lang" .Lang "IsMobile" false "DisabledClass" "w-full text-left block px-4 py-2 text-xs font-semibold text-[#FF3366] pointer-events-none cursor-default" "NormalClass" "w-full text-left block px-4 py-2 text-xs font-semibold text-neutral-400 hover:text-white hover:bg-white/4 transition-colors cursor-pointer"}}
                     </div>
                 </div>
 
@@ -322,9 +329,7 @@
                  <div class="pb-2 text-center">
                      <div class="h-px w-full bg-white/10 mb-8"></div>
                      <div class="flex items-center justify-center space-x-5">
-                          <button type="button" {{if eq .Lang "en"}}disabled class="text-xs font-bold uppercase tracking-wider text-[#FF3366] pointer-events-none cursor-default"{{else}}@click="mobileMenuOpen = false; setTimeout(() => htmx.ajax('GET', '/api/lang?lang=en', {target: 'body', swap: 'outerHTML'}), 350)" class="text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white hover:scale-105 transition-all duration-200 cursor-pointer"{{end}}>EN</button>
-                          <button type="button" {{if eq .Lang "uk"}}disabled class="text-xs font-bold uppercase tracking-wider text-[#FF3366] pointer-events-none cursor-default"{{else}}@click="mobileMenuOpen = false; setTimeout(() => htmx.ajax('GET', '/api/lang?lang=uk', {target: 'body', swap: 'outerHTML'}), 350)" class="text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white hover:scale-105 transition-all duration-200 cursor-pointer"{{end}}>UA</button>
-                          <button type="button" {{if eq .Lang "ru"}}disabled class="text-xs font-bold uppercase tracking-wider text-[#FF3366] pointer-events-none cursor-default"{{else}}@click="mobileMenuOpen = false; setTimeout(() => htmx.ajax('GET', '/api/lang?lang=ru', {target: 'body', swap: 'outerHTML'}), 350)" class="text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white hover:scale-105 transition-all duration-200 cursor-pointer"{{end}}>RU</button>
+                          {{template "components.lang_switcher" dict "Lang" .Lang "IsMobile" true "DisabledClass" "text-xs font-bold uppercase tracking-wider text-[#FF3366] pointer-events-none cursor-default" "NormalClass" "text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white hover:scale-105 transition-all duration-200 cursor-pointer"}}
                      </div>
                      <p class="text-xs text-neutral-500 tracking-wider mt-12 pb-1">&copy; 2026 TIVRI. {{.T.Get "RightsReserved"}}</p>
                  </div>
@@ -352,8 +357,8 @@
                     {{end}}
                 </div>
                 <p class="text-sm text-neutral-400 max-w-sm leading-relaxed">{{.T.Get "FooterIntro"}}</p>
-                <div class="text-xs text-neutral-500 font-mono pt-1" x-data="{ user: 'contact', domain: 'tivri.cc' }">
-                    <span>{{.T.Get "ContactLabel"}} </span><a :href="'mailto:' + user + '@' + domain" class="text-neutral-400 hover:text-[#FF3366] transition-colors" x-text="user + '@' + domain"></a>
+                <div class="text-xs text-neutral-500 font-mono pt-1">
+                    <span>{{.T.Get "ContactLabel"}} </span><a href="mailto:{{.ContactEmail}}" class="text-neutral-400 hover:text-[#FF3366] transition-colors">{{.ContactEmail}}</a>
                 </div>
             </div>
 

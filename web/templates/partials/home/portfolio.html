@@ -30,19 +30,6 @@
         </div>
     </div>
 
-    <div class="section-footer-nav">
-        <div class="flex items-center space-x-4">
-            <a href="/#skills" class="btn-icon">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path>
-                </svg>
-            </a>
-            <a href="/#contact" class="btn-icon">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
-                </svg>
-            </a>
-        </div>
-    </div>
+    {{template "components.section_nav" dict "PrevDisabled" false "PrevLink" "/#skills" "NextDisabled" false "NextLink" "/#contact"}}
 </section>
 {{end}}

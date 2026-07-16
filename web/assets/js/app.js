@@ -133,3 +133,37 @@ if ('scrollRestoration' in history) {
         window.dispatchEvent(new CustomEvent('tivri-error', { detail: errorText }));
     });
 })();
+
+document.addEventListener('alpine:init', function() {
+    Alpine.data('layout', function() {
+        return {
+            mobileMenuOpen: false,
+            openStepper: Alpine.$persist(false).as('openStepper').using(sessionStorage)
+        };
+    });
+
+    Alpine.data('globalError', function() {
+        return {
+            errorMessage: '',
+            showError: false,
+            init: function() {
+                var self = this;
+                window.addEventListener('tivri-error', function(e) {
+                    self.errorMessage = e.detail;
+                    self.showError = true;
+                    setTimeout(function() {
+                        self.showError = false;
+                    }, 6000);
+                });
+            }
+        };
+    });
+
+    Alpine.data('dropdown', function() {
+        return {
+            open: false
+        };
+    });
+
+
+});

@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+const turnstileAPITimeout = 5 * time.Second
+
 type turnstileResponse struct {
 	Success    bool     `json:"success"`
 	ErrorCodes []string `json:"error-codes"`
@@ -22,7 +24,7 @@ func VerifyTurnstile(secretKey, token, remoteIP string) (bool, error) {
 	}
 
 	client := &http.Client{
-		Timeout: 5 * time.Second,
+		Timeout: turnstileAPITimeout,
 	}
 
 	data := url.Values{}
