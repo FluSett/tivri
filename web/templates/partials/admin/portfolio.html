@@ -158,7 +158,7 @@
     <h3 class="text-lg font-bold text-neutral-200 tracking-tight">{{.T.Get "PortfolioCurrentItems"}}</h3>
     <div id="portfolio-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {{range .PortfolioItems}}
-            {{template "portfolio.html" .}}
+            {{template "components.portfolio_card.html" .}}
         {{end}}
     </div>
 </div>
