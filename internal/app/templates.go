@@ -4,10 +4,15 @@ import (
 	"fmt"
 	"html/template"
 	"io/fs"
+	"time"
 )
 
 func parseTemplates(webUIFS fs.FS) (map[string]*template.Template, error) {
+	assetVer := fmt.Sprintf("%d", time.Now().Unix())
 	funcMap := template.FuncMap{
+		"assetVersion": func() string {
+			return assetVer
+		},
 		"formatCents": func(cents int64) string {
 			dollars := cents / 100
 			remainder := cents % 100
