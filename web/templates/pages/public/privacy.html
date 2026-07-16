@@ -47,7 +47,7 @@
                 <div class="benefit-card space-y-4 h-full">
                     <span class="card-index">04</span>
                     <h3 class="text-lg font-bold text-white tracking-tight wrap-break-word">{{.T.Get "PrivacySection4Title"}}</h3>
-                    <p class="text-sm text-neutral-400 leading-relaxed tracking-tight" x-data="{ user: 'contact', domain: 'tivri.cc', template: '{{.T.Get "PrivacySection4Text"}}' }" x-init="$el.innerHTML = template.replace('[email]', `<a href='mailto:${user}@${domain}' class='text-neutral-400 hover:text-[#FF3366] transition-colors'>${user}@${domain}</a>`)"></p>
+                    <p class="text-sm text-neutral-400 leading-relaxed tracking-tight" x-data="{ email: '{{.ContactEmail}}', template: '{{.T.Get "PrivacySection4Text"}}' }" x-init="$el.innerHTML = template.replace('[email]', `<a href='mailto:${email}' class='text-neutral-400 hover:text-[#FF3366] transition-colors'>${email}</a>`)"></p>
                 </div>
             </div>
         </div>

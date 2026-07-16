@@ -15,30 +15,10 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
-                <div class="lg:col-span-2 skill-card space-y-2">
-                    <div class="space-y-1">
-                        <h3 class="text-sm font-bold text-white uppercase tracking-wider wrap-break-word">{{.T.Get "Skills1Title"}}</h3>
-                        <p class="text-xs text-neutral-400 leading-relaxed">{{.T.Get "Skills1Desc"}}</p>
-                    </div>
-                </div>
-                <div class="lg:col-span-2 skill-card space-y-2">
-                    <div class="space-y-1">
-                        <h3 class="text-sm font-bold text-white uppercase tracking-wider wrap-break-word">{{.T.Get "Skills2Title"}}</h3>
-                        <p class="text-xs text-neutral-400 leading-relaxed">{{.T.Get "Skills2Desc"}}</p>
-                    </div>
-                </div>
-                <div class="lg:col-span-2 skill-card space-y-2">
-                    <div class="space-y-1">
-                        <h3 class="text-sm font-bold text-white uppercase tracking-wider wrap-break-word">{{.T.Get "Skills3Title"}}</h3>
-                        <p class="text-xs text-neutral-400 leading-relaxed">{{.T.Get "Skills3Desc"}}</p>
-                    </div>
-                </div>
-                <div class="lg:col-span-2 skill-card space-y-2">
-                    <div class="space-y-1">
-                        <h3 class="text-sm font-bold text-white uppercase tracking-wider wrap-break-word">{{.T.Get "Skills4Title"}}</h3>
-                        <p class="text-xs text-neutral-400 leading-relaxed">{{.T.Get "Skills4Desc"}}</p>
-                    </div>
-                </div>
+                {{template "components.skill_card" dict "Title" (.T.Get "Skills1Title") "Desc" (.T.Get "Skills1Desc")}}
+                {{template "components.skill_card" dict "Title" (.T.Get "Skills2Title") "Desc" (.T.Get "Skills2Desc")}}
+                {{template "components.skill_card" dict "Title" (.T.Get "Skills3Title") "Desc" (.T.Get "Skills3Desc")}}
+                {{template "components.skill_card" dict "Title" (.T.Get "Skills4Title") "Desc" (.T.Get "Skills4Desc")}}
 
                 <div class="lg:col-span-4 skill-card p-8 flex flex-col justify-center space-y-4">
                     <h3 class="text-xl font-bold text-white tracking-tight leading-tight">{{.T.Get "SkillsBadgeTitle"}}</h3>
@@ -48,19 +28,6 @@
         </div>
     </div>
 
-    <div class="section-footer-nav">
-        <div class="flex items-center space-x-4">
-            <a href="/#benefits" class="btn-icon">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path>
-                </svg>
-            </a>
-            <a href="/#portfolio" class="btn-icon">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
-                </svg>
-            </a>
-        </div>
-    </div>
+    {{template "components.section_nav" dict "PrevDisabled" false "PrevLink" "/#benefits" "NextDisabled" false "NextLink" "/#portfolio"}}
 </section>
 {{end}}

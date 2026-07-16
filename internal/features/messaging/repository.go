@@ -2,6 +2,7 @@ package messaging
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -16,10 +17,31 @@ func NewPostgresRepository(pool *pgxpool.Pool) *PostgresRepository {
 }
 
 func (r *PostgresRepository) Save(ctx context.Context, msg *ContactMessage) error {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("messaging: begin tx failed: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
 	query := "INSERT INTO contact_messages (email, topic, message, status) VALUES ($1, $2, $3, $4) RETURNING id"
-	err := r.pool.QueryRow(ctx, query, msg.Email, msg.Topic, msg.Message, msg.Status).Scan(&msg.ID)
+	err = tx.QueryRow(ctx, query, msg.Email, msg.Topic, msg.Message, msg.Status).Scan(&msg.ID)
 	if err != nil {
 		return fmt.Errorf("messaging: save failed: %w", err)
+	}
+
+	payloadBytes, err := json.Marshal(msg)
+	if err != nil {
+		return fmt.Errorf("messaging: marshal event failed: %w", err)
+	}
+
+	_, err = tx.Exec(ctx, "INSERT INTO outbox_events (type, payload) VALUES ($1, $2)", "contact.created", payloadBytes)
+	if err != nil {
+		return fmt.Errorf("messaging: save event failed: %w", err)
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return fmt.Errorf("messaging: commit failed: %w", err)
 	}
 
 	return nil

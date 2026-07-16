@@ -1,37 +1,26 @@
 # 🤖 AGENTS.md
 
-This file establishes the absolute runtime behavior, coding style rules, and coaching protocols for the AI Development Agent within this project. **There are no exceptions or shortcut tolerances.** Every response must target absolute production-grade architecture.
+Defines absolute runtime behavior and constraints. No exceptions.
 
----
+## 1. 🇬🇧 English Coaching
+- **Correct Prompts**: Correct user grammar/typos friendly via `[English Coach]` block.
+- **Natural Flow**: Prioritize fluent phrasing over rigid jargon (e.g., "build a website", not "make a website").
 
-## 1. 🇬🇧 Conversational English Language Coaching Protocol
+## 2. 🤫 Self-Documenting Code
+- **No Obvious Comments**: Comments restating logic are banned.
+- **"Why" Exception**: Only comment on hidden business logic, bug workarounds, or critical optimizations.
+- **Refactoring**: Split complex logic, enforce descriptive naming instead of commenting.
 
-The Agent acts as a supportive partner and an English Coach to improve fluency and natural expression.
-* **Inspect Prompts**: Check user inputs for grammatical slip-ups, typos, or phrasing that sounds unnatural.
-* **Feedback Block**: Append a clean, friendly `[English Coach]` section at the end of responses showing helpful corrections and natural alternatives.
-* **Prioritize Natural Flow**: Guide the user toward clear, professional, and natural phrasing rather than overly rigid or artificial technical jargon.
+## 3. 📄 Standards & CI/CD
+- **Sync Docs**: Update `README.md` and CI/CD concurrently with changes.
+- **No Compiled Assets in Git**: Exclude minified JS, compiled CSS, and binaries (`.gitignore`).
+- **Commits**: Use concise Conventional Commits (e.g., `feat: ...`) <50 chars. Kebab-case branches.
+- **Single Source of Truth**: Docs must reflect current production state.
 
-| Awkward / Informal Phrasing | Natural / Fluent Alternative |
-| :--- | :--- |
-| *make* a function / *make* a website | **write/implement** a function, **build/create** a website |
-| *there is gonna be* | **there will be** / **the app features** |
-| *depends on* prompts | **based on** the prompts / **determined by** inputs |
+## 4. 🚫 No Magical Variables
+- **Dynamic Configuration**: Never hardcode domains (e.g. `tivri.cc`), emails, ports, or API endpoints. Inject them via environment variables and pass them down into handlers/templates.
+- **Named Constants**: Never leave arbitrary `time.Second` multipliers or numeric literals scattered in business logic. Extract them to clear, localized `const` declarations.
 
----
-
-## 2. 🤫 Self-Documenting Code Mandate (No Code Comments)
-
-Code must explain itself without text annotations.
-* **Obvious Comments Ban:** Do not write comments restating what the code does (e.g. `// increment counter` is banned).
-* **The "Why" Exception:** Comments are allowed *only* to describe hidden business logic, third-party bug workarounds, or critical optimization contexts.
-* **Refactoring Alternatives:** Split complex logic into single-responsibility functions; extract parameters into domain constants/primitives (`type ProjectBudget int64`); enforce descriptive naming.
-
----
-
-## 3. 📄 Documentation, Git Commits & Asset Standards
-
-* **README & CI/CD Sync:** Update the `README.md` and CI/CD workflow pipelines concurrently with changes to features, compile schemas, configurations, directories, or build dependencies.
-* **Automated Asset Generation:** All compiled stylesheets (`theme.css`), minified scripts (`.min.js`), and program binaries (`.exe`) must be kept out of version control via `.gitignore` and compiled dynamically inside Docker builders or local build scripts (`npm run build`).
-* **Prerequisites:** Keep setup manuals and host scripts (e.g., `scripts/health_check.sh`) in sync.
-* **Minimalist Git Commits:** Enforce compact, lowercase Conventional Commits (e.g., `feat: ...`, `fix: ...`, `docs: ...`, `ci: ...`) with titles under 50 characters. Keep branch names short and kebab-cased (e.g., `dev`, `feature/x`).
-* **Single Source of Truth:** Platform documentation must always represent the current production state.
+## 5. ♻️ DRY Architecture
+- **HTML & Templates**: Never duplicate identical HTML structure. Extract reusable UI elements into Go template components and inject data via the `dict` helper.
+- **Frontend State**: Utilize official Alpine.js plugins (like `@alpinejs/persist`) to handle state storage natively, entirely avoiding verbose JavaScript boilerplate.

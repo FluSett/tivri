@@ -2,10 +2,10 @@ package messaging
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -51,28 +51,10 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if h.turnstileSecret != "" {
-		token := r.FormValue("cf-turnstile-response")
-		lang := r.FormValue("lang")
-		trans := h.translator.Get(lang)
-		if token == "" {
-			http.Error(w, trans.Get("ValTurnstileRequired"), http.StatusBadRequest)
-			return
-		}
-
-		ip := r.Header.Get("X-Forwarded-For")
-		if ip == "" {
-			if strings.Contains(r.RemoteAddr, ":") {
-				if host, _, err := net.SplitHostPort(r.RemoteAddr); err == nil {
-					ip = host
-				}
-			}
-			if ip == "" {
-				ip = r.RemoteAddr
-			}
-		}
-
-		ok, err := security.VerifyTurnstile(h.turnstileSecret, token, ip)
+		ok, err := security.ValidateTurnstileRequest(r, h.turnstileSecret)
 		if err != nil || !ok {
+			lang := r.FormValue("lang")
+			trans := h.translator.Get(lang)
 			http.Error(w, trans.Get("ValTurnstileFailed"), http.StatusBadRequest)
 			return
 		}
@@ -112,11 +94,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.bus.Publish(r.Context(), eventbus.Event{
-		Type:      "contact.created",
-		Payload:   msg,
-		Timestamp: time.Now(),
-	})
+	// Note: Event is now published via Transactional Outbox in the repository.
 
 	lang := r.FormValue("lang")
 	trans := h.translator.Get(lang)
@@ -169,9 +147,14 @@ func (h *Handler) UpdateStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) HandleMessageCreated(ctx context.Context, e eventbus.Event) error {
-	msg, ok := e.Payload.(*ContactMessage)
+	payloadBytes, ok := e.Payload.([]byte)
 	if !ok {
-		return errors.New("invalid payload type")
+		return errors.New("invalid payload type, expected []byte from outbox")
+	}
+
+	var msg ContactMessage
+	if err := json.Unmarshal(payloadBytes, &msg); err != nil {
+		return fmt.Errorf("messaging: unmarshal event failed: %w", err)
 	}
 
 	fmt.Printf("Notification subscriber: contact message from %s regarding %q received\n", msg.Email, msg.Topic)
