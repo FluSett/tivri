@@ -128,9 +128,11 @@ func (sm *SecurityManager) GenerateToken(ctx context.Context) (string, error) {
 	token := hex.EncodeToString(b)
 	expiresAt := time.Now().Add(sessionExpirationDuration)
 
-	_, err = sm.db.Exec(ctx, "INSERT INTO admin_sessions (token, expires_at) VALUES ($1, $2)", token, expiresAt)
-	if err != nil {
-		return "", fmt.Errorf("security: failed to store session: %w", err)
+	if sm.db != nil {
+		_, err = sm.db.Exec(ctx, "INSERT INTO admin_sessions (token, expires_at) VALUES ($1, $2)", token, expiresAt)
+		if err != nil {
+			return "", fmt.Errorf("security: failed to store session: %w", err)
+		}
 	}
 
 	return token, nil
@@ -153,26 +155,28 @@ func (sm *SecurityManager) CookieAuth(adminUsername, adminPassword string, next 
 			return
 		}
 
-		var expiresAt time.Time
-		err = sm.db.QueryRow(r.Context(), "SELECT expires_at FROM admin_sessions WHERE token = $1", cookie.Value).Scan(&expiresAt)
-		
-		if err != nil {
-			if r.Method == http.MethodGet {
-				http.Redirect(w, r, "/admin/login", http.StatusSeeOther)
-			} else {
-				w.WriteHeader(http.StatusUnauthorized)
+		if sm.db != nil {
+			var expiresAt time.Time
+			err = sm.db.QueryRow(r.Context(), "SELECT expires_at FROM admin_sessions WHERE token = $1", cookie.Value).Scan(&expiresAt)
+			
+			if err != nil {
+				if r.Method == http.MethodGet {
+					http.Redirect(w, r, "/admin/login", http.StatusSeeOther)
+				} else {
+					w.WriteHeader(http.StatusUnauthorized)
+				}
+				return
 			}
-			return
-		}
 
-		if time.Now().After(expiresAt) {
-			_, _ = sm.db.Exec(r.Context(), "DELETE FROM admin_sessions WHERE token = $1", cookie.Value)
-			if r.Method == http.MethodGet {
-				http.Redirect(w, r, "/admin/login", http.StatusSeeOther)
-			} else {
-				w.WriteHeader(http.StatusUnauthorized)
+			if time.Now().After(expiresAt) {
+				_, _ = sm.db.Exec(r.Context(), "DELETE FROM admin_sessions WHERE token = $1", cookie.Value)
+				if r.Method == http.MethodGet {
+					http.Redirect(w, r, "/admin/login", http.StatusSeeOther)
+				} else {
+					w.WriteHeader(http.StatusUnauthorized)
+				}
+				return
 			}
-			return
 		}
 
 		next(w, r)
@@ -207,17 +211,6 @@ func ResolveLocale(r *http.Request) string {
 	queryLang := r.URL.Query().Get("lang")
 	if queryLang == "en" || queryLang == "uk" || queryLang == "ru" {
 		return queryLang
-	}
-
-	path := r.URL.Path
-	if strings.HasPrefix(path, "/en/") || path == "/en" {
-		return "en"
-	}
-	if strings.HasPrefix(path, "/uk/") || path == "/uk" {
-		return "uk"
-	}
-	if strings.HasPrefix(path, "/ru/") || path == "/ru" {
-		return "ru"
 	}
 
 	cookie, err := r.Cookie("lang")

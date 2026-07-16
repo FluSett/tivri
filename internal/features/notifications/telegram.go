@@ -47,8 +47,15 @@ func (w *TelegramWorker) HandleEvent(ctx context.Context, e eventbus.Event) erro
 
 	switch e.Type {
 	case "project_intake.applied":
-		evt, ok := e.Payload.(project_intake.ProjectAppliedEvent)
-		if !ok {
+		var evt project_intake.ProjectAppliedEvent
+		switch p := e.Payload.(type) {
+		case project_intake.ProjectAppliedEvent:
+			evt = p
+		case []byte:
+			if err := json.Unmarshal(p, &evt); err != nil {
+				return fmt.Errorf("notifications/telegram: unmarshal ProjectAppliedEvent failed: %w", err)
+			}
+		default:
 			return errors.New("notifications/telegram: invalid project intake payload type")
 		}
 
@@ -78,8 +85,19 @@ func (w *TelegramWorker) HandleEvent(ctx context.Context, e eventbus.Event) erro
 		)
 
 	case "contact.created":
-		msg, ok := e.Payload.(*messaging.ContactMessage)
-		if !ok {
+		var msg messaging.ContactMessage
+		switch p := e.Payload.(type) {
+		case *messaging.ContactMessage:
+			if p != nil {
+				msg = *p
+			}
+		case messaging.ContactMessage:
+			msg = p
+		case []byte:
+			if err := json.Unmarshal(p, &msg); err != nil {
+				return fmt.Errorf("notifications/telegram: unmarshal ContactMessage failed: %w", err)
+			}
+		default:
 			return errors.New("notifications/telegram: invalid contact message payload type")
 		}
 

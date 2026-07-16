@@ -70,7 +70,8 @@ func (a *App) handleTerms(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) handleHome(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
+	p := r.URL.Path
+	if p != "/" {
 		w.WriteHeader(http.StatusNotFound)
 		lang := security.ResolveLocale(r)
 		data := PageData{
@@ -90,6 +91,7 @@ func (a *App) handleHome(w http.ResponseWriter, r *http.Request) {
 	}
 
 	lang := security.ResolveLocale(r)
+
 	items, err := a.portfolioHandler.ListItems(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

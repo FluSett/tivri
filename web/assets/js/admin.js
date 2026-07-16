@@ -1,12 +1,30 @@
 document.addEventListener('alpine:init', () => {
+    Alpine.data('loginForm', () => ({
+        username: Alpine.$persist('').as('adm_log_user'), 
+        password: Alpine.$persist('').as('adm_log_pass'),
+        init() {
+            window.tivriHandleLocaleChange(() => {
+                this.username = '';
+                this.password = '';
+            });
+        }
+    }));
+
     Alpine.data('leadsTable', (initialLeads) => ({
-        clientFilter: 'all',
-        internalFilter: 'all',
-        sortBy: 'date_desc',
+        clientFilter: Alpine.$persist('all').as('adm_l_clientFilter'),
+        internalFilter: Alpine.$persist('all').as('adm_l_internalFilter'),
+        sortBy: Alpine.$persist('date_desc').as('adm_l_sortBy'),
         leads: initialLeads || [],
+        init() {
+            window.tivriHandleLocaleChange(() => {
+                this.clientFilter = 'all';
+                this.internalFilter = 'all';
+                this.sortBy = 'date_desc';
+            });
+        },
         get filteredLeads() {
             return this.leads
-                .filter(l => {
+                .filter((l) => {
                     if (this.clientFilter !== 'all' && l.clientStatus !== this.clientFilter) return false;
                     if (this.internalFilter !== 'all' && l.internalStatus !== this.internalFilter) return false;
                     return true;
@@ -61,12 +79,18 @@ document.addEventListener('alpine:init', () => {
     }));
 
     Alpine.data('messagesTable', (initialMessages) => ({
-        statusFilter: 'all',
-        sortBy: 'date_desc',
+        statusFilter: Alpine.$persist('all').as('adm_m_statusFilter'),
+        sortBy: Alpine.$persist('date_desc').as('adm_m_sortBy'),
         messages: initialMessages || [],
+        init() {
+            window.tivriHandleLocaleChange(() => {
+                this.statusFilter = 'all';
+                this.sortBy = 'date_desc';
+            });
+        },
         get filteredMessages() {
             return this.messages
-                .filter(m => {
+                .filter((m) => {
                     if (this.statusFilter !== 'all' && m.status !== this.statusFilter) return false;
                     return true;
                 })
@@ -93,21 +117,36 @@ document.addEventListener('alpine:init', () => {
     }));
 
     Alpine.data('portfolioForm', () => ({
-        title: sessionStorage.getItem('admin_portfolio_title') || '',
-        description: sessionStorage.getItem('admin_portfolio_description') || '',
-        techStack: sessionStorage.getItem('admin_portfolio_techStack') || '',
+        title: Alpine.$persist('').as('adm_pf_title'),
+        description: Alpine.$persist('').as('adm_pf_description'),
+        techTags: Alpine.$persist([]).as('adm_pf_techtags'),
         mediaPreviews: [],
         init() {
-            this.$watch('title', val => sessionStorage.setItem('admin_portfolio_title', val || ''));
-            this.$watch('description', val => sessionStorage.setItem('admin_portfolio_description', val || ''));
-            this.$watch('techStack', val => sessionStorage.setItem('admin_portfolio_techStack', val || ''));
+            window.tivriHandleLocaleChange(() => {
+                this.title = '';
+                this.description = '';
+                this.techTags = [];
+            });
+        },
+        addTag(val) {
+            val.split(',').forEach(t => {
+                const trimmed = t.trim();
+                if (trimmed && !this.techTags.includes(trimmed)) {
+                    this.techTags.push(trimmed);
+                }
+            });
+        },
+        removeTag(index) {
+            this.techTags.splice(index, 1);
         },
         handleFiles(el) {
             const files = el.files;
             for (let i = 0; i < files.length; i++) {
                 const f = files[i];
                 if (f.size > 5 * 1024 * 1024) {
-                    window.dispatchEvent(new CustomEvent('tivri-error', { detail: 'File ' + f.name + ' exceeds maximum size of 5MB.' }));
+                    window.dispatchEvent(
+                        new CustomEvent('tivri-error', { detail: 'File ' + f.name + ' exceeds maximum size of 5MB.' })
+                    );
                     continue;
                 }
                 this.mediaPreviews.push({
@@ -132,26 +171,27 @@ document.addEventListener('alpine:init', () => {
             this.mediaPreviews.splice(index, 1);
         },
         clearForm() {
-            this.mediaPreviews.forEach(item => URL.revokeObjectURL(item.url));
+            this.mediaPreviews.forEach((item) => URL.revokeObjectURL(item.url));
             this.title = '';
             this.description = '';
-            this.techStack = '';
+            this.techTags = [];
             this.mediaPreviews = [];
-            sessionStorage.removeItem('admin_portfolio_title');
-            sessionStorage.removeItem('admin_portfolio_description');
-            sessionStorage.removeItem('admin_portfolio_techStack');
         },
         async submitForm(formEl) {
-            if (!this.title.trim() || !this.description.trim() || !this.techStack.trim()) {
-                window.dispatchEvent(new CustomEvent('tivri-error', { detail: 'Please fill in all required fields.' }));
+            if (!this.title.trim() || !this.description.trim() || this.techTags.length === 0) {
+                window.dispatchEvent(
+                    new CustomEvent('tivri-error', {
+                        detail: 'Please fill in all required fields (including tech stack tags).'
+                    })
+                );
                 return;
             }
 
             const fd = new FormData();
             fd.append('title', this.title);
             fd.append('description', this.description);
-            fd.append('tech_stack', this.techStack);
-            this.mediaPreviews.forEach(item => {
+            fd.append('tech_stack', this.techTags.join(', '));
+            this.mediaPreviews.forEach((item) => {
                 fd.append('media', item.file);
             });
 
@@ -178,7 +218,11 @@ document.addEventListener('alpine:init', () => {
                 this.clearForm();
                 formEl.reset();
             } catch (err) {
-                window.dispatchEvent(new CustomEvent('tivri-error', { detail: err.message || 'Network error occurred during portfolio upload.' }));
+                window.dispatchEvent(
+                    new CustomEvent('tivri-error', {
+                        detail: err.message || 'Network error occurred during portfolio upload.'
+                    })
+                );
             }
         }
     }));

@@ -1,138 +1,154 @@
 document.addEventListener('alpine:init', () => {
-    Alpine.data('stepper', function(highQueueActive = false) {
+    Alpine.data('stepper', function (highQueueActive = false) {
         return {
-        highQueueActive: highQueueActive,
-        openStepper: false,
-        totalSteps: 5,
-        step: this.$persist(1).as('intake_step').using(sessionStorage),
-        budget: this.$persist('').as('intake_budget').using(sessionStorage),
-        customBudget: this.$persist('').as('intake_customBudget').using(sessionStorage),
-        scopeText: this.$persist('').as('intake_scopeText').using(sessionStorage),
-        scopeMax: 2000,
-        nameText: this.$persist('').as('intake_nameText').using(sessionStorage),
-        nameMax: 150,
-        deadlineNeeded: this.$persist(false).as('intake_deadlineNeeded').using(sessionStorage),
-        deadlineSpec: this.$persist('').as('intake_deadlineSpec').using(sessionStorage),
-        contactEmail: this.$persist('').as('intake_contactEmail').using(sessionStorage),
-        contactInfo: this.$persist('').as('intake_contactInfo').using(sessionStorage),
-        submitted: this.$persist(false).as('intake_submitted').using(sessionStorage),
-        nameTouched: false,
-        scopeTouched: false,
-        budgetTouched: false,
-        emailTouched: false,
-        deadlineTouched: false,
-        submitStatus: 'idle',
-        ...window.tivriTurnstileMixin(),
+            highQueueActive: highQueueActive,
+            openStepper: Alpine.$persist(false).as('st_open'),
+            totalSteps: 5,
+            step: Alpine.$persist(1).as('st_step'),
+            budget: Alpine.$persist('').as('st_budget'),
+            customBudget: Alpine.$persist('').as('st_customBudget'),
+            scopeText: Alpine.$persist('').as('st_scope'),
+            scopeMax: 2000,
+            nameText: Alpine.$persist('').as('st_name'),
+            nameMax: 150,
+            deadlineNeeded: Alpine.$persist(false).as('st_deadlineNeeded'),
+            deadlineSpec: Alpine.$persist('').as('st_deadlineSpec'),
+            contactEmail: Alpine.$persist('').as('st_email'),
+            contactInfo: Alpine.$persist('').as('st_info'),
+            submitted: Alpine.$persist(false).as('st_submitted'),
+            nameTouched: Alpine.$persist(false).as('st_nameTouched'),
+            scopeTouched: Alpine.$persist(false).as('st_scopeTouched'),
+            budgetTouched: Alpine.$persist(false).as('st_budgetTouched'),
+            emailTouched: Alpine.$persist(false).as('st_emailTouched'),
+            deadlineTouched: Alpine.$persist(false).as('st_deadlineTouched'),
+            submitStatus: Alpine.$persist('idle').as('st_submitStatus'),
+            transitionWizard: {
+                ['x-transition:enter']: 'transition ease-out duration-500 delay-200',
+                ['x-transition:enter-start']: 'opacity-0 translate-x-4',
+                ['x-transition:enter-end']: 'opacity-100 translate-x-0',
+                ['x-transition:leave']: 'transition ease-in duration-200',
+                ['x-transition:leave-start']: 'opacity-100 translate-x-0',
+                ['x-transition:leave-end']: 'opacity-0 -translate-x-4'
+            },
+            ...window.tivriTurnstileMixin(),
 
-        get scopeRemaining() {
-            return this.scopeMax - this.scopeText.length;
-        },
+            get scopeRemaining() {
+                return this.scopeMax - this.scopeText.length;
+            },
 
-        get nameRemaining() {
-            return this.nameMax - this.nameText.length;
-        },
+            get nameRemaining() {
+                return this.nameMax - this.nameText.length;
+            },
 
-        get budgetValue() {
-            if (this.budget === 'other') {
-                return this.customBudget;
-            }
-            return this.budget;
-        },
-
-        canGoNext(currentStep) {
-            if (currentStep === 1) {
-                return this.nameText.trim().length >= 2;
-            }
-
-            if (currentStep === 2) {
-                return this.scopeText.trim().length >= 20;
-            }
-
-            if (currentStep === 3) {
-                if (this.deadlineNeeded) {
-                    return this.deadlineSpec.trim().length >= 2;
-                }
-                return true;
-            }
-
-            if (currentStep === 4) {
-                if (this.budget === '') {
-                    return false;
-                }
+            get budgetValue() {
                 if (this.budget === 'other') {
-                    return this.customBudget.trim() !== '' && !isNaN(this.customBudget) && parseInt(this.customBudget) >= 100;
+                    return this.customBudget;
                 }
+                return this.budget;
+            },
+
+            canGoNext(currentStep) {
+                if (currentStep === 1) {
+                    return this.nameText.trim().length >= 2;
+                }
+
+                if (currentStep === 2) {
+                    return this.scopeText.trim().length >= 20;
+                }
+
+                if (currentStep === 3) {
+                    if (this.deadlineNeeded) {
+                        return this.deadlineSpec.trim().length >= 2;
+                    }
+                    return true;
+                }
+
+                if (currentStep === 4) {
+                    if (this.budget === '') {
+                        return false;
+                    }
+                    if (this.budget === 'other') {
+                        return (
+                            this.customBudget.trim() !== '' &&
+                            !isNaN(this.customBudget) &&
+                            parseInt(this.customBudget) >= 100
+                        );
+                    }
+                    return true;
+                }
+
                 return true;
-            }
+            },
 
-            return true;
-        },
+            init() {
+                window.tivriHandleLocaleChange(() => {
+                    this.resetForm();
+                });
 
-        init() {
-            if (this.highQueueActive) {
-                this.deadlineNeeded = false;
-                this.deadlineSpec = '';
-            }
-
-            this.$watch('step', val => {
-                if (val === 5 && !this.submitted) {
-                    this.$nextTick(() => this.renderTurnstile());
-                }
-            });
-
-            this.$watch('budget', val => {
-                if (val !== 'other') {
-                    this.customBudget = '';
-                }
-            });
-
-            this.$watch('deadlineNeeded', val => {
-                if (!val) {
+                if (this.highQueueActive) {
+                    this.deadlineNeeded = false;
                     this.deadlineSpec = '';
                 }
-            });
 
-            this.$watch('submitted', val => {
-                if (val) {
-                    this.openStepper = true;
+                this.$watch('step', (val) => {
+                    if (val === 5 && !this.submitted) {
+                        this.$nextTick(() => this.renderTurnstile());
+                    }
+                });
+
+                this.$watch('budget', (val) => {
+                    if (val !== 'other') {
+                        this.customBudget = '';
+                    }
+                });
+
+                this.$watch('deadlineNeeded', (val) => {
+                    if (!val) {
+                        this.deadlineSpec = '';
+                    }
+                });
+
+                this.$watch('submitted', (val) => {
+                    if (val) {
+                        this.openStepper = true;
+                    }
+                });
+
+                if (this.step === 5 && !this.submitted) {
+                    this.$nextTick(() => this.renderTurnstile());
                 }
-            });
 
-            if (this.step === 5 && !this.submitted) {
-                this.$nextTick(() => this.renderTurnstile());
+                this.initTurnstileListeners();
+            },
+
+            resetForm() {
+                this.step = 1;
+                this.budget = '';
+                this.customBudget = '';
+                this.scopeText = '';
+                this.nameText = '';
+                this.deadlineNeeded = false;
+                this.deadlineSpec = '';
+                this.contactEmail = '';
+                this.contactInfo = '';
+                this.submitted = false;
+                this.nameTouched = false;
+                this.scopeTouched = false;
+                this.budgetTouched = false;
+                this.emailTouched = false;
+                this.deadlineTouched = false;
+                this.submitStatus = 'idle';
+                this.resetTurnstile();
+
+                this.openStepper = false;
+                document.getElementById('intake-form').reset();
+            },
+
+            handleSubmit(event) {
+                if (!this.validateTurnstile(event)) return;
+
+                this.submitStatus = 'submitting';
             }
-
-            this.initTurnstileListeners();
-        },
-
-        resetForm() {
-            this.step = 1;
-            this.budget = '';
-            this.customBudget = '';
-            this.scopeText = '';
-            this.nameText = '';
-            this.deadlineNeeded = false;
-            this.deadlineSpec = '';
-            this.contactEmail = '';
-            this.contactInfo = '';
-            this.submitted = false;
-            this.nameTouched = false;
-            this.scopeTouched = false;
-            this.budgetTouched = false;
-            this.emailTouched = false;
-            this.deadlineTouched = false;
-            this.submitStatus = 'idle';
-            this.resetTurnstile();
-
-            this.openStepper = false;
-            document.getElementById('intake-form').reset();
-        },
-
-        handleSubmit(event) {
-            if (!this.validateTurnstile(event)) return;
-
-            this.submitStatus = 'submitting';
-        }
-    };
+        };
     });
 });

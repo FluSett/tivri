@@ -1,33 +1,53 @@
-# TIVRI - High-Performance Software Platform
+# TIVRI — High-Performance Software Platform
 
-Premium Go, HTMX, and Alpine.js onboarding and portfolio system.
+TIVRI is a high-performance client intake and portfolio management system designed to showcase modern, lightweight web architectures. Built using **Go**, **PostgreSQL**, **HTMX**, and **Alpine.js**, it demonstrates how to build responsive, interactive interfaces without the overhead of heavy Single Page Application (SPA) frameworks.
 
-## 🏗️ Architecture & Layout
-- **Event-Driven Monolith**: Encapsulated domains (`internal/features/`) communicating via in-memory event bus. Microservices are banned.
-- `cmd/api/main.go` — Entrypoint.
-- `internal/app/` — Routing & HTTP assembly.
-- `internal/features/` — Domains (`project_intake`, `messaging`, `portfolio`).
-- `web/` — UI templates and compiled assets (Tailwind v4).
+---
 
-## 🛠️ Tech Stack & Standards
-- **Backend**: Go 1.25+, `pgxpool` direct query (no ORMs).
-- **Frontend**: Go `html/template` (utilizing `dict` helper for reusable components), Alpine.js (utilizing `$persist` for native state), HTMX. No inline scripts/styles.
-- **Styling**: Tailwind CSS v4, DRY semantic classes in `theme.css`.
+## ✨ Features
 
-## ⚙️ Coding Guidelines
-- **Context & Errors**: Pass `context.Context` everywhere. Wrap errors explicitly; never discard.
-- **Concurrency**: Use lifecycle-managed workers or EventBus; dangling `go func()` is banned.
-- **Security**: Parameterized queries only. Multi-table mutations must use `pgx.Tx` with rollback. Integer subunits (cents) for currency.
-- **i18n**: Subroute (`/en/`) -> Cookie -> `Accept-Language`.
+- **Multi-Step Client Intake Form**: A multi-step stepper wizard with real-time input validation, responsive budget options, and asynchronous event triggers.
+- **Interactive Portfolio**: Showcase agency projects and case studies with dynamic content filtering and media grids.
+- **Secure Admin Panel**: Administrative dashboard to view client leads, manage incoming contact queries, update client statuses, and configure system maintenance and queue modes.
+- **Universal Multi-Locale Support**: Context-aware localization using query parameters (`?lang=`), cookies, and Accept-Language header fallbacks.
 
-## 🌐 Infrastructure & CI/CD
-- **Cloudflare & DigitalOcean**: DNS proxy, Turnstile anti-bot, Docker Compose + Nginx reverse proxy.
-- **Deployments**: Assets (CSS/JS) compile dynamically inside Docker builder stages to keep Git clean.
-- **Environment**: Global configuration like `APP_URL` (canonical domain) and `CONTACT_EMAIL` ensure zero hardcoded values.
+---
 
-## 🚀 Local Running
+## 🛠️ Technology Decisions
+
+- **Go 1.22+**: Used for backend API execution, routing, and template compiling, providing extreme runtime performance and a small memory footprint.
+- **PostgreSQL (`pgxpool`)**: Eliminates ORM query translation layers, allowing absolute control over execution plans, indexes, and database transactions.
+- **HTMX**: Handles partial HTML replacements over the wire, providing a smooth, single-page application user experience without client-side bundle compilation.
+- **Alpine.js**: Manages lightweight, localized client-side states (such as form steps, menus, and dropdowns) natively.
+- **Tailwind CSS v4**: Utility styling compiled dynamically using the new CLI engine, with brand colors consolidated in theme variables for clean maintenance.
+
+---
+
+## 🏗️ Architectural Highlights
+
+- **Event-Driven Monolith**: Encapsulated modules communicate asynchronously via an in-memory event bus, decoupling critical HTTP pipelines from background jobs.
+- **Transactional Outbox**: Writes event states (e.g. notifications) directly to the database in the same transaction as state updates, resolving distributed transaction sync issues.
+- **Self-Documenting Code**: Built around explicit errors handling, descriptive naming, and separation of concerns rather than verbose markup comments.
+- **Timing Attack Mitigation**: Verifies admin panel login attempts in constant-time using cryptographic SHA-256 hashes and standard constant-time comparisons.
+- **IP Lockout Limits**: Dynamic session tracking that issues temporary bans to client addresses following consecutive failed authentication attempts.
+
+---
+
+## 🚀 Running Locally
+
+### Start using Docker
 ```bash
-docker compose up --build
+docker compose up --build -d
 ```
-- Public: `http://localhost:8080`
-- Admin: `http://localhost:8080/admin`
+- **Platform URL**: `http://localhost:8080`
+- **Admin Login**: `http://localhost:8080/admin` (Default: `admin` / `password`)
+
+### Run Tests
+```bash
+# Run unit tests
+go test -v ./...
+
+# Run integration tests (requires setting DB_DSN)
+$env:DB_DSN="postgres://postgres:postgres@localhost:5432/tivri?sslmode=disable"
+go test -v ./...
+```

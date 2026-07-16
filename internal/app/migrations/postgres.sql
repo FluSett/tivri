@@ -69,3 +69,9 @@ CREATE TABLE IF NOT EXISTS outbox_events (
     processed BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_outbox_events_unprocessed ON outbox_events(id) WHERE processed = FALSE;
+
+CREATE INDEX IF NOT EXISTS idx_intake_leads_client_status ON intake_leads(client_status);
+CREATE INDEX IF NOT EXISTS idx_intake_leads_internal_status ON intake_leads(internal_status);
+CREATE INDEX IF NOT EXISTS idx_contact_messages_status ON contact_messages(status);

@@ -2,6 +2,8 @@ package portfolio
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"image"
@@ -194,12 +196,22 @@ func SaveUploadedFiles(files []*multipart.FileHeader, uploadDir string) ([]strin
 			return nil, fmt.Errorf("portfolio: invalid file type: %s", fileHeader.Filename)
 		}
 
+		isWebP := contentType == "image/webp" || strings.ToLower(filepath.Ext(fileHeader.Filename)) == ".webp"
+
+		randBytes := make([]byte, 4)
+		var hexSuffix string
+		if _, randErr := rand.Read(randBytes); randErr == nil {
+			hexSuffix = hex.EncodeToString(randBytes)
+		} else {
+			hexSuffix = fmt.Sprintf("%d", time.Now().UnixNano())
+		}
+
 		var uniqueName string
 		if isImage {
-			uniqueName = fmt.Sprintf("%d_%s.webp", time.Now().UnixNano(), "media")
+			uniqueName = fmt.Sprintf("%d_%s_%s.webp", time.Now().UnixNano(), "media", hexSuffix)
 		} else {
 			ext := filepath.Ext(fileHeader.Filename)
-			uniqueName = fmt.Sprintf("%d_%s%s", time.Now().UnixNano(), "media", ext)
+			uniqueName = fmt.Sprintf("%d_%s_%s%s", time.Now().UnixNano(), "media", hexSuffix, ext)
 		}
 		filePath := filepath.Join(uploadDir, uniqueName)
 
@@ -209,7 +221,7 @@ func SaveUploadedFiles(files []*multipart.FileHeader, uploadDir string) ([]strin
 		}
 		defer out.Close()
 
-		if isImage {
+		if isImage && !isWebP {
 			err = convertToWebP(file, out)
 			if err != nil {
 				out.Close()
@@ -219,6 +231,8 @@ func SaveUploadedFiles(files []*multipart.FileHeader, uploadDir string) ([]strin
 		} else {
 			_, err = io.Copy(out, file)
 			if err != nil {
+				out.Close()
+				os.Remove(filePath)
 				return nil, fmt.Errorf("portfolio: copy file failed: %w", err)
 			}
 		}

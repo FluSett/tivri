@@ -38,7 +38,11 @@ func (b *MemoryEventBus) Subscribe(eventType string, handler Handler) {
 }
 
 func (b *MemoryEventBus) Publish(ctx context.Context, e Event) {
-	b.ch <- e
+	select {
+	case <-ctx.Done():
+		// Context is cancelled or system is shutting down; drop the publish to prevent deadlock
+	case b.ch <- e:
+	}
 }
 
 func (b *MemoryEventBus) worker(ctx context.Context) {

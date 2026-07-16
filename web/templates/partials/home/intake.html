@@ -1,11 +1,11 @@
 {{define "home.intake.html"}}
-<div class="border border-white/8 bg-white/2 p-8 rounded-xl hover:border-[#FF3366]/30 hover:shadow-[0_0_30px_rgba(255,51,102,0.05)] transition-all duration-500"
+<div class="border border-white/8 bg-white/2 p-8 rounded-xl hover:border-primary/30 hover:shadow-[0_0_30px_rgba(255,51,102,0.05)] transition-all duration-500"
      x-data="stepper({{.HighQueueActive}})">
 
     <div x-show="!openStepper" x-collapse class="space-y-6">
         <h3 class="text-xl font-bold text-white tracking-tight">{{.T.Get "ContactHeadline"}}</h3>
         <p class="text-sm text-neutral-400 leading-relaxed">{{.T.Get "ContactSub"}}</p>
-        <button @click="openStepper = true" class="flex items-center space-x-3 bg-transparent text-white border border-[#FF3366] hover:bg-[#FF3366] hover:text-white hover:shadow-[0_0_15px_rgba(255,51,102,0.4)] font-bold text-xs uppercase tracking-wider px-8 py-3.5 rounded-lg transition-all duration-300 cursor-pointer">
+        <button @click="openStepper = true" class="flex items-center space-x-3 bg-transparent text-white border border-primary hover:bg-primary hover:text-white hover:shadow-[0_0_15px_rgba(255,51,102,0.4)] font-bold text-xs uppercase tracking-wider px-8 py-3.5 rounded-lg transition-all duration-300 cursor-pointer">
             <span>{{.T.Get "ContactBtn"}}</span>
         </button>
     </div>
@@ -34,14 +34,14 @@
               x-transition:enter-end="opacity-100 scale-100"
               class="space-y-6">
             <div class="flex items-center justify-between pb-3 border-b border-white/8">
-                <h2 class="text-xs font-bold uppercase tracking-widest text-[#FF3366]">{{.T.Get "IntakeTitle"}}</h2>
+                <h2 class="text-xs font-bold uppercase tracking-widest text-primary">{{.T.Get "IntakeTitle"}}</h2>
                 <span class="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
                     {{.T.Get "StepLabel"}} <span x-text="step"></span> / <span x-text="totalSteps"></span>
                 </span>
             </div>
 
             <div class="h-1.5 bg-white/4 border border-white/8 rounded-full overflow-hidden">
-             <div class="h-full bg-linear-to-r from-[#FF3366] via-[#ff5c8a] to-[#FF3366] animate-shimmer shadow-[0_0_15px_rgba(255,51,102,0.75)] rounded-full transition-all duration-500"
+             <div class="h-full bg-linear-to-r from-primary via-[#ff5c8a] to-primary animate-shimmer shadow-[0_0_15px_rgba(255,51,102,0.75)] rounded-full transition-all duration-500"
                   :style="'width: ' + ((step / totalSteps) * 100) + '%'"></div>
             </div>
 
@@ -73,7 +73,8 @@
                 <input type="hidden" name="cf-turnstile-response" x-model="turnstileToken">
                 {{end}}
 
-                <div x-show="step === 1" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-4">
+                <div class="grid items-start">
+                <div x-show="step === 1" x-cloak x-bind="transitionWizard" class="col-start-1 row-start-1 w-full space-y-4">
                     <div class="space-y-1">
                         <label class="form-label">{{.T.Get "CompanyNameLabel"}}</label>
                         <p class="text-[11px] text-neutral-400 mb-2">{{.T.Get "CompanyNameHint"}}</p>
@@ -88,7 +89,7 @@
                            @input.debounce.500ms="nameTouched = true"
                            @blur="nameTouched = true">
                       <div class="flex justify-between items-center text-[10px]">
-                          <span x-show="nameTouched && nameText.trim().length < 2" class="text-[#FF3366] font-medium">
+                          <span x-show="nameTouched && nameText.trim().length < 2" class="text-primary font-medium">
                               {{.T.Get "ValMinChars2"}}
                           </span>
                           <span x-show="!nameTouched || nameText.trim().length >= 2"></span>
@@ -109,7 +110,7 @@
                     </div>
                 </div>
 
-                <div x-show="step === 2" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-4">
+                <div x-show="step === 2" x-cloak x-bind="transitionWizard" class="col-start-1 row-start-1 w-full space-y-4">
                     <div class="space-y-1">
                         <label class="form-label">{{.T.Get "ProjectScopeLabel"}}</label>
                         <p class="text-[11px] text-neutral-400 mb-2">{{.T.Get "ProjectScopeHint"}}</p>
@@ -124,7 +125,7 @@
                               class="form-input resize-none"
                               placeholder="{{.T.Get "PlaceholderScope"}}"></textarea>
                       <div class="flex justify-between items-center text-[10px]">
-                          <span x-show="scopeTouched && scopeText.trim().length < 20" class="text-[#FF3366] font-medium">
+                          <span x-show="scopeTouched && scopeText.trim().length < 20" class="text-primary font-medium">
                               {{.T.Get "ValMinChars20"}}
                           </span>
                           <span x-show="!scopeTouched || scopeText.trim().length >= 20"></span>
@@ -145,7 +146,7 @@
                     </div>
                 </div>
 
-                <div x-show="step === 3" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-4">
+                <div x-show="step === 3" x-cloak x-bind="transitionWizard" class="col-start-1 row-start-1 w-full space-y-4">
                     <div class="space-y-1">
                         <label class="form-label">{{.T.Get "DeadlineStepTitle"}}</label>
                         <p class="text-[11px] text-neutral-400 mb-2">{{.T.Get "DeadlineStepHint"}}</p>
@@ -183,7 +184,7 @@
                                class="form-input"
                                placeholder="{{.T.Get "DeadlineSpecPlaceholder"}}">
                         <div class="flex justify-between items-center text-[10px]">
-                            <span x-show="deadlineTouched && deadlineSpec.trim().length < 2" class="text-[#FF3366] font-medium">
+                            <span x-show="deadlineTouched && deadlineSpec.trim().length < 2" class="text-primary font-medium">
                                 {{.T.Get "ValMinChars2"}}
                             </span>
                             <span x-show="!deadlineTouched || deadlineSpec.trim().length >= 2"></span>
@@ -207,7 +208,7 @@
                     </div>
                 </div>
 
-                <div x-show="step === 4" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-4">
+                <div x-show="step === 4" x-cloak x-bind="transitionWizard" class="col-start-1 row-start-1 w-full space-y-4">
                     <div class="space-y-1">
                         <label class="form-label">{{.T.Get "BudgetValueLabel"}}</label>
                     </div>
@@ -267,7 +268,7 @@
                                class="form-input"
                                placeholder="{{.T.Get "PlaceholderCustomBudget"}}">
                          <div class="flex justify-between items-center text-[10px] mt-1" x-show="budgetTouched && (customBudget.trim() === '' || parseInt(customBudget) < 100)">
-                             <span class="text-[#FF3366] font-medium">
+                             <span class="text-primary font-medium">
                                  {{.T.Get "ValMinBudget100"}}
                              </span>
                          </div>
@@ -288,14 +289,14 @@
                     </div>
                 </div>
 
-                <div x-show="step === 5" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-5">
+                <div x-show="step === 5" x-cloak x-bind="transitionWizard" class="col-start-1 row-start-1 w-full space-y-5">
                     <div class="space-y-1">
                         <label class="form-label">{{.T.Get "ContactStepTitle"}}</label>
                         <p class="text-xs text-neutral-400">{{.T.Get "ContactStepHint"}}</p>
                     </div>
 
                     <div class="space-y-2">
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-neutral-500">{{.T.Get "ContactEmailLabel"}} <span class="text-[#FF3366]">*</span></label>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-neutral-500">{{.T.Get "ContactEmailLabel"}} <span class="text-primary">*</span></label>
                         <input type="email"
                                name="contact_email"
                                required
@@ -307,7 +308,7 @@
                                class="form-input"
                                placeholder="{{.T.Get "PlaceholderIntakeEmail"}}">
                           <div class="flex justify-between items-center text-[10px] mt-1" x-show="emailTouched && (contactEmail.trim().length < 5 || !contactEmail.includes('@') || !contactEmail.includes('.'))">
-                              <span class="text-[#FF3366] font-medium">
+                              <span class="text-primary font-medium">
                                   {{.T.Get "ValValidEmail"}}
                               </span>
                           </div>
@@ -336,7 +337,7 @@
                         </button>
                         <button type="submit"
                                 :disabled="submitStatus !== 'idle' || !contactEmail.includes('@') || !contactEmail.includes('.')"
-                                :class="(!contactEmail.includes('@') || !contactEmail.includes('.')) ? 'bg-white/10 text-neutral-500 cursor-not-allowed border-transparent' : (submitStatus !== 'idle' ? 'bg-[#FF3366] text-white border border-[#FF3366] cursor-wait shadow-[0_0_15px_rgba(255,51,102,0.4)]' : 'bg-transparent text-white border border-[#FF3366] hover:bg-[#FF3366] hover:shadow-[0_0_15px_rgba(255,51,102,0.4)] cursor-pointer')"
+                                :class="(!contactEmail.includes('@') || !contactEmail.includes('.')) ? 'bg-white/10 text-neutral-500 cursor-not-allowed border-transparent' : (submitStatus !== 'idle' ? 'bg-primary text-white border border-primary cursor-wait shadow-[0_0_15px_rgba(255,51,102,0.4)]' : 'bg-transparent text-white border border-primary hover:bg-primary hover:shadow-[0_0_15px_rgba(255,51,102,0.4)] cursor-pointer')"
                                 class="font-bold text-xs uppercase tracking-wider py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center space-x-2 min-w-[120px] border">
                             <span x-show="submitStatus === 'idle'">{{.T.Get "SubmitBtn"}}</span>
                             <span x-show="submitStatus !== 'idle'" class="flex items-center space-x-2">
@@ -347,6 +348,7 @@
                             </span>
                         </button>
                     </div>
+                </div>
                 </div>
             </form>
         </div>

@@ -29,6 +29,12 @@ func Connect(ctx context.Context, dsn string) (*pgxpool.Pool, error) {
 		return nil, fmt.Errorf("database: connect failed: %w", err)
 	}
 
+	err = pool.Ping(ctx)
+	if err != nil {
+		pool.Close()
+		return nil, fmt.Errorf("database: ping failed: %w", err)
+	}
+
 	return pool, nil
 }
 

@@ -17,6 +17,8 @@ func (a *App) handleAPILang(w http.ResponseWriter, r *http.Request) {
 		Value:    lang,
 		Path:     "/",
 		HttpOnly: true,
+		Secure:   a.cfg.Env == "production",
+		SameSite: http.SameSiteLaxMode,
 		MaxAge:   31536000,
 	})
 
@@ -39,6 +41,7 @@ func (a *App) handleAPILang(w http.ResponseWriter, r *http.Request) {
 	highQueueActive, _ := a.settingsRepo.GetHighQueue(r.Context())
 	maintenanceActive, _ := a.settingsRepo.GetMaintenance(r.Context())
 	pageData := PageData{
+		CurrentPath:       path,
 		Lang:              lang,
 		T:                 a.translator.Get(lang),
 		IsAdmin:           false,
@@ -85,10 +88,17 @@ func (a *App) handleAPILang(w http.ResponseWriter, r *http.Request) {
 		if maintenanceActive {
 			tmplKey = "maintenance"
 		} else {
-			tmplKey = "home"
-			items, err := a.portfolioHandler.ListItems(r.Context())
-			if err == nil {
-				pageData.PortfolioItems = items
+			switch path {
+			case "/privacy":
+				tmplKey = "privacy"
+			case "/terms":
+				tmplKey = "terms"
+			default:
+				tmplKey = "home"
+				items, err := a.portfolioHandler.ListItems(r.Context())
+				if err == nil {
+					pageData.PortfolioItems = items
+				}
 			}
 		}
 	}
@@ -104,10 +114,12 @@ func (a *App) handleAPILang(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) handleHealthz(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	if err := a.db.Ping(r.Context()); err != nil {
-		w.WriteHeader(http.StatusServiceUnavailable)
-		_, _ = w.Write([]byte(`{"status":"error","details":"database ping failed"}`))
-		return
+	if a.db != nil {
+		if err := a.db.Ping(r.Context()); err != nil {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			_, _ = w.Write([]byte(`{"status":"error","details":"database ping failed"}`))
+			return
+		}
 	}
 
 	w.WriteHeader(http.StatusOK)

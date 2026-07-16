@@ -7,8 +7,10 @@
 bin/
 dist/
 /tmp/
-/web/assets/img/uploads/
+/web/assets/uploads/
+/web/assets/dist/
 node_modules/
-/web/assets/css/theme.css
 /web/assets/js/**/*.min.js
-web/assets/js/components/**/*.min.js
+/web/assets/css/**/*.min.css
+/web/assets/css/theme.css
+

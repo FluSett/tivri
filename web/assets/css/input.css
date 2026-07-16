@@ -2,6 +2,8 @@
 
 @theme {
   --font-sans: "Inter", "sans-serif";
+  --color-primary: #FF3366;
+  --color-bg-dark: #0A0A0A;
 }
 
 ::-webkit-scrollbar {
@@ -9,7 +11,7 @@
     height: 8px;
 }
 ::-webkit-scrollbar-track {
-    background: #0A0A0A;
+    background: var(--color-bg-dark);
 }
 ::-webkit-scrollbar-thumb {
     background: rgba(255, 51, 102, 0.3);
@@ -20,7 +22,7 @@
 }
 
 body {
-    background-color: #0A0A0A;
+    background-color: var(--color-bg-dark);
     background-image: radial-gradient(circle at 50% -20%, rgba(255, 51, 102, 0.15) 0%, transparent 65%), url('/assets/img/backgrounds/bg-sm.webp');
     background-size: cover;
     background-position: center;
@@ -66,7 +68,7 @@ body {
     display: inline-block;
     width: 0;
     height: 5px;
-    background: #FF3366;
+    background: var(--color-primary);
     border-radius: 50%;
     animation: blink-animation 1.6s ease-in-out infinite;
     vertical-align: middle;
@@ -90,7 +92,7 @@ a.nav-active::after {
     width: 100% !important;
 }
 .contact-blink {
-    color: #FF3366 !important;
+    color: var(--color-primary) !important;
     animation: blink-animation 1.6s ease-in-out infinite;
 }
 a.nav-link {
@@ -161,21 +163,23 @@ a.nav-link {
 
 .form-input {
     width: 100%;
-    background-color: #0A0A0A;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background-color: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     color: #ffffff;
     font-size: 0.875rem;
-    padding: 0.625rem 1rem;
+    padding: 0.75rem 1rem;
     border-radius: 0.75rem;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .form-input:focus {
-    border-color: #FF3366;
+    border-color: var(--color-primary);
+    background-color: rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 0 1px var(--color-primary);
     outline: none;
 }
 .form-input:not(:focus):hover {
-    border-color: rgba(255, 255, 255, 0.2);
-    background-color: rgba(255, 255, 255, 0.01);
+    border-color: rgba(255, 255, 255, 0.24);
+    background-color: rgba(255, 255, 255, 0.04);
 }
 
 .skill-card {
@@ -204,8 +208,8 @@ a.nav-link {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .btn-icon:hover {
-    background-color: #FF3366;
-    border-color: #FF3366;
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
     color: #ffffff;
     box-shadow: 0 0 15px rgba(255, 51, 102, 0.4);
     transform: scale(1.1);
@@ -213,56 +217,84 @@ a.nav-link {
 
 .form-label {
     display: block;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #a3a3a3;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #e5e5e5;
+    letter-spacing: 0.02em;
+    margin-bottom: 0.25rem;
 }
 
 .btn-choice {
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #a3a3a3;
-    border-radius: 0.5rem;
-    padding: 0.5rem 0.75rem;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #d4d4d4;
+    border-radius: 16px;
+    padding: 0.875rem 1rem 0.875rem 2.75rem;
     text-align: left;
+    font-weight: 500;
+    font-size: 0.8125rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.btn-choice::before {
+    content: '';
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
     transition: all 0.2s ease;
 }
+
 .btn-choice:not(.btn-choice-active):hover {
-    border-color: rgba(255, 255, 255, 0.2);
-    background-color: rgba(255, 255, 255, 0.01);
+    border-color: rgba(255, 255, 255, 0.3);
+    background-color: rgba(255, 255, 255, 0.04);
 }
+.btn-choice:not(.btn-choice-active):hover::before {
+    border-color: rgba(255, 255, 255, 0.6);
+}
+
 .btn-choice-active {
-    border-color: #FF3366;
-    background-color: rgba(255, 51, 102, 0.1);
+    border-color: var(--color-primary);
+    background-color: rgba(255, 51, 102, 0.08);
     color: #ffffff;
+    box-shadow: 0 4px 20px rgba(255, 51, 102, 0.15), 0 0 0 1px var(--color-primary);
+}
+
+.btn-choice-active::before {
+    border-color: var(--color-primary);
+    background-color: var(--color-primary);
+    box-shadow: inset 0 0 0 4px #0f0f0f; /* matches dark background for inner dot effect */
 }
 
 .btn-secondary {
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #a3a3a3;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    color: #ffffff;
     background-color: transparent;
-    font-weight: 700;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    font-weight: 600;
+    font-size: 0.875rem;
     padding: 0.625rem 1.5rem;
-    border-radius: 0.5rem;
-    transition: all 0.2s ease;
+    border-radius: 9999px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
 }
 .btn-secondary:hover {
-    color: #ffffff;
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.36);
 }
 
 .btn-primary-form {
-    font-weight: 700;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    font-weight: 600;
+    font-size: 0.875rem;
     padding: 0.625rem 1.5rem;
-    border-radius: 0.5rem;
-    transition: all 0.2s ease;
+    border-radius: 9999px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .btn-primary-form:not(:disabled) {
     background-color: #ffffff;
@@ -270,11 +302,12 @@ a.nav-link {
     cursor: pointer;
 }
 .btn-primary-form:not(:disabled):hover {
-    background-color: #e5e5e5;
+    background-color: #f5f5f5;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 .btn-primary-form:disabled {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: #737373;
+    background-color: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.38);
     cursor: not-allowed;
 }
 
@@ -312,7 +345,7 @@ a.nav-link {
 .section-accent-line {
     width: 2rem;
     height: 1px;
-    background-color: #FF3366;
+    background-color: var(--color-primary);
 }
 
 .section-accent-text {
@@ -320,7 +353,7 @@ a.nav-link {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: #FF3366;
+    color: var(--color-primary);
 }
 
 .section-footer-nav {
@@ -427,4 +460,51 @@ input:disabled {
 }
 .hover-jump:hover {
     transform: translateY(-2px);
+}
+
+.btn-submit {
+    font-weight: 700;
+    font-size: 0.875rem;
+    padding: 0.75rem 1.75rem;
+    border-radius: 9999px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background-color: var(--color-primary);
+    color: #ffffff;
+    border: none;
+    cursor: pointer;
+}
+.btn-submit:not(:disabled):hover {
+    background-color: var(--color-primary);
+    opacity: 0.9;
+    box-shadow: 0 0 20px rgba(255, 51, 102, 0.4);
+}
+.btn-submit:disabled {
+    background-color: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.38);
+    cursor: not-allowed !important;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.admin-panel-box {
+    background-color: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    transition: border-color 0.5s ease, box-shadow 0.5s ease;
+}
+.admin-panel-box:hover {
+    border-color: rgba(255, 51, 102, 0.2);
+    box-shadow: 0 0 40px rgba(255, 51, 102, 0.06);
 }

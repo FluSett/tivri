@@ -24,22 +24,10 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v7
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: '24'
-          cache: 'npm'
-
-      - name: Install Node Dependencies
-        run: npm ci
-
-      - name: Build Assets
-        run: npm run build
-
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.25'
+          go-version: '1.26'
           cache: true
 
       - name: Install Dependencies
@@ -58,18 +46,6 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v7
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: '24'
-          cache: 'npm'
-
-      - name: Install Node Dependencies
-        run: npm ci
-
-      - name: Build Assets
-        run: npm run build
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -103,17 +79,7 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -p ${{ secrets.DROPLET_SSH_PORT }} -H ${{ secrets.DROPLET_IP }} >> ~/.ssh/known_hosts
           eval "$(ssh-agent -s)"
-          if [ -n "${{ secrets.DROPLET_SSH_PASSPHRASE }}" ]; then
-            sudo apt-get update && sudo apt-get install -y expect
-            expect -c "
-              spawn ssh-add ~/.ssh/id_rsa
-              expect \"Enter passphrase\"
-              send \"${{ secrets.DROPLET_SSH_PASSPHRASE }}\r\"
-              expect eof
-            "
-          else
-            ssh-add ~/.ssh/id_rsa
-          fi
+          ssh-add ~/.ssh/id_rsa
           echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
           echo "SSH_AGENT_PID=$SSH_AGENT_PID" >> $GITHUB_ENV
 

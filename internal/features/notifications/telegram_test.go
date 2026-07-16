@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -119,6 +120,67 @@ func TestTelegramWorker_HandleEvent(t *testing.T) {
 		text, ok := receivedPayload["text"].(string)
 		if !ok || text == "" {
 			t.Errorf("expected text payload, got %v", receivedPayload["text"])
+		}
+	})
+
+	t.Run("Project Intake Applied with Raw JSON Bytes", func(t *testing.T) {
+		evtPayload := project_intake.ProjectAppliedEvent{
+			ID:           42,
+			CompanyName:  "Acme Corp",
+			ProjectScope: "Build a web app",
+			Budget:       500000,
+			ContactEmail: "admin@acme.com",
+			ContactInfo:  "+123456789",
+			Timestamp:    time.Now(),
+		}
+		rawBytes, err := json.Marshal(evtPayload)
+		if err != nil {
+			t.Fatalf("failed to marshal payload: %v", err)
+		}
+
+		event := eventbus.Event{
+			Type:    "project_intake.applied",
+			Payload: rawBytes,
+		}
+
+		err = worker.HandleEvent(context.Background(), event)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		text, ok := receivedPayload["text"].(string)
+		if !ok || text == "" || !strings.Contains(text, "Acme Corp") {
+			t.Errorf("expected text containing 'Acme Corp', got %v", receivedPayload["text"])
+		}
+	})
+
+	t.Run("Contact Created with Raw JSON Bytes", func(t *testing.T) {
+		msgPayload := messaging.ContactMessage{
+			ID:        99,
+			Email:     "hello@world.com",
+			Topic:     "Inquiry",
+			Message:   "Hello from the outside",
+			Status:    "new",
+			CreatedAt: time.Now(),
+		}
+		rawBytes, err := json.Marshal(msgPayload)
+		if err != nil {
+			t.Fatalf("failed to marshal payload: %v", err)
+		}
+
+		event := eventbus.Event{
+			Type:    "contact.created",
+			Payload: rawBytes,
+		}
+
+		err = worker.HandleEvent(context.Background(), event)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		text, ok := receivedPayload["text"].(string)
+		if !ok || text == "" || !strings.Contains(text, "hello@world.com") {
+			t.Errorf("expected text containing 'hello@world.com', got %v", receivedPayload["text"])
 		}
 	})
 }

@@ -61,7 +61,7 @@ func (r *PostgresRepository) Save(ctx context.Context, ld *Lead) error {
 }
 
 func (r *PostgresRepository) List(ctx context.Context) ([]Lead, error) {
-	query := "SELECT id, company_name, project_scope, budget, contact_email, contact_info, deadline_needed, deadline_spec, is_custom_budget, client_status, internal_status, created_at, updated_at FROM intake_leads ORDER BY id DESC"
+	query := "SELECT id, company_name, project_scope, budget, contact_email, contact_info, deadline_needed, deadline_spec, is_custom_budget, client_status, internal_status, created_at, updated_at FROM intake_leads ORDER BY id DESC LIMIT 1000"
 	rows, err := r.pool.Query(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("project_intake: query leads failed: %w", err)
