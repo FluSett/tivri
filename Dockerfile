@@ -12,6 +12,10 @@ RUN npm run build
 # Stage 2: Build the Go application
 FROM golang:1.26-alpine AS builder
 
+RUN apk add --no-cache ca-certificates tzdata
+# Create a non-root user
+RUN adduser -D -g '' appuser
+
 WORKDIR /app
 
 COPY go.mod go.sum ./
@@ -22,12 +26,17 @@ COPY . .
 # Copy compiled assets from asset-builder to make sure they are embedded
 COPY --from=asset-builder /app/web/assets ./web/assets
 
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o main ./cmd/api/main.go
+# Build with -trimpath and remove buildid for minimal size
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w -buildid=" -o main ./cmd/api/main.go
 
-# Stage 3: Minimal runtime container
-FROM alpine:latest
+# Stage 3: Minimal runtime container (scratch)
+FROM scratch
 
-RUN apk add --no-cache ca-certificates tzdata
+# Copy certificates, tzdata, and user from builder
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
+COPY --from=builder /etc/passwd /etc/passwd
+COPY --from=builder /etc/group /etc/group
 
 WORKDIR /app
 
@@ -35,7 +44,7 @@ COPY --from=builder /app/main ./main
 
 ENV PORT=8080
 
-USER nobody:nogroup
+USER appuser
 
 EXPOSE 8080
 
