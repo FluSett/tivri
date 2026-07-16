@@ -1,6 +1,8 @@
 package app
 
 import (
+	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/json"
 	"net"
 	"net/http"
@@ -91,7 +93,15 @@ func (a *App) handleAdminLogin(w http.ResponseWriter, r *http.Request) {
 		username := r.FormValue("username")
 		password := r.FormValue("password")
 
-		if username != a.cfg.AdminUsername || password != a.cfg.AdminPassword {
+		userHash := sha256.Sum256([]byte(username))
+		cfgUserHash := sha256.Sum256([]byte(a.cfg.AdminUsername))
+		passHash := sha256.Sum256([]byte(password))
+		cfgPassHash := sha256.Sum256([]byte(a.cfg.AdminPassword))
+
+		userMatch := subtle.ConstantTimeCompare(userHash[:], cfgUserHash[:]) == 1
+		passMatch := subtle.ConstantTimeCompare(passHash[:], cfgPassHash[:]) == 1
+
+		if !userMatch || !passMatch {
 			a.securityMgr.RecordFailedAttempt(r)
 			lang := security.ResolveLocale(r)
 			data := PageData{
@@ -140,114 +150,110 @@ func (a *App) handleAdminLogout(w http.ResponseWriter, r *http.Request) {
 		Value:    "",
 		Path:     "/",
 		HttpOnly: true,
+		Secure:   a.cfg.Env == "production",
+		SameSite: http.SameSiteStrictMode,
 		MaxAge:   -1,
 	})
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, "/admin/login", http.StatusSeeOther)
 }
 
 func (a *App) handleAdminDashboard(w http.ResponseWriter, r *http.Request) {
-	a.securityMgr.CookieAuth(a.cfg.AdminUsername, a.cfg.AdminPassword, func(w http.ResponseWriter, r *http.Request) {
-		lang := security.ResolveLocale(r)
-		items, err := a.portfolioHandler.ListItems(r.Context())
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	lang := security.ResolveLocale(r)
+	items, err := a.portfolioHandler.ListItems(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-		leads, err := a.leadHandler.ListLeads(r.Context())
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	leads, err := a.leadHandler.ListLeads(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-		msgs, err := a.contactHandler.ListMessages(r.Context())
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	msgs, err := a.contactHandler.ListMessages(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-		tab := r.URL.Query().Get("tab")
-		if tab == "" {
-			tab = "portfolio"
-		}
+	tab := r.URL.Query().Get("tab")
+	if tab == "" {
+		tab = "portfolio"
+	}
 
-		var leadsJSON, msgsJSON string
-		if raw, err := json.Marshal(leads); err == nil {
-			leadsJSON = string(raw)
-		}
+	var leadsJSON, msgsJSON string
+	if raw, err := json.Marshal(leads); err == nil {
+		leadsJSON = string(raw)
+	}
 
-		if raw, err := json.Marshal(msgs); err == nil {
-			msgsJSON = string(raw)
-		}
+	if raw, err := json.Marshal(msgs); err == nil {
+		msgsJSON = string(raw)
+	}
 
-		highQueueActive, _ := a.settingsRepo.GetHighQueue(r.Context())
-		maintenanceActive, _ := a.settingsRepo.GetMaintenance(r.Context())
-		data := PageData{
-			Lang:              lang,
-			T:                 a.translator.Get(lang),
-			PortfolioItems:    items,
-			Leads:             leads,
-			ContactMessages:   msgs,
-			LeadsJSON:         leadsJSON,
-			MessagesJSON:      msgsJSON,
-			IsAdmin:           true,
-			AdminTab:          tab,
-			HighQueueActive:   highQueueActive,
-			MaintenanceActive: maintenanceActive,
-			TurnstileSiteKey:  a.cfg.TurnstileSiteKey,
-			AppURL:            a.cfg.AppURL,
-			ContactEmail:      a.cfg.ContactEmail,
-		}
+	highQueueActive, _ := a.settingsRepo.GetHighQueue(r.Context())
+	maintenanceActive, _ := a.settingsRepo.GetMaintenance(r.Context())
+	data := PageData{
+		Lang:              lang,
+		T:                 a.translator.Get(lang),
+		PortfolioItems:    items,
+		Leads:             leads,
+		ContactMessages:   msgs,
+		LeadsJSON:         leadsJSON,
+		MessagesJSON:      msgsJSON,
+		IsAdmin:           true,
+		AdminTab:          tab,
+		HighQueueActive:   highQueueActive,
+		MaintenanceActive: maintenanceActive,
+		TurnstileSiteKey:  a.cfg.TurnstileSiteKey,
+		AppURL:            a.cfg.AppURL,
+		ContactEmail:      a.cfg.ContactEmail,
+	}
 
-		err = a.templates["admin"].ExecuteTemplate(w, "base.layout.html", data)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-	})(w, r)
+	err = a.templates["admin"].ExecuteTemplate(w, "base.layout.html", data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func (a *App) handleAdminSettingsHighQueue(w http.ResponseWriter, r *http.Request) {
-	a.securityMgr.CookieAuth(a.cfg.AdminUsername, a.cfg.AdminPassword, func(w http.ResponseWriter, r *http.Request) {
-		err := r.ParseForm()
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		enabled := r.FormValue("high_queue") == "true" || r.FormValue("high_queue") == "on" || r.FormValue("high_queue") == "1"
-		err = a.settingsRepo.SetHighQueue(r.Context(), enabled)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	enabled := r.FormValue("high_queue") == "true" || r.FormValue("high_queue") == "on" || r.FormValue("high_queue") == "1"
+	err = a.settingsRepo.SetHighQueue(r.Context(), enabled)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-		a.eventBus.Publish(r.Context(), eventbus.Event{
-			Type:      "settings.high_queue_changed",
-			Payload:   enabled,
-			Timestamp: time.Now(),
-		})
-		w.WriteHeader(http.StatusOK)
-	})(w, r)
+	a.eventBus.Publish(r.Context(), eventbus.Event{
+		Type:      "settings.high_queue_changed",
+		Payload:   enabled,
+		Timestamp: time.Now(),
+	})
+	w.WriteHeader(http.StatusOK)
 }
 
 func (a *App) handleAdminSettingsMaintenance(w http.ResponseWriter, r *http.Request) {
-	a.securityMgr.CookieAuth(a.cfg.AdminUsername, a.cfg.AdminPassword, func(w http.ResponseWriter, r *http.Request) {
-		err := r.ParseForm()
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		enabled := r.FormValue("maintenance") == "true" || r.FormValue("maintenance") == "on" || r.FormValue("maintenance") == "1"
-		err = a.settingsRepo.SetMaintenance(r.Context(), enabled)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	enabled := r.FormValue("maintenance") == "true" || r.FormValue("maintenance") == "on" || r.FormValue("maintenance") == "1"
+	err = a.settingsRepo.SetMaintenance(r.Context(), enabled)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-		a.eventBus.Publish(r.Context(), eventbus.Event{
-			Type:      "settings.maintenance_changed",
-			Payload:   enabled,
-			Timestamp: time.Now(),
-		})
-		w.WriteHeader(http.StatusOK)
-	})(w, r)
+	a.eventBus.Publish(r.Context(), eventbus.Event{
+		Type:      "settings.maintenance_changed",
+		Payload:   enabled,
+		Timestamp: time.Now(),
+	})
+	w.WriteHeader(http.StatusOK)
 }

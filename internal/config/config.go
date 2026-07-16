@@ -40,11 +40,7 @@ func Load() (*Config, error) {
 
 	dbDSN := getEnv("DB_DSN")
 	if dbDSN == "" {
-		if env == "development" {
-			dbDSN = "tivri.db"
-		} else {
-			dbDSN = "postgres://postgres:postgres@localhost:5432/tivri?sslmode=disable"
-		}
+		dbDSN = "postgres://postgres:postgres@localhost:5432/tivri?sslmode=disable"
 	}
 
 	adminUsername := getEnv("ADMIN_USERNAME")

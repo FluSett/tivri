@@ -10,7 +10,7 @@ COPY web/ ./web/
 RUN npm run build
 
 # Stage 2: Build the Go application
-FROM golang:1.25-alpine AS builder
+FROM golang:1.26-alpine AS builder
 
 WORKDIR /app
 
@@ -20,11 +20,7 @@ RUN go mod download
 COPY . .
 
 # Copy compiled assets from asset-builder to make sure they are embedded
-COPY --from=asset-builder /app/web/assets/css/theme.css ./web/assets/css/theme.css
-COPY --from=asset-builder /app/web/assets/js/app.min.js ./web/assets/js/app.min.js
-COPY --from=asset-builder /app/web/assets/js/admin.min.js ./web/assets/js/admin.min.js
-COPY --from=asset-builder /app/web/assets/js/components/stepper.min.js ./web/assets/js/components/stepper.min.js
-COPY --from=asset-builder /app/web/assets/js/components/contact.min.js ./web/assets/js/components/contact.min.js
+COPY --from=asset-builder /app/web/assets ./web/assets
 
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o main ./cmd/api/main.go
 

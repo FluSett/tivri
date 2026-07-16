@@ -20,7 +20,13 @@ Defines absolute runtime behavior and constraints. No exceptions.
 ## 4. 🚫 No Magical Variables
 - **Dynamic Configuration**: Never hardcode domains (e.g. `tivri.cc`), emails, ports, or API endpoints. Inject them via environment variables and pass them down into handlers/templates.
 - **Named Constants**: Never leave arbitrary `time.Second` multipliers or numeric literals scattered in business logic. Extract them to clear, localized `const` declarations.
+- **No Inline JavaScript**: Never use inline `<script>` tags in HTML templates (except for non-executable metadata like JSON-LD). Pass dynamic data using HTML5 data attributes (`data-*`) on elements and retrieve them via external JS or Alpine components.
 
 ## 5. ♻️ DRY Architecture
 - **HTML & Templates**: Never duplicate identical HTML structure. Extract reusable UI elements into Go template components and inject data via the `dict` helper.
 - **Frontend State**: Utilize official Alpine.js plugins (like `@alpinejs/persist`) to handle state storage natively, entirely avoiding verbose JavaScript boilerplate.
+- **Numeric Timestamps**: Represent dates in JSON payloads as Unix timestamps (seconds since epoch, `int64`) to facilitate simple client-side sorting and avoid timezone serialization quirks.
+- **Centralized CSS**: Avoid duplicate inline utility styling chains in HTML templates. Consolidate common design patterns (such as standard buttons and form inputs) into reusable utility classes in `input.css`.
+
+## 6. 🛠️ Lint & Static Warnings Code Quality
+- **Always Resolve Warnings**: Never ignore warnings or errors reported by linters or compilation tools. Proactively refactor any hardcoded style hex values, invalid Tailwind classes, Go warnings, or structural code analysis notices.

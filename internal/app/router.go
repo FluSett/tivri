@@ -89,22 +89,16 @@ func (a *App) newRouter() (http.Handler, error) {
 	mux.HandleFunc("POST /admin/logout", a.handleAdminLogout)
 
 	// Admin Routes (Protected)
-	mux.HandleFunc("GET /admin", a.handleAdminDashboard)
-	
-	mux.HandleFunc("POST /admin/portfolio", func(w http.ResponseWriter, r *http.Request) {
-		a.securityMgr.CookieAuth(a.cfg.AdminUsername, a.cfg.AdminPassword, a.portfolioHandler.Create)(w, r)
-	})
+	adminAuth := func(h http.HandlerFunc) http.HandlerFunc {
+		return a.securityMgr.CookieAuth(a.cfg.AdminUsername, a.cfg.AdminPassword, h)
+	}
 
-	mux.HandleFunc("POST /admin/leads/status", func(w http.ResponseWriter, r *http.Request) {
-		a.securityMgr.CookieAuth(a.cfg.AdminUsername, a.cfg.AdminPassword, a.leadHandler.UpdateStatus)(w, r)
-	})
-
-	mux.HandleFunc("POST /admin/messages/status", func(w http.ResponseWriter, r *http.Request) {
-		a.securityMgr.CookieAuth(a.cfg.AdminUsername, a.cfg.AdminPassword, a.contactHandler.UpdateStatus)(w, r)
-	})
-
-	mux.HandleFunc("POST /admin/settings/high-queue", a.handleAdminSettingsHighQueue)
-	mux.HandleFunc("POST /admin/settings/maintenance", a.handleAdminSettingsMaintenance)
+	mux.HandleFunc("GET /admin", adminAuth(a.handleAdminDashboard))
+	mux.HandleFunc("POST /admin/portfolio", adminAuth(a.portfolioHandler.Create))
+	mux.HandleFunc("POST /admin/leads/status", adminAuth(a.leadHandler.UpdateStatus))
+	mux.HandleFunc("POST /admin/messages/status", adminAuth(a.contactHandler.UpdateStatus))
+	mux.HandleFunc("POST /admin/settings/high-queue", adminAuth(a.handleAdminSettingsHighQueue))
+	mux.HandleFunc("POST /admin/settings/maintenance", adminAuth(a.handleAdminSettingsMaintenance))
 
 	return security.StructuredLogger(a.logger)(a.maintenanceMiddleware(mux)), nil
 }

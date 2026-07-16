@@ -1,10 +1,14 @@
 {
   "scripts": {
-    "build": "tailwindcss -i web/assets/css/input.css -o web/assets/css/theme.css && esbuild web/assets/js/app.js --minify --outfile=web/assets/js/app.min.js && esbuild web/assets/js/admin.js --minify --outfile=web/assets/js/admin.min.js && esbuild web/assets/js/components/stepper.js --minify --outfile=web/assets/js/components/stepper.min.js && esbuild web/assets/js/components/contact.js --minify --outfile=web/assets/js/components/contact.min.js"
+    "build:css": "tailwindcss -i web/assets/css/input.css -o web/assets/dist/css/theme.css",
+    "build:js": "esbuild web/assets/js/*.js web/assets/js/components/*.js --minify --outdir=web/assets/dist --outbase=web/assets --entry-names=[dir]/[name].min",
+    "build": "npm run build:css && npm run build:js",
+    "format": "prettier --write \"web/assets/js/**/*.js\""
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.3.2",
     "esbuild": "^0.28.1",
+    "prettier": "^3.9.5",
     "tailwindcss": "^4.3.2"
   },
   "allowScripts": {
