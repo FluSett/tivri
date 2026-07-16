@@ -3,7 +3,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center my-auto grow">
         <div class="section-sidebar">
             <div class="section-marker-container">
-                 <span class="text-xs font-bold tracking-widest text-[#FF3366] rotate-90 my-4">04</span>
+                 <span class="text-xs font-bold tracking-widest text-primary rotate-90 my-4">04</span>
                  <div class="section-marker-line"></div>
             </div>
         </div>
@@ -20,10 +20,10 @@
                 {{end}}
             </div>
 
-            <div class="border border-dashed border-[#FF3366]/30 rounded-xl p-10 bg-white/1 flex flex-col items-center text-center space-y-6 max-w-4xl mx-auto">
+            <div class="border border-dashed border-primary/30 rounded-xl p-10 bg-white/1 flex flex-col items-center text-center space-y-6 max-w-4xl mx-auto">
                 <h3 class="text-2xl font-bold text-white tracking-tight">{{.T.Get "PortfolioHeadline"}}</h3>
                 <p class="text-sm text-neutral-400 max-w-lg leading-relaxed">{{.T.Get "PortfolioPitch"}}</p>
-                <a href="#contact" @click="openStepper = true" class="inline-block bg-transparent text-white border border-[#FF3366] hover:bg-[#FF3366] hover:text-white hover:shadow-[0_0_15px_rgba(255,51,102,0.4)] font-bold text-xs uppercase tracking-wider px-8 py-3.5 rounded-lg transition-all duration-300">
+                <a href="#contact" @click="openStepper = true" class="inline-block bg-transparent text-white border border-primary hover:bg-primary hover:text-white hover:shadow-[0_0_15px_rgba(255,51,102,0.4)] font-bold text-xs uppercase tracking-wider px-8 py-3.5 rounded-lg transition-all duration-300">
                     {{.T.Get "PortfolioBtn"}}
                 </a>
             </div>

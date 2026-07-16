@@ -1,5 +1,5 @@
 {{define "content"}}
-<div class="max-w-md mx-auto my-4 md:my-8 border border-white/8 backdrop-blur-md bg-white/2 p-8 md:p-10 rounded-2xl space-y-8 shadow-2xl hover:shadow-[0_0_40px_rgba(255,51,102,0.06)] hover:border-[#FF3366]/20 transition-all duration-500">
+<div class="max-w-md mx-auto my-4 md:my-8 border border-white/8 backdrop-blur-md bg-white/2 p-8 md:p-10 rounded-2xl space-y-8 shadow-2xl hover:shadow-[0_0_40px_rgba(255,51,102,0.06)] hover:border-primary/20 transition-all duration-500">
     <div class="text-center space-y-3">
         <h2 class="text-3xl font-black tracking-tight text-white">{{.T.Get "LoginTitle"}}</h2>
         <p class="text-xs text-neutral-400 tracking-wide max-w-[280px] mx-auto leading-relaxed">{{.T.Get "LoginSubtitle"}}</p>
@@ -11,41 +11,33 @@
     </div>
     {{end}}
 
-    <form method="POST" action="/admin/login" class="space-y-6">
+    <form method="POST" action="/admin/login" class="space-y-6" x-data="loginForm">
         <div class="space-y-2">
             <label class="form-label">{{.T.Get "LabelUsername"}}</label>
-            <input type="text" name="username" required autocomplete="username" class="form-input">
+            <input type="text" name="username" required autocomplete="username" placeholder="{{.T.Get "PlaceholderUsername"}}" class="form-input" x-model="username">
         </div>
 
         <div class="space-y-2">
             <label class="form-label">{{.T.Get "LabelPassword"}}</label>
-            <input type="password" name="password" required autocomplete="current-password" class="form-input">
+            <input type="password" name="password" required autocomplete="current-password" placeholder="{{.T.Get "PlaceholderPassword"}}" class="form-input" x-model="password">
+        </div>
+
+        <div class="p-3 bg-white/3 border border-white/5 rounded-xl">
+            <p class="text-xs text-neutral-400 leading-normal text-center font-medium">{{.T.Get "LoginSecurityNote"}}</p>
         </div>
 
         {{if .TurnstileSiteKey}}
-        <div id="turnstile-widget" class="flex justify-center py-2"></div>
-        <script>
-            (function() {
-                var interval = setInterval(function() {
-                    if (window.turnstile) {
-                        clearInterval(interval);
-                        window.turnstile.render("#turnstile-widget", {
-                            sitekey: "{{.TurnstileSiteKey}}",
-                            theme: "dark",
-                            "error-callback": function() {
-                                if (window.tivriTurnstileOnError) {
-                                    return window.tivriTurnstileOnError();
-                                }
-                                return true;
-                            }
-                        });
-                    }
-                }, 50);
-            })();
-        </script>
+        <div x-data="window.tivriTurnstileMixin()" 
+             x-init="initTurnstileListeners(); setTimeout(() => renderTurnstile(), 50)" 
+             class="flex justify-center py-2">
+            <div x-ref="turnstileContainer"></div>
+        </div>
         {{end}}
 
-        <button type="submit" class="w-full bg-[#FF3366] text-white font-bold py-3.5 rounded-xl hover:bg-[#FF3366]/80 hover:shadow-[0_0_15px_rgba(255,51,102,0.4)] transition-all duration-300 text-xs uppercase tracking-widest cursor-pointer">
+        <button type="submit" 
+                :disabled="!username.trim() || !password.trim()"
+                :class="(!username.trim() || !password.trim()) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary/80 hover:shadow-[0_0_15px_rgba(255,51,102,0.4)] cursor-pointer'"
+                class="w-full bg-primary text-white font-bold py-3.5 rounded-xl transition-all duration-300 text-xs uppercase tracking-widest">
             {{.T.Get "BtnLogin"}}
         </button>
     </form>

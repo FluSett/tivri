@@ -17,7 +17,7 @@
                     <div class="absolute inset-x-0 bottom-2 flex justify-center space-x-1.5 z-10">
                         <template x-for="(item, index) in media" :key="index">
                             <button @click="activeIndex = index"
-                                    :class="activeIndex === index ? 'bg-[#FF3366] w-4' : 'bg-white/40 w-1.5'"
+                                    :class="activeIndex === index ? 'bg-primary w-4' : 'bg-white/40 w-1.5'"
                                     class="h-1.5 rounded-full transition-all duration-300 focus:outline-none cursor-pointer"></button>
                         </template>
                     </div>
@@ -39,8 +39,10 @@
             <h3 class="text-base font-bold text-white tracking-tight leading-tight wrap-break-word">{{.Title}}</h3>
         </div>
         <p class="text-neutral-400 text-sm leading-relaxed tracking-tight">{{.Description}}</p>
-        <div class="flex flex-wrap gap-2">
-            <span class="bg-white/4 text-neutral-300 text-xs px-2.5 py-1 rounded-lg border border-white/6 tracking-tight font-medium">{{.TechStack}}</span>
+        <div class="flex flex-wrap gap-2" x-data="{ tags: '{{.TechStack}}'.split(', ') }">
+            <template x-for="tag in tags">
+                <span class="bg-white/4 text-neutral-300 text-xs px-2.5 py-1 rounded-lg border border-white/6 tracking-tight font-medium" x-text="tag"></span>
+            </template>
         </div>
     </div>
 </div>

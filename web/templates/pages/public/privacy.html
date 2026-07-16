@@ -2,13 +2,13 @@
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start my-auto grow py-12 md:py-20">
     <div class="section-sidebar">
         <div class="section-marker-container">
-            <span class="text-xs font-bold tracking-widest text-[#FF3366] rotate-90 my-4">{{.T.Get "InfoSidebar"}}</span>
+            <span class="text-xs font-bold tracking-widest text-primary rotate-90 my-4">{{.T.Get "InfoSidebar"}}</span>
             <div class="section-marker-line"></div>
         </div>
     </div>
 
     <div class="lg:col-span-11 space-y-12">
-        <div class="space-y-4 border-l-4 border-[#FF3366] pl-6 md:pl-10 animate-fade-in-up">
+        <div class="space-y-4 border-l-4 border-primary pl-6 md:pl-10 animate-fade-in-up">
             <div class="section-title-wrap">
                 <div class="section-accent-line"></div>
                 <span class="section-accent-text">{{.T.Get "LegalNotice"}}</span>
@@ -47,7 +47,7 @@
                 <div class="benefit-card space-y-4 h-full">
                     <span class="card-index">04</span>
                     <h3 class="text-lg font-bold text-white tracking-tight wrap-break-word">{{.T.Get "PrivacySection4Title"}}</h3>
-                    <p class="text-sm text-neutral-400 leading-relaxed tracking-tight" x-data="{ email: '{{.ContactEmail}}', template: '{{.T.Get "PrivacySection4Text"}}' }" x-init="$el.innerHTML = template.replace('[email]', `<a href='mailto:${email}' class='text-neutral-400 hover:text-[#FF3366] transition-colors'>${email}</a>`)"></p>
+                    <p class="text-sm text-neutral-400 leading-relaxed tracking-tight">{{replaceEmail (.T.Get "PrivacySection4Text") .ContactEmail}}</p>
                 </div>
             </div>
         </div>
