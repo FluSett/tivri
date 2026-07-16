@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+const defaultHandlerTimeout = 5 * time.Second
+
 type MemoryEventBus struct {
 	mu          sync.RWMutex
 	subscribers map[string][]Handler
@@ -73,7 +75,7 @@ func (b *MemoryEventBus) executeHandler(ctx context.Context, handler Handler, ev
 		}
 	}()
 
-	hCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
+	hCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), defaultHandlerTimeout)
 	defer cancel()
 
 	err := handler(hCtx, ev)

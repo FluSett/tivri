@@ -8,6 +8,11 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+const (
+	defaultMaxConnIdleTime = 15 * time.Minute
+	defaultMaxConnLifetime = 1 * time.Hour
+)
+
 func Connect(ctx context.Context, dsn string) (*pgxpool.Pool, error) {
 	config, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
@@ -16,8 +21,8 @@ func Connect(ctx context.Context, dsn string) (*pgxpool.Pool, error) {
 
 	config.MaxConns = 25
 	config.MinConns = 5
-	config.MaxConnIdleTime = 15 * time.Minute
-	config.MaxConnLifetime = 1 * time.Hour
+	config.MaxConnIdleTime = defaultMaxConnIdleTime
+	config.MaxConnLifetime = defaultMaxConnLifetime
 
 	pool, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {

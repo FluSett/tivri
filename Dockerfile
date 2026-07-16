@@ -29,15 +29,13 @@ COPY --from=asset-builder /app/web/assets/js/components/contact.min.js ./web/ass
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o main ./cmd/api/main.go
 
 # Stage 3: Minimal runtime container
-FROM alpine:3.24.1
+FROM alpine:latest
 
 RUN apk add --no-cache ca-certificates tzdata
 
 WORKDIR /app
 
 COPY --from=builder /app/main ./main
-COPY --from=builder /app/web ./web
-COPY --from=builder /app/locales ./locales
 
 ENV PORT=8080
 

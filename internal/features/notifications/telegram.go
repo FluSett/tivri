@@ -15,6 +15,11 @@ import (
 	"tivri/internal/features/project_intake"
 )
 
+const (
+	telegramAPITimeout = 5 * time.Second
+	retryBackoffBase   = 500 * time.Millisecond
+)
+
 type TelegramWorker struct {
 	token  string
 	chatID string
@@ -27,7 +32,7 @@ func NewTelegramWorker(token, chatID string) *TelegramWorker {
 		token:  token,
 		chatID: chatID,
 		client: &http.Client{
-			Timeout: 5 * time.Second,
+			Timeout: telegramAPITimeout,
 		},
 		apiURL: "https://api.telegram.org",
 	}
@@ -175,7 +180,7 @@ func (w *TelegramWorker) sendTelegramMessage(ctx context.Context, text string) e
 
 	var lastErr error
 	for attempt := 1; attempt <= 3; attempt++ {
-		reqCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		reqCtx, cancel := context.WithTimeout(ctx, telegramAPITimeout)
 		req, err := http.NewRequestWithContext(reqCtx, http.MethodPost, url, bytes.NewBuffer(body))
 		if err != nil {
 			cancel()
@@ -206,7 +211,7 @@ func (w *TelegramWorker) sendTelegramMessage(ctx context.Context, text string) e
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case <-time.After(time.Duration(attempt) * 500 * time.Millisecond):
+		case <-time.After(time.Duration(attempt) * retryBackoffBase):
 		}
 	}
 	return fmt.Errorf("notifications/telegram: send message failed after 3 attempts: %w", lastErr)

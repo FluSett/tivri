@@ -2,6 +2,7 @@ package project_intake
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -16,10 +17,44 @@ func NewPostgresRepository(pool *pgxpool.Pool) *PostgresRepository {
 }
 
 func (r *PostgresRepository) Save(ctx context.Context, ld *Lead) error {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("project_intake: begin tx failed: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
 	query := "INSERT INTO intake_leads (company_name, project_scope, budget, contact_email, contact_info, deadline_needed, deadline_spec, is_custom_budget, client_status, internal_status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id"
-	err := r.pool.QueryRow(ctx, query, ld.CompanyName, ld.ProjectScope, ld.Budget, ld.ContactEmail, ld.ContactInfo, ld.DeadlineNeeded, ld.DeadlineSpec, ld.IsCustomBudget, ld.ClientStatus, ld.InternalStatus).Scan(&ld.ID)
+	err = tx.QueryRow(ctx, query, ld.CompanyName, ld.ProjectScope, ld.Budget, ld.ContactEmail, ld.ContactInfo, ld.DeadlineNeeded, ld.DeadlineSpec, ld.IsCustomBudget, ld.ClientStatus, ld.InternalStatus).Scan(&ld.ID)
 	if err != nil {
 		return fmt.Errorf("project_intake: save failed: %w", err)
+	}
+
+	evtPayload := ProjectAppliedEvent{
+		ID:             ld.ID,
+		CompanyName:    ld.CompanyName,
+		ProjectScope:   ld.ProjectScope,
+		Budget:         ld.Budget,
+		ContactEmail:   ld.ContactEmail,
+		ContactInfo:    ld.ContactInfo,
+		DeadlineNeeded: ld.DeadlineNeeded,
+		DeadlineSpec:   ld.DeadlineSpec,
+		IsCustomBudget: ld.IsCustomBudget,
+		Timestamp:      ld.CreatedAt,
+	}
+
+	payloadBytes, err := json.Marshal(evtPayload)
+	if err != nil {
+		return fmt.Errorf("project_intake: marshal event failed: %w", err)
+	}
+
+	_, err = tx.Exec(ctx, "INSERT INTO outbox_events (type, payload) VALUES ($1, $2)", "project_intake.applied", payloadBytes)
+	if err != nil {
+		return fmt.Errorf("project_intake: save event failed: %w", err)
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return fmt.Errorf("project_intake: commit failed: %w", err)
 	}
 
 	return nil

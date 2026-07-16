@@ -2,10 +2,10 @@ package project_intake
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -51,28 +51,10 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if h.turnstileSecret != "" {
-		token := r.FormValue("cf-turnstile-response")
-		lang := r.FormValue("lang")
-		trans := h.translator.Get(lang)
-		if token == "" {
-			http.Error(w, trans.Get("ValTurnstileRequired"), http.StatusBadRequest)
-			return
-		}
-
-		ip := r.Header.Get("X-Forwarded-For")
-		if ip == "" {
-			if strings.Contains(r.RemoteAddr, ":") {
-				if host, _, err := net.SplitHostPort(r.RemoteAddr); err == nil {
-					ip = host
-				}
-			}
-			if ip == "" {
-				ip = r.RemoteAddr
-			}
-		}
-
-		ok, err := security.VerifyTurnstile(h.turnstileSecret, token, ip)
+		ok, err := security.ValidateTurnstileRequest(r, h.turnstileSecret)
 		if err != nil || !ok {
+			lang := r.FormValue("lang")
+			trans := h.translator.Get(lang)
 			http.Error(w, trans.Get("ValTurnstileFailed"), http.StatusBadRequest)
 			return
 		}
@@ -140,22 +122,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.bus.Publish(r.Context(), eventbus.Event{
-		Type: "project_intake.applied",
-		Payload: ProjectAppliedEvent{
-			ID:             ld.ID,
-			CompanyName:    ld.CompanyName,
-			ProjectScope:   ld.ProjectScope,
-			Budget:         ld.Budget,
-			ContactEmail:   ld.ContactEmail,
-			ContactInfo:    ld.ContactInfo,
-			DeadlineNeeded: ld.DeadlineNeeded,
-			DeadlineSpec:   ld.DeadlineSpec,
-			IsCustomBudget: ld.IsCustomBudget,
-			Timestamp:      time.Now(),
-		},
-		Timestamp: time.Now(),
-	})
+	// Note: Event is now published via Transactional Outbox in the repository.
 
 	lang := r.FormValue("lang")
 	trans := h.translator.Get(lang)
@@ -241,9 +208,14 @@ func (h *Handler) UpdateStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) HandleProjectApplied(ctx context.Context, e eventbus.Event) error {
-	evt, ok := e.Payload.(ProjectAppliedEvent)
+	payloadBytes, ok := e.Payload.([]byte)
 	if !ok {
-		return errors.New("invalid payload type")
+		return errors.New("invalid payload type, expected []byte from outbox")
+	}
+
+	var evt ProjectAppliedEvent
+	if err := json.Unmarshal(payloadBytes, &evt); err != nil {
+		return fmt.Errorf("project_intake: unmarshal event failed: %w", err)
 	}
 
 	fmt.Printf("Notification subscriber: email dispatched to %s regarding lead ID %d\n", evt.ContactEmail, evt.ID)

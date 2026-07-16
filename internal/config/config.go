@@ -20,6 +20,8 @@ type Config struct {
 	TurnstileSecretKey string
 	TelegramBotToken   string
 	TelegramChatID     string
+	AppURL             string
+	ContactEmail       string
 }
 
 func getEnv(key string) string {
@@ -70,6 +72,16 @@ func Load() (*Config, error) {
 	telegramBotToken := getEnv("TELEGRAM_BOT_TOKEN")
 	telegramChatID := getEnv("TELEGRAM_CHAT_ID")
 
+	appURL := getEnv("APP_URL")
+	if appURL == "" {
+		appURL = "http://localhost:8080"
+	}
+
+	contactEmail := getEnv("CONTACT_EMAIL")
+	if contactEmail == "" {
+		contactEmail = "contact@tivri.cc"
+	}
+
 	return &Config{
 		Env:                env,
 		DBDSN:              dbDSN,
@@ -81,6 +93,8 @@ func Load() (*Config, error) {
 		TurnstileSecretKey: turnstileSecretKey,
 		TelegramBotToken:   telegramBotToken,
 		TelegramChatID:     telegramChatID,
+		AppURL:             appURL,
+		ContactEmail:       contactEmail,
 	}, nil
 }
 

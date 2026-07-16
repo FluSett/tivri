@@ -11,22 +11,28 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+const bruteForceLockoutDuration = 60 * time.Second
+const cleanupLoopInterval = 5 * time.Minute
+const sessionExpirationDuration = 24 * time.Hour
+
 type SecurityManager struct {
-	mu             sync.RWMutex
-	failedCount    map[string]int
-	lockoutTime    map[string]time.Time
-	activeSessions map[string]time.Time
-	logger         *slog.Logger
+	mu          sync.RWMutex
+	failedCount map[string]int
+	lockoutTime map[string]time.Time
+	db          *pgxpool.Pool
+	logger      *slog.Logger
 }
 
-func NewSecurityManager(ctx context.Context, logger *slog.Logger) *SecurityManager {
+func NewSecurityManager(ctx context.Context, logger *slog.Logger, db *pgxpool.Pool) *SecurityManager {
 	sm := &SecurityManager{
-		failedCount:    make(map[string]int),
-		lockoutTime:    make(map[string]time.Time),
-		activeSessions: make(map[string]time.Time),
-		logger:         logger,
+		failedCount: make(map[string]int),
+		lockoutTime: make(map[string]time.Time),
+		db:          db,
+		logger:      logger,
 	}
 
 	go sm.cleanupLoop(ctx)
@@ -34,7 +40,7 @@ func NewSecurityManager(ctx context.Context, logger *slog.Logger) *SecurityManag
 }
 
 func (sm *SecurityManager) cleanupLoop(ctx context.Context) {
-	ticker := time.NewTicker(5 * time.Minute)
+	ticker := time.NewTicker(cleanupLoopInterval)
 	defer ticker.Stop()
 
 	for {
@@ -53,16 +59,13 @@ func (sm *SecurityManager) cleanupLoop(ctx context.Context) {
 				delete(sm.lockoutTime, ip)
 				delete(sm.failedCount, ip)
 			}
-
-			for token, expiry := range sm.activeSessions {
-				if now.Before(expiry) {
-					continue
-				}
-
-				delete(sm.activeSessions, token)
-			}
-
 			sm.mu.Unlock()
+
+			// Clean up expired sessions from database
+			_, err := sm.db.Exec(ctx, "DELETE FROM admin_sessions WHERE expires_at < $1", now)
+			if err != nil {
+				sm.logger.Error("security: failed to cleanup expired sessions", slog.Any("error", err))
+			}
 		}
 	}
 }
@@ -102,7 +105,7 @@ func (sm *SecurityManager) RecordFailedAttempt(r *http.Request) {
 	ip := sm.getIP(r)
 	sm.failedCount[ip]++
 	if sm.failedCount[ip] >= 3 {
-		sm.lockoutTime[ip] = time.Now().Add(60 * time.Second)
+		sm.lockoutTime[ip] = time.Now().Add(bruteForceLockoutDuration)
 	}
 }
 
@@ -115,7 +118,7 @@ func (sm *SecurityManager) RecordSuccessfulAttempt(r *http.Request) {
 	delete(sm.lockoutTime, ip)
 }
 
-func (sm *SecurityManager) GenerateToken() (string, error) {
+func (sm *SecurityManager) GenerateToken(ctx context.Context) (string, error) {
 	b := make([]byte, 32)
 	_, err := rand.Read(b)
 	if err != nil {
@@ -123,10 +126,12 @@ func (sm *SecurityManager) GenerateToken() (string, error) {
 	}
 
 	token := hex.EncodeToString(b)
+	expiresAt := time.Now().Add(sessionExpirationDuration)
 
-	sm.mu.Lock()
-	sm.activeSessions[token] = time.Now().Add(24 * time.Hour)
-	sm.mu.Unlock()
+	_, err = sm.db.Exec(ctx, "INSERT INTO admin_sessions (token, expires_at) VALUES ($1, $2)", token, expiresAt)
+	if err != nil {
+		return "", fmt.Errorf("security: failed to store session: %w", err)
+	}
 
 	return token, nil
 }
@@ -148,15 +153,20 @@ func (sm *SecurityManager) CookieAuth(adminUsername, adminPassword string, next 
 			return
 		}
 
-		sm.mu.Lock()
-		expiry, exists := sm.activeSessions[cookie.Value]
-		if exists && time.Now().After(expiry) {
-			delete(sm.activeSessions, cookie.Value)
-			exists = false
+		var expiresAt time.Time
+		err = sm.db.QueryRow(r.Context(), "SELECT expires_at FROM admin_sessions WHERE token = $1", cookie.Value).Scan(&expiresAt)
+		
+		if err != nil {
+			if r.Method == http.MethodGet {
+				http.Redirect(w, r, "/admin/login", http.StatusSeeOther)
+			} else {
+				w.WriteHeader(http.StatusUnauthorized)
+			}
+			return
 		}
-		sm.mu.Unlock()
 
-		if !exists {
+		if time.Now().After(expiresAt) {
+			_, _ = sm.db.Exec(r.Context(), "DELETE FROM admin_sessions WHERE token = $1", cookie.Value)
 			if r.Method == http.MethodGet {
 				http.Redirect(w, r, "/admin/login", http.StatusSeeOther)
 			} else {
@@ -274,4 +284,25 @@ func StructuredLogger(logger *slog.Logger) func(http.Handler) http.Handler {
 			)
 		})
 	}
+}
+
+func ValidateTurnstileRequest(r *http.Request, secret string) (bool, error) {
+	token := r.FormValue("cf-turnstile-response")
+	if token == "" {
+		return false, fmt.Errorf("missing turnstile token")
+	}
+
+	var ip string
+	if forwarded := r.Header.Get("X-Forwarded-For"); forwarded != "" {
+		parts := strings.Split(forwarded, ",")
+		ip = strings.TrimSpace(parts[0])
+	} else {
+		if host, _, err := net.SplitHostPort(r.RemoteAddr); err == nil {
+			ip = host
+		} else {
+			ip = r.RemoteAddr
+		}
+	}
+
+	return VerifyTurnstile(secret, token, ip)
 }
