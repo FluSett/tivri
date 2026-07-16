@@ -1,29 +1,27 @@
 document.addEventListener('alpine:init', () => {
-    Alpine.data('stepper', function(highQueueActive = false) {
-        return {
+    Alpine.data('stepper', (highQueueActive = false) => ({
         highQueueActive: highQueueActive,
         openStepper: false,
-        step: this.$persist(1).as('intake_step').using(sessionStorage),
-        budget: this.$persist('').as('intake_budget').using(sessionStorage),
-        customBudget: this.$persist('').as('intake_customBudget').using(sessionStorage),
-        scopeText: this.$persist('').as('intake_scopeText').using(sessionStorage),
+        totalSteps: 5,
+        step: Alpine.$persist(1).as('intake_step').using(sessionStorage),
+        budget: Alpine.$persist('').as('intake_budget').using(sessionStorage),
+        customBudget: Alpine.$persist('').as('intake_customBudget').using(sessionStorage),
+        scopeText: Alpine.$persist('').as('intake_scopeText').using(sessionStorage),
         scopeMax: 2000,
-        nameText: this.$persist('').as('intake_nameText').using(sessionStorage),
+        nameText: Alpine.$persist('').as('intake_nameText').using(sessionStorage),
         nameMax: 150,
-        deadlineNeeded: this.$persist(false).as('intake_deadlineNeeded').using(sessionStorage),
-        deadlineSpec: this.$persist('').as('intake_deadlineSpec').using(sessionStorage),
-        contactEmail: this.$persist('').as('intake_contactEmail').using(sessionStorage),
-        contactInfo: this.$persist('').as('intake_contactInfo').using(sessionStorage),
-        submitted: this.$persist(false).as('intake_submitted').using(sessionStorage),
+        deadlineNeeded: Alpine.$persist(false).as('intake_deadlineNeeded').using(sessionStorage),
+        deadlineSpec: Alpine.$persist('').as('intake_deadlineSpec').using(sessionStorage),
+        contactEmail: Alpine.$persist('').as('intake_contactEmail').using(sessionStorage),
+        contactInfo: Alpine.$persist('').as('intake_contactInfo').using(sessionStorage),
+        submitted: Alpine.$persist(false).as('intake_submitted').using(sessionStorage),
         nameTouched: false,
         scopeTouched: false,
         budgetTouched: false,
         emailTouched: false,
         deadlineTouched: false,
         submitStatus: 'idle',
-        turnstileToken: '',
-        turnstileId: null,
-        isVerified: false,
+        ...window.tivriTurnstileMixin(),
 
         get scopeRemaining() {
             return this.scopeMax - this.scopeText.length;
@@ -103,14 +101,7 @@ document.addEventListener('alpine:init', () => {
                 this.$nextTick(() => this.renderTurnstile());
             }
 
-            document.addEventListener('htmx:responseError', () => {
-                this.submitStatus = 'idle';
-                this.isVerified = false;
-                this.turnstileToken = '';
-                if (window.turnstile && this.turnstileId !== null) {
-                    window.turnstile.reset(this.turnstileId);
-                }
-            });
+            this.initTurnstileListeners();
         },
 
         resetForm() {
@@ -130,57 +121,16 @@ document.addEventListener('alpine:init', () => {
             this.emailTouched = false;
             this.deadlineTouched = false;
             this.submitStatus = 'idle';
-            this.turnstileToken = '';
-            this.isVerified = false;
-
-            if (window.turnstile && this.turnstileId !== null) {
-                window.turnstile.reset(this.turnstileId);
-            }
+            this.resetTurnstile();
 
             this.openStepper = false;
             document.getElementById('intake-form').reset();
         },
 
-        renderTurnstile() {
-            if (window.tivriTurnstileSiteKey && window.turnstile && this.$refs.turnstileContainer && this.turnstileId === null) {
-                try {
-                    this.turnstileId = window.turnstile.render(this.$refs.turnstileContainer, {
-                        sitekey: window.tivriTurnstileSiteKey,
-                        theme: 'dark',
-                        size: 'normal',
-                        language: document.documentElement.lang || 'en',
-                        callback: (token) => {
-                            this.turnstileToken = token;
-                            this.isVerified = true;
-                        },
-                        'expired-callback': () => {
-                            this.turnstileToken = '';
-                            this.isVerified = false;
-                        },
-                        'error-callback': () => {
-                            this.submitStatus = 'idle';
-                            this.isVerified = false;
-                            this.turnstileToken = '';
-                            window.dispatchEvent(new CustomEvent('tivri-error', { detail: 'Security verification failed.' }));
-                            return true;
-                        }
-                    });
-                } catch (e) {
-                    console.error('Turnstile render failed:', e);
-                }
-            }
-        },
-
         handleSubmit(event) {
-            if (window.tivriTurnstileSiteKey && window.turnstile && !this.isVerified) {
-                event.preventDefault();
-                event.stopPropagation();
-                window.dispatchEvent(new CustomEvent('tivri-error', { detail: 'Please complete the security check.' }));
-                return;
-            }
+            if (!this.validateTurnstile(event)) return;
 
             this.submitStatus = 'submitting';
         }
-    };
-    });
+    }));
 });
