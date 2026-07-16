@@ -26,7 +26,8 @@ Defines absolute runtime behavior and constraints. No exceptions.
 - **HTML & Templates**: Never duplicate identical HTML structure. Extract reusable UI elements into Go template components and inject data via the `dict` helper.
 - **Frontend State**: Utilize official Alpine.js plugins (like `@alpinejs/persist`) to handle state storage natively, entirely avoiding verbose JavaScript boilerplate.
 - **Numeric Timestamps**: Represent dates in JSON payloads as Unix timestamps (seconds since epoch, `int64`) to facilitate simple client-side sorting and avoid timezone serialization quirks.
-- **Centralized CSS**: Avoid duplicate inline utility styling chains in HTML templates. Consolidate common design patterns (such as standard buttons and form inputs) into reusable utility classes in `input.css`.
+- **Modular JavaScript**: Break large JavaScript logic into smaller, feature-specific modules (e.g., in `core/`) and import them into `app.js` using ES modules to prevent monolithic scripts.
+- **Centralized CSS**: Avoid duplicate inline utility styling chains in HTML templates. Consolidate common design patterns into reusable utility classes across modular CSS files (e.g., `base.css`, `components.css`, `utilities.css`) and `@import` them into `input.css`.
 
 ## 6. 🛠️ Lint & Static Warnings Code Quality
 - **Always Resolve Warnings**: Never ignore warnings or errors reported by linters or compilation tools. Proactively refactor any hardcoded style hex values, invalid Tailwind classes, Go warnings, or structural code analysis notices.

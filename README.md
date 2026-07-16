@@ -19,7 +19,8 @@ TIVRI is a high-performance client intake and portfolio management system design
 - **PostgreSQL (`pgxpool`)**: Eliminates ORM query translation layers, allowing absolute control over execution plans, indexes, and database transactions.
 - **HTMX**: Handles partial HTML replacements over the wire, providing a smooth, single-page application user experience without client-side bundle compilation.
 - **Alpine.js**: Manages lightweight, localized client-side states (such as form steps, menus, and dropdowns) natively.
-- **Tailwind CSS v4**: Utility styling compiled dynamically using the new CLI engine, with brand colors consolidated in theme variables for clean maintenance.
+- **Tailwind CSS v4**: Utility styling compiled dynamically using the new CLI engine. Custom styling is modularized (base, components, utilities) and compiled into a single `theme.css`.
+- **ES Modules**: JavaScript is broken into feature-specific components (`core/`) and bundled via `esbuild` for optimal client execution without heavy monolithic files.
 
 ---
 
