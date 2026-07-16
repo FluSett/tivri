@@ -138,7 +138,7 @@ document.addEventListener('alpine:init', function() {
     Alpine.data('layout', function() {
         return {
             mobileMenuOpen: false,
-            openStepper: Alpine.$persist(false).as('openStepper').using(sessionStorage)
+            openStepper: this.$persist(false).as('openStepper').using(sessionStorage)
         };
     });
 
