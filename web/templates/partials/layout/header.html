@@ -4,23 +4,23 @@
         <div class="max-w-[1600px] mx-auto w-full flex justify-between items-center gap-4 relative z-10">
             {{if .IsAdmin}}
             <div class="flex items-center space-x-2">
-                <a href="/admin" onclick="if (window.location.pathname === '/admin' && !window.location.search) { event.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }" class="flex items-center space-x-3 group">
-                    <div class="relative w-6 h-6 flex items-center justify-center shrink-0 logo-glow-anim">
-                        <div class="absolute inset-0 bg-primary rounded-sm transform rotate-45 group-hover:rotate-90 transition-transform duration-500"></div>
-                        <div class="absolute w-2 h-2 bg-bg-dark rounded-full"></div>
+                <a href="/admin" @click="if (window.location.pathname === '/admin' && !window.location.search) { $event.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }" class="logo-wrap">
+                    <div class="logo-inner">
+                        <div class="logo-diamond"></div>
+                        <div class="logo-dot"></div>
                     </div>
-                    <span class="text-2xl font-black tracking-tighter text-white group-hover:text-primary transition-colors duration-300">TIVRI</span>
+                    <span class="logo-text">TIVRI</span>
                 </a>
-                <span class="bg-primary/20 border border-primary/40 text-primary font-mono text-[10px] font-black px-2 py-0.5 rounded tracking-widest uppercase">{{.T.Get "AdminMark"}}</span>
+                <span class="badge-admin">{{.T.Get "AdminMark"}}</span>
             </div>
             {{else}}
             <div>
-                <a href="/" onclick="if (window.location.pathname === '/' && !window.location.search) { event.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }" class="flex items-center space-x-3 group">
-                    <div class="relative w-6 h-6 flex items-center justify-center shrink-0 logo-glow-anim">
-                        <div class="absolute inset-0 bg-primary rounded-sm transform rotate-45 group-hover:rotate-90 transition-transform duration-500"></div>
-                        <div class="absolute w-2 h-2 bg-bg-dark rounded-full"></div>
+                <a href="/" @click="if (window.location.pathname === '/' && !window.location.search) { $event.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }" class="logo-wrap">
+                    <div class="logo-inner">
+                        <div class="logo-diamond"></div>
+                        <div class="logo-dot"></div>
                     </div>
-                    <span class="text-2xl font-black tracking-tighter text-white group-hover:text-primary transition-colors duration-300">TIVRI</span>
+                    <span class="logo-text">TIVRI</span>
                 </a>
             </div>
             {{end}}
@@ -30,16 +30,16 @@
                 <nav id="main-nav" class="hidden md:flex items-center space-x-6 lg:space-x-10">
                     {{if .IsAdmin}}
                         {{if not .IsAdminLogin}}
-                        <a href="/admin?tab=portfolio" class="nav-link text-sm font-medium transition-all duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 whitespace-nowrap {{if eq .AdminTab "portfolio"}}text-white after:w-full{{else}}text-neutral-400 hover:text-white after:w-0 hover:after:w-full{{end}}"><span>{{.T.Get "TabPortfolio"}}</span><span class="nav-active-dot"></span></a>
-                        <a href="/admin?tab=leads" class="nav-link text-sm font-medium transition-all duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 whitespace-nowrap {{if eq .AdminTab "leads"}}text-white after:w-full{{else}}text-neutral-400 hover:text-white after:w-0 hover:after:w-full{{end}}"><span>{{.T.Get "TabLeads"}}</span><span class="nav-active-dot"></span></a>
-                        <a href="/admin?tab=messages" class="nav-link text-sm font-medium transition-all duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 whitespace-nowrap {{if eq .AdminTab "messages"}}text-white after:w-full{{else}}text-neutral-400 hover:text-white after:w-0 hover:after:w-full{{end}}"><span>{{.T.Get "TabMessages"}}</span><span class="nav-active-dot"></span></a>
+                        <a href="/admin?tab=portfolio" class="nav-link nav-link-hover {{if eq .AdminTab "portfolio"}}text-white after:w-full{{else}}text-neutral-400 hover:text-white after:w-0 hover:after:w-full{{end}}"><span>{{.T.Get "TabPortfolio"}}</span><span class="nav-active-dot"></span></a>
+                        <a href="/admin?tab=leads" class="nav-link nav-link-hover {{if eq .AdminTab "leads"}}text-white after:w-full{{else}}text-neutral-400 hover:text-white after:w-0 hover:after:w-full{{end}}"><span>{{.T.Get "TabLeads"}}</span><span class="nav-active-dot"></span></a>
+                        <a href="/admin?tab=messages" class="nav-link nav-link-hover {{if eq .AdminTab "messages"}}text-white after:w-full{{else}}text-neutral-400 hover:text-white after:w-0 hover:after:w-full{{end}}"><span>{{.T.Get "TabMessages"}}</span><span class="nav-active-dot"></span></a>
                         {{end}}
                     {{else if not .MaintenanceActive}}
-                        <a href="/#about" data-section="about" class="nav-link text-sm font-medium text-neutral-400 hover:text-white transition-all duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary hover:after:w-full after:transition-all after:duration-300 whitespace-nowrap"><span>{{.T.Get "AboutNav"}}</span><span class="nav-active-dot"></span></a>
-                        <a href="/#benefits" data-section="benefits" class="nav-link text-sm font-medium text-neutral-400 hover:text-white transition-all duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary hover:after:w-full after:transition-all after:duration-300 whitespace-nowrap"><span>{{.T.Get "WhyNav"}}</span><span class="nav-active-dot"></span></a>
-                        <a href="/#skills" data-section="skills" class="nav-link text-sm font-medium text-neutral-400 hover:text-white transition-all duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary hover:after:w-full after:transition-all after:duration-300 whitespace-nowrap"><span>{{.T.Get "SkillsNav"}}</span><span class="nav-active-dot"></span></a>
-                        <a href="/#portfolio" data-section="portfolio" class="nav-link text-sm font-medium text-neutral-400 hover:text-white transition-all duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary hover:after:w-full after:transition-all after:duration-300 whitespace-nowrap"><span>{{.T.Get "PortfolioNav"}}</span><span class="nav-active-dot"></span></a>
-                        <a href="/#contact" data-section="contact" class="nav-link text-sm font-medium text-neutral-400 hover:text-white transition-all duration-300 relative py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary hover:after:w-full after:transition-all after:duration-300 whitespace-nowrap inline-flex items-center gap-1">
+                        <a href="/#about" data-section="about" class="nav-link nav-link-hover text-neutral-400 hover:text-white after:w-0 hover:after:w-full"><span>{{.T.Get "AboutNav"}}</span><span class="nav-active-dot"></span></a>
+                        <a href="/#benefits" data-section="benefits" class="nav-link nav-link-hover text-neutral-400 hover:text-white after:w-0 hover:after:w-full"><span>{{.T.Get "WhyNav"}}</span><span class="nav-active-dot"></span></a>
+                        <a href="/#skills" data-section="skills" class="nav-link nav-link-hover text-neutral-400 hover:text-white after:w-0 hover:after:w-full"><span>{{.T.Get "SkillsNav"}}</span><span class="nav-active-dot"></span></a>
+                        <a href="/#portfolio" data-section="portfolio" class="nav-link nav-link-hover text-neutral-400 hover:text-white after:w-0 hover:after:w-full"><span>{{.T.Get "PortfolioNav"}}</span><span class="nav-active-dot"></span></a>
+                        <a href="/#contact" data-section="contact" class="nav-link nav-link-hover text-neutral-400 hover:text-white after:w-0 hover:after:w-full inline-flex items-center gap-1">
                             <span class="contact-blink">{{.T.Get "ContactNav"}}</span>
                             <span class="nav-active-dot"></span>
                         </a>

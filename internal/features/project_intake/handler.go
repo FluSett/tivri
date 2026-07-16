@@ -132,7 +132,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		Message: trans.Get("SuccessMsg"),
 	}
 
-	err = h.renderer.ExecuteTemplate(w, "notification.html", data)
+	err = h.renderer.ExecuteTemplate(w, "components.notification.html", data)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

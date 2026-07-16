@@ -5,7 +5,7 @@
     <div x-show="!openStepper" x-collapse class="space-y-6">
         <h3 class="text-xl font-bold text-white tracking-tight">{{.T.Get "ContactHeadline"}}</h3>
         <p class="text-sm text-neutral-400 leading-relaxed">{{.T.Get "ContactSub"}}</p>
-        <button @click="openStepper = true" class="flex items-center space-x-3 bg-transparent text-white border border-primary hover:bg-primary hover:text-white hover:shadow-[0_0_15px_rgba(255,51,102,0.4)] font-bold text-xs uppercase tracking-wider px-8 py-3.5 rounded-lg transition-all duration-300 cursor-pointer">
+        <button @click="openStepper = true" class="btn-primary px-8 py-3.5">
             <span>{{.T.Get "ContactBtn"}}</span>
         </button>
     </div>
@@ -337,9 +337,8 @@
                         </button>
                         <button type="submit"
                                 :disabled="submitStatus !== 'idle' || !contactEmail.includes('@') || !contactEmail.includes('.')"
-                                :class="(!contactEmail.includes('@') || !contactEmail.includes('.')) ? 'bg-white/10 text-neutral-500 cursor-not-allowed border-transparent' : (submitStatus !== 'idle' ? 'bg-primary text-white border border-primary cursor-wait shadow-[0_0_15px_rgba(255,51,102,0.4)]' : 'bg-transparent text-white border border-primary hover:bg-primary hover:shadow-[0_0_15px_rgba(255,51,102,0.4)] cursor-pointer')"
-                                class="font-bold text-xs uppercase tracking-wider py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center space-x-2 min-w-[120px] border">
-                            <span x-show="submitStatus === 'idle'">{{.T.Get "SubmitBtn"}}</span>
+                                class="btn-primary flex items-center justify-center space-x-2 min-w-[120px] py-3 px-6">
+                                <span x-show="submitStatus === 'idle'">{{.T.Get "BtnSubmit"}}</span>
                             <span x-show="submitStatus !== 'idle'" class="flex items-center space-x-2">
                                 <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
