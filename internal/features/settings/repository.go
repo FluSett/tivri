@@ -7,15 +7,22 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type Repository struct {
+type Repository interface {
+	GetHighQueue(ctx context.Context) (bool, error)
+	SetHighQueue(ctx context.Context, enabled bool) error
+	GetMaintenance(ctx context.Context) (bool, error)
+	SetMaintenance(ctx context.Context, enabled bool) error
+}
+
+type PostgresRepository struct {
 	db *pgxpool.Pool
 }
 
-func NewRepository(db *pgxpool.Pool) *Repository {
-	return &Repository{db: db}
+func NewRepository(db *pgxpool.Pool) Repository {
+	return &PostgresRepository{db: db}
 }
 
-func (r *Repository) GetHighQueue(ctx context.Context) (bool, error) {
+func (r *PostgresRepository) GetHighQueue(ctx context.Context) (bool, error) {
 	var val string
 	err := r.db.QueryRow(ctx, "SELECT value FROM system_settings WHERE key = $1", "high_queue").Scan(&val)
 	if err != nil {
@@ -24,7 +31,7 @@ func (r *Repository) GetHighQueue(ctx context.Context) (bool, error) {
 	return val == "true", nil
 }
 
-func (r *Repository) SetHighQueue(ctx context.Context, enabled bool) error {
+func (r *PostgresRepository) SetHighQueue(ctx context.Context, enabled bool) error {
 	val := "false"
 	if enabled {
 		val = "true"
@@ -36,7 +43,7 @@ func (r *Repository) SetHighQueue(ctx context.Context, enabled bool) error {
 	return nil
 }
 
-func (r *Repository) GetMaintenance(ctx context.Context) (bool, error) {
+func (r *PostgresRepository) GetMaintenance(ctx context.Context) (bool, error) {
 	var val string
 	err := r.db.QueryRow(ctx, "SELECT value FROM system_settings WHERE key = $1", "maintenance_mode").Scan(&val)
 	if err != nil {
@@ -45,7 +52,7 @@ func (r *Repository) GetMaintenance(ctx context.Context) (bool, error) {
 	return val == "true", nil
 }
 
-func (r *Repository) SetMaintenance(ctx context.Context, enabled bool) error {
+func (r *PostgresRepository) SetMaintenance(ctx context.Context, enabled bool) error {
 	val := "false"
 	if enabled {
 		val = "true"

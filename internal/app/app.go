@@ -26,10 +26,12 @@ import (
 )
 
 const (
-	defaultReadTimeout  = 10 * time.Second
-	defaultWriteTimeout = 10 * time.Second
-	gracefulShutdown    = 10 * time.Second
-	notifyTimeout       = 5 * time.Second
+	defaultReadTimeout        = 10 * time.Second
+	defaultWriteTimeout       = 10 * time.Second
+	defaultIdleTimeout        = 120 * time.Second
+	defaultReadHeaderTimeout  = 3 * time.Second
+	gracefulShutdown          = 10 * time.Second
+	notifyTimeout             = 5 * time.Second
 )
 
 type PageData struct {
@@ -60,7 +62,7 @@ type App struct {
 	portfolioHandler *portfolio.Handler
 	leadHandler      *project_intake.Handler
 	contactHandler   *messaging.Handler
-	settingsRepo     *settings.Repository
+	settingsRepo     settings.Repository
 	logger           *slog.Logger
 	webFS            fs.FS
 	securityMgr      *security.SecurityManager
@@ -69,10 +71,6 @@ type App struct {
 }
 
 func New(ctx context.Context) (*App, error) {
-	if err := ensureAssetDirectories(); err != nil {
-		return nil, err
-	}
-
 	cfg, err := config.Load()
 	if err != nil {
 		return nil, err
@@ -200,10 +198,12 @@ func (a *App) Start(ctx context.Context) error {
 	}
 
 	server := &http.Server{
-		Addr:         ":" + a.cfg.Port,
-		Handler:      router,
-		ReadTimeout:  defaultReadTimeout,
-		WriteTimeout: defaultWriteTimeout,
+		Addr:              ":" + a.cfg.Port,
+		Handler:           router,
+		ReadTimeout:       defaultReadTimeout,
+		WriteTimeout:      defaultWriteTimeout,
+		IdleTimeout:       defaultIdleTimeout,
+		ReadHeaderTimeout: defaultReadHeaderTimeout,
 	}
 
 	fmt.Printf("Server starting on %s\n", server.Addr)
@@ -234,43 +234,4 @@ func (a *App) Start(ctx context.Context) error {
 	return nil
 }
 
-func ensureAssetDirectories() error {
-	base := "web/assets"
-	if _, err := os.Stat(base); os.IsNotExist(err) {
-		return nil
-	}
 
-	dirs := []string{
-		base + "/favicons",
-		base + "/img/branding",
-		base + "/img/backgrounds",
-	}
-
-	for _, d := range dirs {
-		if err := os.MkdirAll(d, 0755); err != nil {
-			return err
-		}
-	}
-
-	moves := map[string]string{
-		base + "/bg-lg.jpg":   base + "/img/backgrounds/bg-lg.jpg",
-		base + "/bg-md.jpg":   base + "/img/backgrounds/bg-md.jpg",
-		base + "/bg-sm.jpg":   base + "/img/backgrounds/bg-sm.jpg",
-		base + "/bg-lg.webp":  base + "/img/backgrounds/bg-lg.webp",
-		base + "/bg-md.webp":  base + "/img/backgrounds/bg-md.webp",
-		base + "/bg-sm.webp":  base + "/img/backgrounds/bg-sm.webp",
-		base + "/logo.png":    base + "/img/branding/logo.png",
-		base + "/logo.webp":   base + "/img/branding/logo.webp",
-		base + "/favicon.png": base + "/favicons/favicon.png",
-	}
-
-	for src, dst := range moves {
-		if _, err := os.Stat(src); err == nil {
-			err = os.Rename(src, dst)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}

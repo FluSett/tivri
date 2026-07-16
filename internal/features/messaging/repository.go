@@ -48,7 +48,7 @@ func (r *PostgresRepository) Save(ctx context.Context, msg *ContactMessage) erro
 }
 
 func (r *PostgresRepository) List(ctx context.Context) ([]ContactMessage, error) {
-	query := "SELECT id, email, topic, message, status, created_at, updated_at FROM contact_messages ORDER BY id DESC"
+	query := "SELECT id, email, topic, message, status, created_at, updated_at FROM contact_messages ORDER BY id DESC LIMIT 1000"
 	rows, err := r.pool.Query(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("messaging: query failed: %w", err)

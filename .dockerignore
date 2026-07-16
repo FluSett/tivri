@@ -9,3 +9,6 @@ README.md
 task.md
 implementation_plan.md
 walkthrough.md
+node_modules/
+web/assets/dist/
+web/assets/uploads/

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"html/template"
 	"io/fs"
+	"os"
+	"strings"
 	"time"
 )
 
@@ -11,12 +13,19 @@ func parseTemplates(webUIFS fs.FS) (map[string]*template.Template, error) {
 	assetVer := fmt.Sprintf("%d", time.Now().Unix())
 	funcMap := template.FuncMap{
 		"assetVersion": func() string {
+			if os.Getenv("APP_ENV") == "development" || os.Getenv("APP_ENV") == "" {
+				return fmt.Sprintf("%d", time.Now().UnixNano())
+			}
 			return assetVer
 		},
 		"formatCents": func(cents int64) string {
 			dollars := cents / 100
 			remainder := cents % 100
 			return fmt.Sprintf("%d.%02d", dollars, remainder)
+		},
+		"replaceEmail": func(templateStr, email string) template.HTML {
+			link := fmt.Sprintf(`<a href="mailto:%s" class="text-neutral-400 hover:text-[#FF3366] transition-colors font-semibold">%s</a>`, email, email)
+			return template.HTML(strings.ReplaceAll(templateStr, "[email]", link))
 		},
 		"dict": func(values ...interface{}) (map[string]interface{}, error) {
 			if len(values)%2 != 0 {
@@ -37,6 +46,7 @@ func parseTemplates(webUIFS fs.FS) (map[string]*template.Template, error) {
 	homeTmpl, err := template.New("base.layout.html").Funcs(funcMap).ParseFS(
 		webUIFS,
 		"layouts/base.layout.html",
+		"templates/partials/layout/*.html",
 		"templates/pages/public/home.html",
 		"templates/partials/portfolio.html",
 		"templates/partials/notification.html",
@@ -59,6 +69,7 @@ func parseTemplates(webUIFS fs.FS) (map[string]*template.Template, error) {
 	adminTmpl, err := template.New("base.layout.html").Funcs(funcMap).ParseFS(
 		webUIFS,
 		"layouts/base.layout.html",
+		"templates/partials/layout/*.html",
 		"templates/pages/admin/dashboard.html",
 		"templates/partials/portfolio.html",
 		"templates/partials/notification.html",
@@ -74,6 +85,7 @@ func parseTemplates(webUIFS fs.FS) (map[string]*template.Template, error) {
 	notFoundTmpl, err := template.New("base.layout.html").Funcs(funcMap).ParseFS(
 		webUIFS,
 		"layouts/base.layout.html",
+		"templates/partials/layout/*.html",
 		"templates/pages/public/404.html",
 		"templates/partials/components/lang_switcher.html",
 	)
@@ -84,6 +96,7 @@ func parseTemplates(webUIFS fs.FS) (map[string]*template.Template, error) {
 	loginTmpl, err := template.New("base.layout.html").Funcs(funcMap).ParseFS(
 		webUIFS,
 		"layouts/base.layout.html",
+		"templates/partials/layout/*.html",
 		"templates/pages/admin/login.html",
 		"templates/partials/components/lang_switcher.html",
 	)
@@ -94,6 +107,7 @@ func parseTemplates(webUIFS fs.FS) (map[string]*template.Template, error) {
 	maintenanceTmpl, err := template.New("base.layout.html").Funcs(funcMap).ParseFS(
 		webUIFS,
 		"layouts/base.layout.html",
+		"templates/partials/layout/*.html",
 		"templates/pages/public/maintenance.html",
 		"templates/partials/components/lang_switcher.html",
 	)
@@ -104,6 +118,7 @@ func parseTemplates(webUIFS fs.FS) (map[string]*template.Template, error) {
 	privacyTmpl, err := template.New("base.layout.html").Funcs(funcMap).ParseFS(
 		webUIFS,
 		"layouts/base.layout.html",
+		"templates/partials/layout/*.html",
 		"templates/pages/public/privacy.html",
 		"templates/partials/components/lang_switcher.html",
 	)
@@ -114,6 +129,7 @@ func parseTemplates(webUIFS fs.FS) (map[string]*template.Template, error) {
 	termsTmpl, err := template.New("base.layout.html").Funcs(funcMap).ParseFS(
 		webUIFS,
 		"layouts/base.layout.html",
+		"templates/partials/layout/*.html",
 		"templates/pages/public/terms.html",
 		"templates/partials/components/lang_switcher.html",
 	)
