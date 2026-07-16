@@ -1,19 +1,20 @@
 document.addEventListener('alpine:init', () => {
-    Alpine.data('stepper', (highQueueActive = false) => ({
+    Alpine.data('stepper', function(highQueueActive = false) {
+        return {
         highQueueActive: highQueueActive,
         openStepper: false,
-        step: Alpine.$persist(1).as('intake_step').using(sessionStorage),
-        budget: Alpine.$persist('').as('intake_budget').using(sessionStorage),
-        customBudget: Alpine.$persist('').as('intake_customBudget').using(sessionStorage),
-        scopeText: Alpine.$persist('').as('intake_scopeText').using(sessionStorage),
+        step: this.$persist(1).as('intake_step').using(sessionStorage),
+        budget: this.$persist('').as('intake_budget').using(sessionStorage),
+        customBudget: this.$persist('').as('intake_customBudget').using(sessionStorage),
+        scopeText: this.$persist('').as('intake_scopeText').using(sessionStorage),
         scopeMax: 2000,
-        nameText: Alpine.$persist('').as('intake_nameText').using(sessionStorage),
+        nameText: this.$persist('').as('intake_nameText').using(sessionStorage),
         nameMax: 150,
-        deadlineNeeded: Alpine.$persist(false).as('intake_deadlineNeeded').using(sessionStorage),
-        deadlineSpec: Alpine.$persist('').as('intake_deadlineSpec').using(sessionStorage),
-        contactEmail: Alpine.$persist('').as('intake_contactEmail').using(sessionStorage),
-        contactInfo: Alpine.$persist('').as('intake_contactInfo').using(sessionStorage),
-        submitted: Alpine.$persist(false).as('intake_submitted').using(sessionStorage),
+        deadlineNeeded: this.$persist(false).as('intake_deadlineNeeded').using(sessionStorage),
+        deadlineSpec: this.$persist('').as('intake_deadlineSpec').using(sessionStorage),
+        contactEmail: this.$persist('').as('intake_contactEmail').using(sessionStorage),
+        contactInfo: this.$persist('').as('intake_contactInfo').using(sessionStorage),
+        submitted: this.$persist(false).as('intake_submitted').using(sessionStorage),
         nameTouched: false,
         scopeTouched: false,
         budgetTouched: false,
@@ -180,5 +181,6 @@ document.addEventListener('alpine:init', () => {
 
             this.submitStatus = 'submitting';
         }
-    }));
+    };
+    });
 });
