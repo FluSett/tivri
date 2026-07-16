@@ -96,15 +96,29 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Copy docker-compose.yml and web assets to Droplet
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.DROPLET_IP }}
-          username: ${{ secrets.DROPLET_USER }}
-          key: ${{ secrets.DROPLET_SSH_KEY }}
-          port: ${{ secrets.DROPLET_SSH_PORT }}
-          source: "docker-compose.yml"
-          target: "/var/www/tivri"
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DROPLET_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p ${{ secrets.DROPLET_SSH_PORT }} -H ${{ secrets.DROPLET_IP }} >> ~/.ssh/known_hosts
+          eval "$(ssh-agent -s)"
+          if [ -n "${{ secrets.DROPLET_SSH_PASSPHRASE }}" ]; then
+            sudo apt-get update && sudo apt-get install -y expect
+            expect -c "
+              spawn ssh-add ~/.ssh/id_rsa
+              expect \"Enter passphrase\"
+              send \"${{ secrets.DROPLET_SSH_PASSPHRASE }}\r\"
+              expect eof
+            "
+          else
+            ssh-add ~/.ssh/id_rsa
+          fi
+          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
+          echo "SSH_AGENT_PID=$SSH_AGENT_PID" >> $GITHUB_ENV
+
+      - name: Copy docker-compose.yml to Droplet
+        run: scp -P ${{ secrets.DROPLET_SSH_PORT }} docker-compose.yml ${{ secrets.DROPLET_USER }}@${{ secrets.DROPLET_IP }}:/var/www/tivri/
 
       - name: Check if configuration or scripts changed
         uses: dorny/paths-filter@v3
@@ -118,47 +132,19 @@ jobs:
 
       - name: Copy scripts to Droplet
         if: steps.filter.outputs.scripts == 'true'
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.DROPLET_IP }}
-          username: ${{ secrets.DROPLET_USER }}
-          key: ${{ secrets.DROPLET_SSH_KEY }}
-          port: ${{ secrets.DROPLET_SSH_PORT }}
-          source: "scripts"
-          target: "/var/www/tivri"
+        run: scp -r -P ${{ secrets.DROPLET_SSH_PORT }} scripts ${{ secrets.DROPLET_USER }}@${{ secrets.DROPLET_IP }}:/var/www/tivri/
 
       - name: Copy Nginx configuration to Droplet
         if: steps.filter.outputs.nginx == 'true'
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.DROPLET_IP }}
-          username: ${{ secrets.DROPLET_USER }}
-          key: ${{ secrets.DROPLET_SSH_KEY }}
-          port: ${{ secrets.DROPLET_SSH_PORT }}
-          source: "nginx/tivri.conf"
-          target: "/etc/nginx/sites-available"
-          strip_components: 1
+        run: scp -P ${{ secrets.DROPLET_SSH_PORT }} nginx/tivri.conf ${{ secrets.DROPLET_USER }}@${{ secrets.DROPLET_IP }}:/etc/nginx/sites-available/tivri.conf
 
       - name: Reload Nginx configuration
         if: steps.filter.outputs.nginx == 'true'
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.DROPLET_IP }}
-          username: ${{ secrets.DROPLET_USER }}
-          key: ${{ secrets.DROPLET_SSH_KEY }}
-          passphrase: ${{ secrets.DROPLET_SSH_PASSPHRASE }}
-          port: ${{ secrets.DROPLET_SSH_PORT }}
-          script: nginx -t && systemctl reload nginx
+        run: ssh -p ${{ secrets.DROPLET_SSH_PORT }} ${{ secrets.DROPLET_USER }}@${{ secrets.DROPLET_IP }} "nginx -t && systemctl reload nginx"
 
       - name: Deploy to DigitalOcean
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.DROPLET_IP }}
-          username: ${{ secrets.DROPLET_USER }}
-          key: ${{ secrets.DROPLET_SSH_KEY }}
-          passphrase: ${{ secrets.DROPLET_SSH_PASSPHRASE }}
-          port: ${{ secrets.DROPLET_SSH_PORT }}
-          script: |
+        run: |
+          ssh -p ${{ secrets.DROPLET_SSH_PORT }} ${{ secrets.DROPLET_USER }}@${{ secrets.DROPLET_IP }} << 'EOF'
             cd /var/www/tivri
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker compose pull
@@ -172,3 +158,4 @@ jobs:
                 (crontab -l 2>/dev/null | grep -F "health_check.sh" >/dev/null) || (crontab -l 2>/dev/null; echo "$CRON_LINE") | crontab -
               fi
             fi
+          EOF

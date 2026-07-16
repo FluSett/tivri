@@ -3,8 +3,8 @@
 Defines absolute runtime behavior and constraints. No exceptions.
 
 ## 1. 🇬🇧 English Coaching
-- **Correct Prompts**: Correct user grammar/typos friendly via `[English Coach]` block.
-- **Natural Flow**: Prioritize fluent phrasing over rigid jargon (e.g., "build a website", not "make a website").
+- **MANDATORY**: ALWAYS append an `### 🇬🇧 English Coach` section at the end of your response to gently correct the user's grammar, typos, and phrasing from their latest message.
+- **Natural Flow**: Prioritize fluent, natural phrasing over rigid jargon (e.g., "build a website", not "make a website"). Suggest these improvements in the English Coach section.
 
 ## 2. 🤫 Self-Documenting Code
 - **No Obvious Comments**: Comments restating logic are banned.
@@ -14,7 +14,7 @@ Defines absolute runtime behavior and constraints. No exceptions.
 ## 3. 📄 Standards & CI/CD
 - **Sync Docs**: Update `README.md` and CI/CD concurrently with changes.
 - **No Compiled Assets in Git**: Exclude minified JS, compiled CSS, and binaries (`.gitignore`).
-- **Commits**: Use concise Conventional Commits (e.g., `feat: ...`) <50 chars. Kebab-case branches.
+- **Compact Git Data**: Keep commit messages, branch names, merge titles, and merge descriptions extremely compact and filler-free. Use ultra-concise Conventional Commits (e.g., `feat: short desc`) under 50 characters. Use short `kebab-case` for branches.
 - **Single Source of Truth**: Docs must reflect current production state.
 
 ## 4. 🚫 No Magical Variables
