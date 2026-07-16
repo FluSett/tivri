@@ -5,27 +5,46 @@
         <h3 class="text-lg font-bold text-neutral-200 tracking-tight">{{.T.Get "AddPortfolio"}}</h3>
 
         <!-- Form submits via custom JS submit handler to package reordered files correctly -->
-        <form @submit.prevent="submitForm($el)" class="space-y-4">
+        <form @submit.prevent="submitForm($el)" class="space-y-6">
             <div class="space-y-2">
                 <label class="form-label-admin">{{.T.Get "PortfolioFormTitle"}}</label>
-                <input type="text" name="title" required x-model="title" placeholder="Cloud Integration API" class="form-input">
+                <input type="text" name="title" required x-model="title" placeholder="{{.T.Get "PortfolioFormTitleExample"}}" class="form-input">
             </div>
 
             <div class="space-y-2">
                 <label class="form-label-admin">{{.T.Get "PortfolioFormDescription"}}</label>
-                <textarea name="description" required rows="3" x-model="description" placeholder="Serverless pipeline for data replication..." class="form-input"></textarea>
+                <textarea name="description" required rows="3" x-model="description" maxlength="500" placeholder="{{.T.Get "PortfolioFormDescriptionExample"}}" class="form-input"></textarea>
+                <div class="flex justify-end text-xs text-neutral-400 mt-1">
+                    <span class="font-medium font-mono shrink-0" x-text="description.length + ' / 500'"></span>
+                </div>
             </div>
 
-            <div class="space-y-2">
+            <div class="space-y-2" x-data="{ tagInput: '' }">
                 <label class="form-label-admin">{{.T.Get "PortfolioFormTechStack"}}</label>
-                <input type="text" name="tech_stack" required x-model="techStack" placeholder="Go, SQLite, AWS Lambda" class="form-input">
+                <div class="form-input flex flex-wrap gap-2 items-center min-h-[42px] focus-within:border-primary/50 focus-within:shadow-[0_0_8px_rgba(255,51,102,0.1)] transition-all">
+                    <template x-for="(tag, index) in techTags" :key="index">
+                        <span class="inline-flex items-center gap-1 bg-primary/10 border border-primary/20 text-primary text-xs px-2.5 py-1 rounded-lg font-medium">
+                            <span x-text="tag"></span>
+                            <button type="button" @click="removeTag(index)" class="text-primary hover:text-white transition-colors cursor-pointer select-none outline-none font-bold text-xs ml-0.5">×</button>
+                        </span>
+                    </template>
+                    <input type="text" x-model="tagInput" 
+                           @input="if (tagInput.includes(',')) { addTag(tagInput); tagInput = ''; }"
+                           @keydown.enter.prevent="if (tagInput.trim()) { addTag(tagInput); tagInput = ''; }"
+                           @keydown.backspace="if (!tagInput && techTags.length > 0) { removeTag(techTags.length - 1); }"
+                           @blur="if (tagInput.trim()) { addTag(tagInput); tagInput = ''; }"
+                           placeholder="{{.T.Get "PortfolioFormTechStackExample"}}" 
+                           class="bg-transparent border-0 p-0 text-sm text-white focus:ring-0 focus:outline-none grow min-w-[80px]">
+                </div>
+                <p class="text-xs text-neutral-400 leading-normal">{{.T.Get "PortfolioFormTechStackHint"}}</p>
             </div>
 
             <div class="space-y-2">
-                <label class="form-label-admin">Media Files (Images/Videos, Max 5MB per file)</label>
+                <label class="form-label-admin">{{.T.Get "PortfolioFormMedia"}}</label>
                 <div class="relative group">
                     <input type="file" multiple accept="image/*,video/*" @change="handleFiles($el)" class="form-input file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-white/8 file:text-white hover:file:bg-white/15 text-xs">
                 </div>
+                <p class="text-xs text-neutral-400 font-medium tracking-tight mt-1">{{.T.Get "PortfolioFormMediaHint"}}</p>
             </div>
 
             <!-- Interactive File Row / Reordering / Removing List -->
@@ -65,9 +84,14 @@
                 </div>
             </template>
 
-            <button type="submit" class="w-full bg-[#FF3366] text-white font-bold py-3 rounded-xl hover:bg-[#FF3366]/80 hover:shadow-[0_0_20px_rgba(255,51,102,0.35)] transition-all text-sm tracking-tight">
-                {{.T.Get "PortfolioFormSubmit"}}
-            </button>
+            <div class="flex justify-end pt-4">
+                <button type="submit" 
+                        :disabled="!title.trim() || !description.trim() || mediaPreviews.length === 0"
+                        :class="(!title.trim() || !description.trim() || mediaPreviews.length === 0) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary/80 hover:shadow-[0_0_20px_rgba(255,51,102,0.35)] cursor-pointer'"
+                        class="bg-primary text-white font-bold px-8 py-3 rounded-xl transition-all text-sm tracking-tight">
+                    {{.T.Get "PortfolioFormSubmit"}}
+                </button>
+            </div>
         </form>
     </div>
 
@@ -91,7 +115,7 @@
                             <div class="absolute inset-x-0 bottom-2 flex justify-center space-x-1.5 z-10">
                                 <template x-for="(item, index) in mediaPreviews" :key="item.id">
                                     <button type="button" @click="activeIndex = index"
-                                            :class="activeIndex === index ? 'bg-[#FF3366] w-4' : 'bg-white/40 w-1.5'"
+                                            :class="activeIndex === index ? 'bg-primary w-4' : 'bg-white/40 w-1.5'"
                                             class="h-1.5 rounded-full transition-all duration-300 focus:outline-none"></button>
                                 </template>
                             </div>
@@ -110,11 +134,20 @@
                 </template>
 
                 <div class="flex justify-between items-start gap-4">
-                    <h3 class="text-base font-bold text-white tracking-tight leading-tight wrap-break-word" x-text="title || 'Title'"></h3>
+                    <h3 class="text-base font-bold text-white tracking-tight leading-tight wrap-break-word" x-text="title || 'Project Title'"></h3>
                 </div>
-                <p class="text-neutral-400 text-sm leading-relaxed tracking-tight" x-text="description || 'Description'"></p>
+                <p class="text-neutral-400 text-sm leading-relaxed tracking-tight" x-text="description || 'A brief description of your project will be displayed here, showcasing your work and achievements.'"></p>
                 <div class="flex flex-wrap gap-2">
-                    <span class="bg-white/4 text-neutral-300 text-xs px-2.5 py-1 rounded-lg border border-white/6 tracking-tight font-medium" x-text="techStack || 'Tech Stack'"></span>
+                    <template x-for="(tag, index) in techTags" :key="index">
+                        <span class="bg-white/4 text-neutral-300 text-xs px-2.5 py-1 rounded-lg border border-white/6 tracking-tight font-medium" x-text="tag"></span>
+                    </template>
+                    <template x-if="techTags.length === 0">
+                        <div class="flex gap-2 opacity-30 select-none">
+                            <span class="bg-white/4 text-neutral-300 text-xs px-2.5 py-1 rounded-lg border border-white/6 tracking-tight font-medium">Go</span>
+                            <span class="bg-white/4 text-neutral-300 text-xs px-2.5 py-1 rounded-lg border border-white/6 tracking-tight font-medium">Postgres</span>
+                            <span class="bg-white/4 text-neutral-300 text-xs px-2.5 py-1 rounded-lg border border-white/6 tracking-tight font-medium">HTMX</span>
+                        </div>
+                    </template>
                 </div>
             </div>
         </div>
