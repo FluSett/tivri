@@ -1,10 +1,11 @@
 document.addEventListener('alpine:init', () => {
-    Alpine.data('contact', () => ({
-        showForm: Alpine.$persist(true).as('contact_showForm').using(sessionStorage),
-        submitted: Alpine.$persist(false).as('contact_submitted').using(sessionStorage),
-        email: Alpine.$persist('').as('contact_email').using(sessionStorage),
-        topic: Alpine.$persist('').as('contact_topic').using(sessionStorage),
-        message: Alpine.$persist('').as('contact_message').using(sessionStorage),
+    Alpine.data('contact', function() {
+        return {
+        showForm: this.$persist(true).as('contact_showForm').using(sessionStorage),
+        submitted: this.$persist(false).as('contact_submitted').using(sessionStorage),
+        email: this.$persist('').as('contact_email').using(sessionStorage),
+        topic: this.$persist('').as('contact_topic').using(sessionStorage),
+        message: this.$persist('').as('contact_message').using(sessionStorage),
         emailTouched: false,
         topicTouched: false,
         messageTouched: false,
@@ -51,5 +52,6 @@ document.addEventListener('alpine:init', () => {
             this.submitStatus = 'idle';
             this.resetTurnstile();
         }
-    }));
+    };
+    });
 });
