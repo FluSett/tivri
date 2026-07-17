@@ -13,22 +13,36 @@
     background: rgba(255, 51, 102, 0.6);
 }
 
+html {
+    background-color: var(--color-bg-dark);
+}
+
 body {
+    color: #F3F4F6;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -2;
     background-color: var(--color-bg-dark);
     background-image: radial-gradient(circle at 50% -20%, rgba(255, 51, 102, 0.15) 0%, transparent 65%), url('/assets/img/backgrounds/bg-sm.webp');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    background-attachment: fixed;
-    color: #F3F4F6;
+    pointer-events: none;
 }
 @media (min-width: 768px) {
-    body {
+    body::before {
         background-image: radial-gradient(circle at 50% -20%, rgba(255, 51, 102, 0.15) 0%, transparent 65%), url('/assets/img/backgrounds/bg-md.webp');
     }
 }
 @media (min-width: 1200px) {
-    body {
+    body::before {
         background-image: radial-gradient(circle at 50% -20%, rgba(255, 51, 102, 0.15) 0%, transparent 65%), url('/assets/img/backgrounds/bg-lg.webp');
     }
 }
