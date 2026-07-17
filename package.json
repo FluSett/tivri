@@ -1,7 +1,7 @@
 {
   "scripts": {
     "build:css": "tailwindcss -i web/assets/css/input.css -o web/assets/dist/css/theme.css",
-    "build:js": "esbuild web/assets/js/*.js web/assets/js/components/*.js --bundle --minify --outdir=web/assets/dist --outbase=web/assets --entry-names=[dir]/[name].min",
+    "build:js": "esbuild web/assets/js/app.js --bundle --minify --outfile=web/assets/dist/js/app.min.js",
     "build": "npm run build:css && npm run build:js",
     "format": "prettier --write \"web/assets/js/**/*.js\""
   },
