@@ -41,17 +41,17 @@ func (a *App) handleAPILang(w http.ResponseWriter, r *http.Request) {
 	highQueueActive, _ := a.settingsRepo.GetHighQueue(r.Context())
 	maintenanceActive, _ := a.settingsRepo.GetMaintenance(r.Context())
 	pageData := PageData{
-		CurrentPath:       path,
-		Lang:              lang,
-		T:                 a.translator.Get(lang),
-		IsAdmin:           false,
-		AdminTab:          tab,
-		HighQueueActive:   highQueueActive,
-		MaintenanceActive: maintenanceActive,
-		TurnstileSiteKey:  a.cfg.TurnstileSiteKey,
-		AppURL:            a.cfg.AppURL,
-		ContactEmail:      a.cfg.ContactEmail,
-		Nonce:             r.Header.Get("X-CSP-Nonce"),
+		CurrentPath:             path,
+		Lang:                    lang,
+		T:                       a.translator.Get(lang),
+		IsAdmin:                 false,
+		AdminTab:                tab,
+		HighQueueActive:         highQueueActive,
+		MaintenanceActive:       maintenanceActive,
+		TurnstileSiteKey:        a.cfg.TurnstileSiteKey,
+		AppURL:                  a.cfg.AppURL,
+		ContactEmail:            a.cfg.ContactEmail,
+		Nonce:                   r.Header.Get("X-CSP-Nonce"),
 		CloudflareInsightsToken: a.cfg.CloudflareInsightsToken,
 	}
 
