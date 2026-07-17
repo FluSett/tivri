@@ -47,11 +47,13 @@ type PageData struct {
 	IsAdminLogin      bool
 	AdminTab          string
 	Error             string
-	HighQueueActive   bool
-	MaintenanceActive bool
-	TurnstileSiteKey  string
-	AppURL            string
-	ContactEmail      string
+	HighQueueActive         bool
+	MaintenanceActive       bool
+	TurnstileSiteKey        string
+	AppURL                  string
+	ContactEmail            string
+	Nonce                   string
+	CloudflareInsightsToken string
 }
 
 type App struct {
