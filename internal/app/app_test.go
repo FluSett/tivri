@@ -86,7 +86,7 @@ func (m *mockSettingsRepository) SetMaintenance(ctx context.Context, enabled boo
 type mockEventBus struct{}
 
 func (m *mockEventBus) Subscribe(eventType string, handler eventbus.Handler) {}
-func (m *mockEventBus) Publish(ctx context.Context, e eventbus.Event)          {}
+func (m *mockEventBus) Publish(ctx context.Context, e eventbus.Event)        {}
 
 type mockRenderer struct{}
 

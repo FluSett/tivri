@@ -1,54 +1,57 @@
-# TIVRI — High-Performance Software Platform
+# TIVRI
 
-TIVRI is a high-performance client intake and portfolio management system designed to showcase modern, lightweight web architectures. Built using **Go**, **PostgreSQL**, **HTMX**, and **Alpine.js**, it demonstrates how to build responsive, interactive interfaces without the overhead of heavy Single Page Application (SPA) frameworks.
+A high-performance client intake and portfolio management platform demonstrating modern, lightweight web architecture. Built with **Go**, **PostgreSQL**, **HTMX**, and **Alpine.js**, TIVRI delivers a responsive SPA experience without the heavy JavaScript framework bloat.
 
----
+## 🚀 Core Features
 
-## ✨ Features
+- **Dynamic Intake Wizard**: Multi-step client onboarding with real-time validation and asynchronous event triggers.
+- **Portfolio Management**: Interactive project showcase featuring dynamic filtering and media grids.
+- **Secure Admin Dashboard**: Centralized management for leads, queries, and system configuration.
+- **Context-Aware Localization**: Seamless multi-locale support via query parameters, cookies, and headers.
 
-- **Multi-Step Client Intake Form**: A multi-step stepper wizard with real-time input validation, responsive budget options, and asynchronous event triggers.
-- **Interactive Portfolio**: Showcase agency projects and case studies with dynamic content filtering and media grids.
-- **Secure Admin Panel**: Administrative dashboard to view client leads, manage incoming contact queries, update client statuses, and configure system maintenance and queue modes.
-- **Universal Multi-Locale Support**: Context-aware localization using query parameters (`?lang=`), cookies, and Accept-Language header fallbacks.
+## 🛠️ Tech Stack & Rationale
 
----
+We bypassed complex SPA frameworks (React/Vue/Solid.js) in favor of a lean, server-driven approach. While tools like Solid.js offer excellent client-side performance and compiled DOM updates, they force you to build a separate JSON API and maintain state in two places. Our HTMX + Alpine stack allows us to render HTML directly from Go, keeping a **single source of truth** on the server. This dramatically reduces complexity, eliminates the need for an external Node.js SSR server, and still delivers a highly interactive SPA feel.
 
-## 🛠️ Technology Decisions
+- **Go (1.26+)**: Blazing-fast backend, native concurrency, and a single compiled binary footprint.
+- **PostgreSQL (`pgxpool`)**: Direct query execution without ORM overhead for maximum transaction control.
+- **HTMX**: Wire-delivered HTML partials. We send HTML over the wire instead of JSON, eliminating heavy client-side rendering logic.
+- **Alpine.js (Strict CSP)**: Sprinkles lightweight interactivity directly onto our Go templates without a massive Virtual DOM. It is configured to run under strict Content Security Policies, proving you don't need a heavy compiled framework like Solid.js just to build a secure, XSS-resistant frontend.
+- **Tailwind CSS v4 & ESBuild**: Dynamic utility styling and modular JS bundled into minimal, highly-optimized assets.
 
-- **Go 1.22+**: Used for backend API execution, routing, and template compiling, providing extreme runtime performance and a small memory footprint.
-- **PostgreSQL (`pgxpool`)**: Eliminates ORM query translation layers, allowing absolute control over execution plans, indexes, and database transactions.
-- **HTMX**: Handles partial HTML replacements over the wire, providing a smooth, single-page application user experience without client-side bundle compilation.
-- **Alpine.js**: Manages lightweight, localized client-side states (such as form steps, menus, and dropdowns) natively.
-- **Tailwind CSS v4**: Utility styling compiled dynamically using the new CLI engine. Custom styling is modularized (base, components, utilities) and compiled into a single `theme.css`.
-- **ES Modules**: JavaScript is broken into feature-specific components (`core/`) and bundled via `esbuild` for optimal client execution without heavy monolithic files.
+## 🚢 Infrastructure & Deployment
 
----
+Designed for cost-efficiency and atomic, reproducible deployments.
+
+- **Automated CI/CD**: Pushes to production automatically compile Go binaries, bundle assets, and deploy a lean Docker container.
+- **DigitalOcean Infrastructure**: Optimized to comfortably serve high-traffic loads on entry-level Droplets.
+- **Cloudflare DNS & Security**: Cloudflare manages our DNS, proxies traffic to obscure origin IPs, and integrates Cloudflare Turnstile to block automated bot submissions.
+- **Custom Domain & Automated SSL**: Nginx acts as our reverse proxy, terminating TLS connections. We use Certbot (Let's Encrypt) to automatically provision and renew SSL certificates for our custom domain.
+- **Custom Email Domain**: Platform notifications and client communications are securely routed using SMTP configured for our custom agency domain, ensuring high deliverability.
+- **Dockerized Environment**: The application and PostgreSQL database run in isolated, easily reproducible containers. Our optimized production Docker image is incredibly minimalist—weighing in at just **~22MB**. It contains only the standalone Go binary and static assets, completely bypassing heavy OS base images or Node.js runtimes.
 
 ## 🏗️ Architectural Highlights
 
-- **Event-Driven Monolith**: Encapsulated modules communicate asynchronously via an in-memory event bus, decoupling critical HTTP pipelines from background jobs.
-- **Transactional Outbox**: Writes event states (e.g. notifications) directly to the database in the same transaction as state updates, resolving distributed transaction sync issues.
-- **Self-Documenting Code**: Built around explicit errors handling, descriptive naming, and separation of concerns rather than verbose markup comments.
-- **Timing Attack Mitigation**: Verifies admin panel login attempts in constant-time using cryptographic SHA-256 hashes and standard constant-time comparisons.
-- **IP Lockout Limits**: Dynamic session tracking that issues temporary bans to client addresses following consecutive failed authentication attempts.
+- **Event-Driven Monolith**: Asynchronous in-memory event bus decoupling HTTP pipelines from background tasks.
+- **Transactional Outbox**: Guaranteed event delivery by writing state updates alongside events in single database transactions.
+- **Security-First**: Constant-time cryptographic verification (SHA-256) and dynamic IP-based rate limiting to prevent timing attacks and brute forcing.
+- **Self-Documenting Code**: Clean, explicit error handling and logical separation of concerns.
 
----
+## 💻 Local Development
 
-## 🚀 Running Locally
-
-### Start using Docker
+### Quick Start (Docker)
 ```bash
 docker compose up --build -d
 ```
-- **Platform URL**: `http://localhost:8080`
-- **Admin Login**: `http://localhost:8080/admin` (Default: `admin` / `password`)
+- **App**: `http://localhost:8080`
+- **Admin**: `http://localhost:8080/admin` (Credentials set via `.env` file)
 
-### Run Tests
+### Testing
 ```bash
-# Run unit tests
+# Unit Tests
 go test -v ./...
 
-# Run integration tests (requires setting DB_DSN)
+# Integration Tests
 $env:DB_DSN="postgres://postgres:postgres@localhost:5432/tivri?sslmode=disable"
 go test -v ./...
 ```
