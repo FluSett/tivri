@@ -27,7 +27,7 @@
     <meta name="twitter:image" content="{{.AppURL}}/assets/img/branding/logo.webp">
     
     <!-- JSON-LD Structured Data (Cleaned of empty attributes) -->
-    <script type="application/ld+json">
+    <script type="application/ld+json" nonce="{{.Nonce}}">
     {
       "@context": "https://schema.org",
       "@type": "ProfessionalService",
@@ -78,6 +78,7 @@
         {{template "content" .}}
     </main>
 
+    {{template "layout.cookie_consent" .}}
     {{template "layout.footer.html" .}}
 </body>
 </html>

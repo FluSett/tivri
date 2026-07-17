@@ -20,8 +20,9 @@ type Config struct {
 	TurnstileSecretKey string
 	TelegramBotToken   string
 	TelegramChatID     string
-	AppURL             string
-	ContactEmail       string
+	AppURL                  string
+	ContactEmail            string
+	CloudflareInsightsToken string
 }
 
 func getEnv(key string) string {
@@ -78,6 +79,8 @@ func Load() (*Config, error) {
 		contactEmail = "contact@tivri.cc"
 	}
 
+	cloudflareInsightsToken := getEnv("CLOUDFLARE_INSIGHTS_TOKEN")
+
 	return &Config{
 		Env:                env,
 		DBDSN:              dbDSN,
@@ -88,9 +91,10 @@ func Load() (*Config, error) {
 		TurnstileSiteKey:   turnstileSiteKey,
 		TurnstileSecretKey: turnstileSecretKey,
 		TelegramBotToken:   telegramBotToken,
-		TelegramChatID:     telegramChatID,
-		AppURL:             appURL,
-		ContactEmail:       contactEmail,
+		TelegramChatID:          telegramChatID,
+		AppURL:                  appURL,
+		ContactEmail:            contactEmail,
+		CloudflareInsightsToken: cloudflareInsightsToken,
 	}, nil
 }
 

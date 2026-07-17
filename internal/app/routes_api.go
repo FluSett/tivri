@@ -51,6 +51,8 @@ func (a *App) handleAPILang(w http.ResponseWriter, r *http.Request) {
 		TurnstileSiteKey:  a.cfg.TurnstileSiteKey,
 		AppURL:            a.cfg.AppURL,
 		ContactEmail:      a.cfg.ContactEmail,
+		Nonce:             r.Header.Get("X-CSP-Nonce"),
+		CloudflareInsightsToken: a.cfg.CloudflareInsightsToken,
 	}
 
 	var tmplKey string

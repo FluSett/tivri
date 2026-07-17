@@ -23,7 +23,9 @@ func (a *App) handleAdminLogin(w http.ResponseWriter, r *http.Request) {
 			IsAdminLogin:     true,
 			TurnstileSiteKey: a.cfg.TurnstileSiteKey,
 			AppURL:           a.cfg.AppURL,
-			ContactEmail:     a.cfg.ContactEmail,
+			ContactEmail:            a.cfg.ContactEmail,
+			Nonce:                   r.Header.Get("X-CSP-Nonce"),
+			CloudflareInsightsToken: a.cfg.CloudflareInsightsToken,
 		}
 
 		err := a.templates["login"].ExecuteTemplate(w, "base.layout.html", data)
@@ -79,7 +81,9 @@ func (a *App) handleAdminLogin(w http.ResponseWriter, r *http.Request) {
 					Error:            a.translator.Get(lang).Get("ValTurnstileFailed"),
 					TurnstileSiteKey: a.cfg.TurnstileSiteKey,
 					AppURL:           a.cfg.AppURL,
-					ContactEmail:     a.cfg.ContactEmail,
+					ContactEmail:            a.cfg.ContactEmail,
+					Nonce:                   r.Header.Get("X-CSP-Nonce"),
+					CloudflareInsightsToken: a.cfg.CloudflareInsightsToken,
 				}
 				w.WriteHeader(http.StatusBadRequest)
 				err = a.templates["login"].ExecuteTemplate(w, "base.layout.html", data)
@@ -208,6 +212,8 @@ func (a *App) handleAdminDashboard(w http.ResponseWriter, r *http.Request) {
 		TurnstileSiteKey:  a.cfg.TurnstileSiteKey,
 		AppURL:            a.cfg.AppURL,
 		ContactEmail:      a.cfg.ContactEmail,
+		Nonce:             r.Header.Get("X-CSP-Nonce"),
+		CloudflareInsightsToken: a.cfg.CloudflareInsightsToken,
 	}
 
 	err = a.templates["admin"].ExecuteTemplate(w, "base.layout.html", data)
