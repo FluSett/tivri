@@ -4,7 +4,7 @@
         <template x-if="media.length > 0">
             <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-black/40 border border-white/8">
                 <template x-for="(item, index) in media" :key="index">
-                    <div x-show="activeIndex === index" class="absolute inset-0 w-full h-full">
+                    <div :class="activeIndex === index ? '' : 'hidden'" class="absolute inset-0 w-full h-full">
                         <template x-if="item.endsWith('.mp4') || item.endsWith('.webm')">
                             <video :src="item" class="w-full h-full object-cover" controls muted playsinline></video>
                         </template>
