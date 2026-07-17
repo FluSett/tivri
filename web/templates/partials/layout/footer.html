@@ -3,7 +3,7 @@
         <div class="max-w-[1600px] mx-auto w-full grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
             <div class="md:col-span-5 space-y-4">
                 <div class="flex items-center space-x-3">
-                    <a href="/" @click="if (window.location.pathname === '/') { $event.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); } else { window.location.href = '/'; }" class="logo-wrap">
+                    <a href="/" @click="handleDesktopLogoClick($event, '/')" class="logo-wrap">
                         <div class="logo-inner">
                             <div class="logo-diamond"></div>
                             <div class="logo-dot"></div>
@@ -25,20 +25,24 @@
                 {{if and (not .IsAdminLogin) (not .MaintenanceActive)}}
                 <div class="space-y-3">
                     <h4 class="text-xs font-bold uppercase tracking-wider text-neutral-500">{{.T.Get "SitemapTitle"}}</h4>
-                    <nav class="flex flex-col space-y-2">
+                    <nav>
                         {{if .IsAdmin}}
-                        <a href="/admin?tab=portfolio" class="text-sm font-medium text-neutral-400 hover:text-white transition-colors w-max">{{.T.Get "TabPortfolio"}}</a>
-                        <a href="/admin?tab=leads" class="text-sm font-medium text-neutral-400 hover:text-white transition-colors w-max">{{.T.Get "TabLeads"}}</a>
-                        <a href="/admin?tab=messages" class="text-sm font-medium text-neutral-400 hover:text-white transition-colors w-max">{{.T.Get "TabMessages"}}</a>
+                        <div class="flex flex-col space-y-2">
+                            <a href="/admin?tab=portfolio" class="text-sm font-medium text-neutral-400 hover:text-white transition-colors w-max">{{.T.Get "TabPortfolio"}}</a>
+                            <a href="/admin?tab=leads" class="text-sm font-medium text-neutral-400 hover:text-white transition-colors w-max">{{.T.Get "TabLeads"}}</a>
+                            <a href="/admin?tab=messages" class="text-sm font-medium text-neutral-400 hover:text-white transition-colors w-max">{{.T.Get "TabMessages"}}</a>
+                        </div>
                         {{else}}
-                        <a href="/#about" class="text-sm font-medium text-neutral-400 hover:text-white transition-colors w-max">{{.T.Get "AboutNav"}}</a>
-                        <a href="/#benefits" class="text-sm font-medium text-neutral-400 hover:text-white transition-colors w-max">{{.T.Get "WhyNav"}}</a>
-                        <a href="/#skills" class="text-sm font-medium text-neutral-400 hover:text-white transition-colors w-max">{{.T.Get "SkillsNav"}}</a>
-                        <a href="/#portfolio" class="text-sm font-medium text-neutral-400 hover:text-white transition-colors w-max">{{.T.Get "PortfolioNav"}}</a>
-                        <a href="/#contact" class="text-sm font-medium text-neutral-400 hover:text-white transition-colors flex items-center space-x-1.5 w-max">
-                            <span>{{.T.Get "ContactNav"}}</span>
-                            <span class="inline-block w-2 h-2 bg-primary animate-pulse rounded-sm"></span>
-                        </a>
+                        <div class="flex flex-col space-y-2">
+                            <a href="/#about" class="text-sm font-medium text-neutral-400 hover:text-white transition-colors w-max">{{.T.Get "AboutNav"}}</a>
+                            <a href="/#benefits" class="text-sm font-medium text-neutral-400 hover:text-white transition-colors w-max">{{.T.Get "WhyNav"}}</a>
+                            <a href="/#skills" class="text-sm font-medium text-neutral-400 hover:text-white transition-colors w-max">{{.T.Get "SkillsNav"}}</a>
+                            <a href="/#portfolio" class="text-sm font-medium text-neutral-400 hover:text-white transition-colors w-max">{{.T.Get "PortfolioNav"}}</a>
+                            <a href="/#contact" class="text-sm font-medium text-neutral-400 hover:text-white transition-colors flex items-center space-x-1.5 w-max">
+                                <span>{{.T.Get "ContactNav"}}</span>
+                                <span class="inline-block w-2 h-2 bg-primary animate-pulse rounded-sm"></span>
+                            </a>
+                        </div>
                         {{end}}
                     </nav>
                 </div>

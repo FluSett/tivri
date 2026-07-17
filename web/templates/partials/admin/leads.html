@@ -1,6 +1,6 @@
 {{define "admin.leads.html"}}
 <div class="space-y-6"
-     x-data="leadsTable(JSON.parse($el.getAttribute('data-leads')))"
+     x-data="leadsTable"
      data-leads="{{.LeadsJSON}}">
     <!-- Settings Panel -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -35,48 +35,36 @@
 
     <div class="flex flex-wrap gap-4 items-center justify-between bg-black/40 border border-white/8 p-5 rounded-2xl">
         <div class="flex flex-wrap gap-4">
-            <div class="space-y-1" x-data="{ open: false }">
+            <div class="space-y-1" x-data="dropdown">
                 <label class="block text-primary font-bold uppercase tracking-widest text-[11px] mb-1.5">{{.T.Get "LeadClientStatus"}}</label>
                 <div class="relative">
-                    <button @click="open = !open" class="bg-black/60 border border-white/8 hover:border-white/20 text-xs px-3.5 py-2 rounded-full text-white focus:outline-none transition-all duration-200 cursor-pointer font-medium flex items-center gap-2 min-w-[120px] justify-between">
+                    <button @click="toggle" class="bg-black/60 border border-white/8 hover:border-white/20 text-xs px-3.5 py-2 rounded-full text-white focus:outline-none transition-all duration-200 cursor-pointer font-medium flex items-center gap-2 min-w-[120px] justify-between">
                         <span x-text="clientFilter.toUpperCase()"></span>
-                        <svg class="w-3 h-3 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                        <svg class="w-3 h-3 transition-transform" :class="getIconClass()" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
-                    <div x-show="open" @click.outside="open = false"
-                          x-transition:enter="transition ease-out duration-500"
-                          x-transition:enter-start="opacity-0 scale-95"
-                          x-transition:enter-end="opacity-100 scale-100"
-                          x-transition:leave="transition ease-in duration-300"
-                          x-transition:leave-start="opacity-100 scale-100"
-                          x-transition:leave-end="opacity-0 scale-95"
-                          class="absolute z-50 mt-1.5 w-full rounded-xl border border-white/8 bg-bg-dark p-1 shadow-2xl"
+                    <div :class="getDropdownClass()" @click.outside="close"
+                          class="absolute z-50 mt-1.5 w-full rounded-xl border border-white/8 bg-bg-dark p-1 shadow-2xl panel-animate"
                           x-cloak>
                         <template x-for="opt in ['all', 'pending', 'active', 'done', 'canceled']">
-                            <button @click="clientFilter = opt; open = false"
+                            <button @click="setClientFilter(opt); close()"
                                     class="dropdown-option capitalize"
                                     x-text="opt"></button>
                         </template>
                     </div>
                 </div>
             </div>
-            <div class="space-y-1" x-data="{ open: false }">
+            <div class="space-y-1" x-data="dropdown">
                 <label class="block text-primary font-bold uppercase tracking-widest text-[11px] mb-1.5">{{.T.Get "LeadInternalStatus"}}</label>
                 <div class="relative">
-                    <button @click="open = !open" class="bg-black/60 border border-white/8 hover:border-white/20 text-xs px-3.5 py-2 rounded-xl text-white focus:outline-none transition-all duration-200 cursor-pointer font-medium flex items-center gap-2 min-w-[120px] justify-between">
+                    <button @click="toggle" class="bg-black/60 border border-white/8 hover:border-white/20 text-xs px-3.5 py-2 rounded-xl text-white focus:outline-none transition-all duration-200 cursor-pointer font-medium flex items-center gap-2 min-w-[120px] justify-between">
                         <span x-text="internalFilter.toUpperCase()"></span>
-                        <svg class="w-3 h-3 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                        <svg class="w-3 h-3 transition-transform" :class="getIconClass()" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
-                    <div x-show="open" @click.outside="open = false"
-                          x-transition:enter="transition ease-out duration-500"
-                          x-transition:enter-start="opacity-0 scale-95"
-                          x-transition:enter-end="opacity-100 scale-100"
-                          x-transition:leave="transition ease-in duration-300"
-                          x-transition:leave-start="opacity-100 scale-100"
-                          x-transition:leave-end="opacity-0 scale-95"
-                          class="absolute z-50 mt-1.5 w-full rounded-xl border border-white/8 bg-bg-dark p-1 shadow-2xl"
+                    <div :class="getDropdownClass()" @click.outside="close"
+                          class="absolute z-50 mt-1.5 w-full rounded-xl border border-white/8 bg-bg-dark p-1 shadow-2xl panel-animate"
                           x-cloak>
                         <template x-for="opt in ['all', 'pending', 'active', 'done', 'canceled']">
-                            <button @click="internalFilter = opt; open = false"
+                            <button @click="setInternalFilter(opt); close()"
                                     class="dropdown-option capitalize"
                                     x-text="opt"></button>
                         </template>
@@ -84,28 +72,22 @@
                 </div>
             </div>
         </div>
-        <div class="space-y-1" x-data="{ open: false }">
+        <div class="space-y-1" x-data="dropdown">
             <label class="block text-primary font-bold uppercase tracking-widest text-[11px] mb-1.5">{{.T.Get "SortByLabel"}}</label>
             <div class="relative">
-                <button @click="open = !open" class="bg-black/60 border border-white/8 hover:border-white/20 text-xs px-3.5 py-2 rounded-full text-white focus:outline-none transition-all duration-200 cursor-pointer font-medium flex items-center gap-2 min-w-[160px] justify-between">
-                    <span x-text="{ 'date_desc': 'Newest', 'date_asc': 'Oldest', 'budget_desc': 'Highest Budget', 'budget_asc': 'Lowest Budget', 'name_asc': 'Name A-Z', 'name_desc': 'Name Z-A' }[sortBy]"></span>
-                    <svg class="w-3 h-3 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                <button @click="toggle" class="bg-black/60 border border-white/8 hover:border-white/20 text-xs px-3.5 py-2 rounded-full text-white focus:outline-none transition-all duration-200 cursor-pointer font-medium flex items-center gap-2 min-w-[160px] justify-between">
+                    <span x-text="getSortByText()"></span>
+                    <svg class="w-3 h-3 transition-transform" :class="getIconClass()" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
-                <div x-show="open" @click.outside="open = false"
-                     x-transition:enter="transition ease-out duration-500"
-                     x-transition:enter-start="opacity-0 scale-95"
-                     x-transition:enter-end="opacity-100 scale-100"
-                     x-transition:leave="transition ease-in duration-300"
-                     x-transition:leave-start="opacity-100 scale-100"
-                     x-transition:leave-end="opacity-0 scale-95"
-                     class="absolute z-50 mt-1.5 w-full rounded-xl border border-white/8 bg-bg-dark p-1 shadow-2xl text-left"
+                <div :class="getDropdownClass()" @click.outside="close"
+                     class="absolute z-50 mt-1.5 w-full rounded-xl border border-white/8 bg-bg-dark p-1 shadow-2xl text-left panel-animate"
                      x-cloak>
-                    <button @click="sortBy = 'date_desc'; open = false" class="dropdown-option">Newest</button>
-                    <button @click="sortBy = 'date_asc'; open = false" class="dropdown-option">Oldest</button>
-                    <button @click="sortBy = 'budget_desc'; open = false" class="dropdown-option">Highest Budget</button>
-                    <button @click="sortBy = 'budget_asc'; open = false" class="dropdown-option">Lowest Budget</button>
-                    <button @click="sortBy = 'name_asc'; open = false" class="dropdown-option">Name A-Z</button>
-                    <button @click="sortBy = 'name_desc'; open = false" class="dropdown-option">Name Z-A</button>
+                    <button @click="setSortBy('date_desc'); close()" class="dropdown-option">Newest</button>
+                    <button @click="setSortBy('date_asc'); close()" class="dropdown-option">Oldest</button>
+                    <button @click="setSortBy('budget_desc'); close()" class="dropdown-option">Highest Budget</button>
+                    <button @click="setSortBy('budget_asc'); close()" class="dropdown-option">Lowest Budget</button>
+                    <button @click="setSortBy('name_asc'); close()" class="dropdown-option">Name A-Z</button>
+                    <button @click="setSortBy('name_desc'); close()" class="dropdown-option">Name Z-A</button>
                 </div>
             </div>
         </div>
@@ -131,32 +113,32 @@
                 <template x-for="l in filteredLeads" :key="l.id">
                     <tr class="hover:bg-white/2 transition-colors">
                         <td class="py-3 px-4 font-bold text-white tracking-tight" x-text="l.companyName"></td>
-                        <td class="py-3 px-4 text-neutral-400 leading-relaxed max-w-xs" x-data="{ expanded: false }">
+                        <td class="py-3 px-4 text-neutral-400 leading-relaxed max-w-xs" x-data="expandableText">
                             <div :class="l.projectScope.length > 50 ? 'cursor-pointer hover:text-neutral-200 transition-colors' : ''"
-                                 @click="if (l.projectScope.length > 50) expanded = !expanded">
-                                <span x-show="!expanded" x-text="l.projectScope.length > 50 ? l.projectScope.substring(0, 50) + '...' : l.projectScope"></span>
-                                <span x-show="expanded" x-text="l.projectScope" class="whitespace-pre-wrap" x-cloak></span>
+                                 @click="if (l.projectScope.length > 50) toggle()">
+                                <span :class="getCollapsedClass()" x-text="l.projectScope.length > 50 ? l.projectScope.substring(0, 50) + '...' : l.projectScope"></span>
+                                <span :class="getExpandedClass()" x-text="l.projectScope" class="whitespace-pre-wrap" x-cloak></span>
                             </div>
                         </td>
                         <td class="py-3 px-4 text-neutral-400 font-medium" x-text="l.contactEmail"></td>
-                        <td class="py-3 px-4 text-neutral-400 max-w-[180px]" x-data="{ expanded: false }">
+                        <td class="py-3 px-4 text-neutral-400 max-w-[180px]" x-data="expandableText">
                             <div :class="(l.contactInfo && l.contactInfo.length > 25) ? 'cursor-pointer hover:text-neutral-200 transition-colors' : ''"
-                                 @click="if (l.contactInfo && l.contactInfo.length > 25) expanded = !expanded">
-                                <span x-show="!expanded" x-text="(l.contactInfo && l.contactInfo.length > 25) ? l.contactInfo.substring(0, 25) + '...' : (l.contactInfo || '-')"></span>
-                                <span x-show="expanded" x-text="l.contactInfo" class="whitespace-pre-wrap" x-cloak></span>
+                                 @click="if (l.contactInfo && l.contactInfo.length > 25) toggle()">
+                                <span :class="getCollapsedClass()" x-text="(l.contactInfo && l.contactInfo.length > 25) ? l.contactInfo.substring(0, 25) + '...' : (l.contactInfo || '-')"></span>
+                                <span :class="getExpandedClass()" x-text="l.contactInfo" class="whitespace-pre-wrap" x-cloak></span>
                             </div>
                         </td>
                         <td class="py-3 px-4">
                             <template x-if="l.deadlineNeeded">
                                 <div class="space-y-0.5">
                                     <span class="inline-block bg-primary/25 border border-primary/40 text-primary font-semibold text-[11px] uppercase tracking-widest px-1.5 py-0.5 rounded shadow-[0_0_10px_rgba(255,51,102,0.1)]">Strict</span>
-                                    <p class="text-xs text-neutral-400 mt-1 max-w-[150px]"
-                                       x-data="{ expanded: false }"
-                                       :class="l.deadlineSpec.length > 20 ? 'cursor-pointer hover:text-neutral-200 transition-colors' : ''"
-                                       @click="if (l.deadlineSpec.length > 20) expanded = !expanded">
-                                        <span x-show="!expanded" x-text="l.deadlineSpec.length > 20 ? l.deadlineSpec.substring(0, 20) + '...' : l.deadlineSpec"></span>
-                                        <span x-show="expanded" x-text="l.deadlineSpec" class="whitespace-pre-wrap" x-cloak></span>
-                                    </p>
+                                     <p class="text-xs text-neutral-400 mt-1 max-w-[150px]"
+                                        x-data="expandableText"
+                                        :class="l.deadlineSpec.length > 20 ? 'cursor-pointer hover:text-neutral-200 transition-colors' : ''"
+                                        @click="if (l.deadlineSpec.length > 20) toggle()">
+                                         <span :class="getCollapsedClass()" x-text="l.deadlineSpec.length > 20 ? l.deadlineSpec.substring(0, 20) + '...' : l.deadlineSpec"></span>
+                                         <span :class="getExpandedClass()" x-text="l.deadlineSpec" class="whitespace-pre-wrap" x-cloak></span>
+                                     </p>
                                 </div>
                             </template>
                             <template x-if="!l.deadlineNeeded">
@@ -164,60 +146,38 @@
                             </template>
                         </td>
                         <td class="py-3 px-4">
-                            <div x-data="{ open: false }" class="relative inline-block text-left">
-                                <button @click="open = !open"
-                                        :class="{
-                                             'text-blue-400 border-blue-500/20 bg-blue-500/5': l.clientStatus === 'pending',
-                                             'text-yellow-400 border-yellow-500/20 bg-yellow-500/5': l.clientStatus === 'active',
-                                             'text-green-400 border-green-500/20 bg-green-500/5': l.clientStatus === 'done',
-                                             'text-red-400 border-red-500/20 bg-red-500/5': l.clientStatus === 'canceled'
-                                         }"
+                            <div x-data="dropdown" class="relative inline-block text-left">
+                                <button @click="toggle"
+                                        :class="getStatusClass(l.clientStatus)"
                                         class="border text-xs px-2.5 py-1.5 rounded-xl focus:outline-none transition-all duration-200 cursor-pointer font-semibold flex items-center gap-1.5 whitespace-nowrap">
                                      <span x-text="l.clientStatus.toUpperCase()"></span>
-                                     <svg class="w-3 h-3 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                                     <svg class="w-3 h-3 transition-transform" :class="getIconClass()" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
                                  </button>
-                                 <div x-show="open" @click.outside="open = false"
-                                       x-transition:enter="transition ease-out duration-500"
-                                       x-transition:enter-start="opacity-0 scale-95"
-                                       x-transition:enter-end="opacity-100 scale-100"
-                                       x-transition:leave="transition ease-in duration-300"
-                                       x-transition:leave-start="opacity-100 scale-100"
-                                       x-transition:leave-end="opacity-0 scale-95"
-                                       class="absolute z-50 mt-1.5 w-32 rounded-xl border border-white/8 bg-bg-dark p-1 shadow-2xl"
-                                       style="display: none;">
-                                     <button @click="updateStatus(l, 'client', 'pending'); open = false" class="dropdown-option text-blue-400">Pending</button>
-                                     <button @click="updateStatus(l, 'client', 'active'); open = false" class="dropdown-option text-yellow-400">Active</button>
-                                     <button @click="updateStatus(l, 'client', 'done'); open = false" class="dropdown-option text-green-400">Done</button>
-                                     <button @click="updateStatus(l, 'client', 'canceled'); open = false" class="dropdown-option text-red-400">Canceled</button>
+                                 <div :class="getDropdownClass()" @click.outside="close"
+                                       class="absolute z-50 mt-1.5 w-32 rounded-xl border border-white/8 bg-bg-dark p-1 shadow-2xl panel-animate"
+                                       x-cloak>
+                                     <button @click="updateStatus(l, 'client', 'pending'); close()" class="dropdown-option text-blue-400">Pending</button>
+                                     <button @click="updateStatus(l, 'client', 'active'); close()" class="dropdown-option text-yellow-400">Active</button>
+                                     <button @click="updateStatus(l, 'client', 'done'); close()" class="dropdown-option text-green-400">Done</button>
+                                     <button @click="updateStatus(l, 'client', 'canceled'); close()" class="dropdown-option text-red-400">Canceled</button>
                                  </div>
                             </div>
                         </td>
                         <td class="py-3 px-4">
-                            <div x-data="{ open: false }" class="relative inline-block text-left">
-                                <button @click="open = !open"
-                                        :class="{
-                                             'text-blue-400 border-blue-500/20 bg-blue-500/5': l.internalStatus === 'pending',
-                                             'text-yellow-400 border-yellow-500/20 bg-yellow-500/5': l.internalStatus === 'active',
-                                             'text-green-400 border-green-500/20 bg-green-500/5': l.internalStatus === 'done',
-                                             'text-red-400 border-red-500/20 bg-red-500/5': l.internalStatus === 'canceled'
-                                         }"
+                            <div x-data="dropdown" class="relative inline-block text-left">
+                                <button @click="toggle"
+                                        :class="getStatusClass(l.internalStatus)"
                                         class="border text-xs px-2.5 py-1.5 rounded-xl focus:outline-none transition-all duration-200 cursor-pointer font-semibold flex items-center gap-1.5 whitespace-nowrap">
                                      <span x-text="l.internalStatus.toUpperCase()"></span>
-                                     <svg class="w-3 h-3 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                                     <svg class="w-3 h-3 transition-transform" :class="getIconClass()" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
                                  </button>
-                                 <div x-show="open" @click.outside="open = false"
-                                       x-transition:enter="transition ease-out duration-500"
-                                       x-transition:enter-start="opacity-0 scale-95"
-                                       x-transition:enter-end="opacity-100 scale-100"
-                                       x-transition:leave="transition ease-in duration-300"
-                                       x-transition:leave-start="opacity-100 scale-100"
-                                       x-transition:leave-end="opacity-0 scale-95"
-                                       class="absolute z-50 mt-1.5 w-32 rounded-xl border border-white/8 bg-bg-dark p-1 shadow-2xl"
-                                       style="display: none;">
-                                     <button @click="updateStatus(l, 'internal', 'pending'); open = false" class="dropdown-option text-blue-400">Pending</button>
-                                     <button @click="updateStatus(l, 'internal', 'active'); open = false" class="dropdown-option text-yellow-400">Active</button>
-                                     <button @click="updateStatus(l, 'internal', 'done'); open = false" class="dropdown-option text-green-400">Done</button>
-                                     <button @click="updateStatus(l, 'internal', 'canceled'); open = false" class="dropdown-option text-red-400">Canceled</button>
+                                 <div :class="getDropdownClass()" @click.outside="close"
+                                       class="absolute z-50 mt-1.5 w-32 rounded-xl border border-white/8 bg-bg-dark p-1 shadow-2xl panel-animate"
+                                       x-cloak>
+                                     <button @click="updateStatus(l, 'internal', 'pending'); close()" class="dropdown-option text-blue-400">Pending</button>
+                                     <button @click="updateStatus(l, 'internal', 'active'); close()" class="dropdown-option text-yellow-400">Active</button>
+                                     <button @click="updateStatus(l, 'internal', 'done'); close()" class="dropdown-option text-green-400">Done</button>
+                                     <button @click="updateStatus(l, 'internal', 'canceled'); close()" class="dropdown-option text-red-400">Canceled</button>
                                  </div>
                             </div>
                         </td>

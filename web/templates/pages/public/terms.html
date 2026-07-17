@@ -8,7 +8,7 @@
     </div>
 
     <div class="lg:col-span-11 space-y-12">
-        <div class="space-y-4 border-l-4 border-primary pl-6 md:pl-10 animate-fade-in-up">
+        <div class="space-y-4 border-l-4 border-primary pl-6 md:pl-10 page-animate">
             <div class="section-title-wrap">
                 <div class="section-accent-line"></div>
                 <span class="section-accent-text">{{.T.Get "LegalNotice"}}</span>
@@ -22,33 +22,17 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-            <div class="animate-fade-in-up">
-                <div class="benefit-card space-y-4 h-full">
-                    <span class="card-index">01</span>
-                    <h3 class="text-lg font-bold text-white tracking-tight wrap-break-word">{{.T.Get "TermsSection1Title"}}</h3>
-                    <p class="text-sm text-neutral-400 leading-relaxed tracking-tight">{{.T.Get "TermsSection1Text"}}</p>
-                </div>
+            <div class="page-animate">
+                {{template "components.benefit_card" dict "Index" "01" "Title" (.T.Get "TermsSection1Title") "Desc" (.T.Get "TermsSection1Text")}}
             </div>
-            <div class="animate-fade-in-up delay-100">
-                <div class="benefit-card space-y-4 h-full">
-                    <span class="card-index">02</span>
-                    <h3 class="text-lg font-bold text-white tracking-tight wrap-break-word">{{.T.Get "TermsSection2Title"}}</h3>
-                    <p class="text-sm text-neutral-400 leading-relaxed tracking-tight">{{.T.Get "TermsSection2Text"}}</p>
-                </div>
+            <div class="page-animate delay-100">
+                {{template "components.benefit_card" dict "Index" "02" "Title" (.T.Get "TermsSection2Title") "Desc" (.T.Get "TermsSection2Text")}}
             </div>
-            <div class="animate-fade-in-up delay-200">
-                <div class="benefit-card space-y-4 h-full">
-                    <span class="card-index">03</span>
-                    <h3 class="text-lg font-bold text-white tracking-tight wrap-break-word">{{.T.Get "TermsSection3Title"}}</h3>
-                    <p class="text-sm text-neutral-400 leading-relaxed tracking-tight">{{.T.Get "TermsSection3Text"}}</p>
-                </div>
+            <div class="page-animate delay-200">
+                {{template "components.benefit_card" dict "Index" "03" "Title" (.T.Get "TermsSection3Title") "Desc" (.T.Get "TermsSection3Text")}}
             </div>
-            <div class="animate-fade-in-up delay-300">
-                <div class="benefit-card space-y-4 h-full">
-                    <span class="card-index">04</span>
-                    <h3 class="text-lg font-bold text-white tracking-tight wrap-break-word">{{.T.Get "TermsSection4Title"}}</h3>
-                    <p class="text-sm text-neutral-400 leading-relaxed tracking-tight">{{.T.Get "TermsSection4Text"}}</p>
-                </div>
+            <div class="page-animate delay-300">
+                {{template "components.benefit_card" dict "Index" "04" "Title" (.T.Get "TermsSection4Title") "Desc" (.T.Get "TermsSection4Text")}}
             </div>
         </div>
     </div>

@@ -29,10 +29,10 @@
                         </span>
                     </template>
                     <input type="text" x-model="tagInput" 
-                           @input="if (tagInput.includes(',')) { addTag(tagInput); tagInput = ''; }"
-                           @keydown.enter.prevent="if (tagInput.trim()) { addTag(tagInput); tagInput = ''; }"
-                           @keydown.backspace="if (!tagInput && techTags.length > 0) { removeTag(techTags.length - 1); }"
-                           @blur="if (tagInput.trim()) { addTag(tagInput); tagInput = ''; }"
+                           @input="handleTagInputInput($event)"
+                           @keydown.enter.prevent="handleTagInputEnter($event)"
+                           @keydown.backspace="handleTagInputBackspace($event)"
+                           @blur="handleTagInputBlur($event)"
                            placeholder="{{.T.Get "PortfolioFormTechStackExample"}}" 
                            class="bg-transparent border-0 p-0 text-sm text-white focus:ring-0 focus:outline-none grow min-w-[80px]">
                 </div>
@@ -48,7 +48,7 @@
             </div>
 
             <!-- Interactive File Row / Reordering / Removing List -->
-            <template x-if="mediaPreviews.length > 0">
+            <template x-if="hasMediaPreviews">
                 <div class="space-y-3 bg-black/30 border border-white/8 p-4 rounded-xl">
                     <h4 class="text-xs font-bold text-neutral-400 uppercase tracking-wider">Arrange Upload Media</h4>
                     <div class="space-y-2">
@@ -98,11 +98,11 @@
     <div class="lg:col-span-5 space-y-6">
         <h3 class="text-lg font-bold text-neutral-200 tracking-tight">{{.T.Get "PortfolioPreviewTitle"}}</h3>
         <div class="portfolio-card">
-            <div x-data="{ activeIndex: 0 }" class="space-y-4">
-                <template x-if="mediaPreviews.length > 0">
+            <div class="space-y-4">
+                <template x-if="hasMediaPreviews">
                     <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-black/40 border border-white/8">
                         <template x-for="(item, index) in mediaPreviews" :key="item.id">
-                            <div x-show="activeIndex === index" class="absolute inset-0 w-full h-full">
+                            <div :class="getPreviewClass(index)" class="absolute inset-0 w-full h-full transition-all duration-300">
                                 <template x-if="item.isVideo">
                                     <video :src="item.url" class="w-full h-full object-cover" controls muted playsinline></video>
                                 </template>
@@ -111,7 +111,7 @@
                                 </template>
                             </div>
                         </template>
-                        <template x-if="mediaPreviews.length > 1">
+                        <template x-if="hasMultipleMediaPreviews">
                             <div class="absolute inset-x-0 bottom-2 flex justify-center space-x-1.5 z-10">
                                 <template x-for="(item, index) in mediaPreviews" :key="item.id">
                                     <button type="button" @click="activeIndex = index"
@@ -120,12 +120,13 @@
                                 </template>
                             </div>
                         </template>
-                        <template x-if="mediaPreviews.length > 1">
+                        </template>
+                        <template x-if="hasMultipleMediaPreviews">
                             <div>
-                                <button type="button" @click="activeIndex = (activeIndex - 1 + mediaPreviews.length) % mediaPreviews.length" class="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 hover:bg-black/80 flex items-center justify-center text-white border border-white/10 hover:border-white/20 transition-all z-10">
+                                <button type="button" @click="prevPreview" class="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 hover:bg-black/80 flex items-center justify-center text-white border border-white/10 hover:border-white/20 transition-all z-10">
                                     <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
                                 </button>
-                                <button type="button" @click="activeIndex = (activeIndex + 1) % mediaPreviews.length" class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 hover:bg-black/80 flex items-center justify-center text-white border border-white/10 hover:border-white/20 transition-all z-10">
+                                <button type="button" @click="nextPreview" class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 hover:bg-black/80 flex items-center justify-center text-white border border-white/10 hover:border-white/20 transition-all z-10">
                                     <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
                                 </button>
                             </div>
@@ -141,7 +142,7 @@
                     <template x-for="(tag, index) in techTags" :key="index">
                         <span class="bg-white/4 text-neutral-300 text-xs px-2.5 py-1 rounded-lg border border-white/6 tracking-tight font-medium" x-text="tag"></span>
                     </template>
-                    <template x-if="techTags.length === 0">
+                    <template x-if="hasNoTechTags">
                         <div class="flex gap-2 opacity-30 select-none">
                             <span class="bg-white/4 text-neutral-300 text-xs px-2.5 py-1 rounded-lg border border-white/6 tracking-tight font-medium">Go</span>
                             <span class="bg-white/4 text-neutral-300 text-xs px-2.5 py-1 rounded-lg border border-white/6 tracking-tight font-medium">Postgres</span>

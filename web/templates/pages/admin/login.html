@@ -1,5 +1,5 @@
 {{define "content"}}
-<div class="max-w-md mx-auto my-4 md:my-8 border border-white/8 backdrop-blur-md bg-white/2 p-8 md:p-10 rounded-2xl space-y-8 shadow-2xl hover:shadow-[0_0_40px_rgba(255,51,102,0.06)] hover:border-primary/20 transition-all duration-500">
+<div class="max-w-md mx-auto my-4 md:my-8 admin-panel-box page-animate">
     <div class="text-center space-y-3">
         <h2 class="text-3xl font-black tracking-tight text-white">{{.T.Get "LoginTitle"}}</h2>
         <p class="text-xs text-neutral-400 tracking-wide max-w-[280px] mx-auto leading-relaxed">{{.T.Get "LoginSubtitle"}}</p>
@@ -27,9 +27,7 @@
         </div>
 
         {{if .TurnstileSiteKey}}
-        <div x-data="window.tivriTurnstileMixin()" 
-             x-init="initTurnstileListeners(); setTimeout(() => renderTurnstile(), 50)" 
-             class="flex justify-center py-2">
+        <div class="flex justify-center py-2">
             <div x-ref="turnstileContainer"></div>
         </div>
         {{end}}
