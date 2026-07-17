@@ -25,7 +25,7 @@ Designed for cost-efficiency and atomic, reproducible deployments.
 
 - **Automated CI/CD**: Pushes to production automatically compile Go binaries, bundle assets, and deploy a lean Docker container.
 - **DigitalOcean Infrastructure**: Optimized to comfortably serve high-traffic loads on entry-level Droplets.
-- **Cloudflare DNS & Security**: Cloudflare manages our DNS, proxies traffic to obscure origin IPs, and integrates Cloudflare Turnstile to block automated bot submissions.
+- **Cloudflare DNS & Security**: Cloudflare manages our DNS, proxies traffic to obscure origin IPs, and integrates Cloudflare Turnstile to block automated bot submissions. We also utilize privacy-first Cloudflare Web Analytics with a dynamic, user-consented cookie banner for compliance.
 - **Custom Domain & Automated SSL**: Nginx acts as our reverse proxy, terminating TLS connections. We use Certbot (Let's Encrypt) to automatically provision and renew SSL certificates for our custom domain.
 - **Custom Email Domain**: Platform notifications and client communications are securely routed using SMTP configured for our custom agency domain, ensuring high deliverability.
 - **Dockerized Environment**: The application and PostgreSQL database run in isolated, easily reproducible containers. Our optimized production Docker image is incredibly minimalist—weighing in at just **~22MB**. It contains only the standalone Go binary and static assets, completely bypassing heavy OS base images or Node.js runtimes.
