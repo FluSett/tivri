@@ -40,12 +40,14 @@ func (a *App) handleSitemap(w http.ResponseWriter, r *http.Request) {
 func (a *App) handlePrivacy(w http.ResponseWriter, r *http.Request) {
 	lang := security.ResolveLocale(r)
 	data := PageData{
-		CurrentPath:      "/privacy",
-		Lang:             lang,
-		T:                a.translator.Get(lang),
-		TurnstileSiteKey: a.cfg.TurnstileSiteKey,
-		AppURL:           a.cfg.AppURL,
-		ContactEmail:     a.cfg.ContactEmail,
+		CurrentPath:             "/privacy",
+		Lang:                    lang,
+		T:                       a.translator.Get(lang),
+		TurnstileSiteKey:        a.cfg.TurnstileSiteKey,
+		AppURL:                  a.cfg.AppURL,
+		ContactEmail:            a.cfg.ContactEmail,
+		Nonce:                   r.Header.Get("X-CSP-Nonce"),
+		CloudflareInsightsToken: a.cfg.CloudflareInsightsToken,
 	}
 	err := a.templates["privacy"].ExecuteTemplate(w, "base.layout.html", data)
 	if err != nil {
@@ -56,12 +58,14 @@ func (a *App) handlePrivacy(w http.ResponseWriter, r *http.Request) {
 func (a *App) handleTerms(w http.ResponseWriter, r *http.Request) {
 	lang := security.ResolveLocale(r)
 	data := PageData{
-		CurrentPath:      "/terms",
-		Lang:             lang,
-		T:                a.translator.Get(lang),
-		TurnstileSiteKey: a.cfg.TurnstileSiteKey,
-		AppURL:           a.cfg.AppURL,
-		ContactEmail:     a.cfg.ContactEmail,
+		CurrentPath:             "/terms",
+		Lang:                    lang,
+		T:                       a.translator.Get(lang),
+		TurnstileSiteKey:        a.cfg.TurnstileSiteKey,
+		AppURL:                  a.cfg.AppURL,
+		ContactEmail:            a.cfg.ContactEmail,
+		Nonce:                   r.Header.Get("X-CSP-Nonce"),
+		CloudflareInsightsToken: a.cfg.CloudflareInsightsToken,
 	}
 	err := a.templates["terms"].ExecuteTemplate(w, "base.layout.html", data)
 	if err != nil {
@@ -75,12 +79,14 @@ func (a *App) handleHome(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		lang := security.ResolveLocale(r)
 		data := PageData{
-			CurrentPath:      r.URL.Path,
-			Lang:             lang,
-			T:                a.translator.Get(lang),
-			TurnstileSiteKey: a.cfg.TurnstileSiteKey,
-			AppURL:           a.cfg.AppURL,
-			ContactEmail:     a.cfg.ContactEmail,
+			CurrentPath:             r.URL.Path,
+			Lang:                    lang,
+			T:                       a.translator.Get(lang),
+			TurnstileSiteKey:        a.cfg.TurnstileSiteKey,
+			AppURL:                  a.cfg.AppURL,
+			ContactEmail:            a.cfg.ContactEmail,
+			Nonce:                   r.Header.Get("X-CSP-Nonce"),
+			CloudflareInsightsToken: a.cfg.CloudflareInsightsToken,
 		}
 
 		err := a.templates["notFound"].ExecuteTemplate(w, "base.layout.html", data)
@@ -100,14 +106,16 @@ func (a *App) handleHome(w http.ResponseWriter, r *http.Request) {
 
 	highQueueActive, _ := a.settingsRepo.GetHighQueue(r.Context())
 	data := PageData{
-		CurrentPath:      "/",
-		Lang:             lang,
-		T:                a.translator.Get(lang),
-		PortfolioItems:   items,
-		HighQueueActive:  highQueueActive,
-		TurnstileSiteKey: a.cfg.TurnstileSiteKey,
-		AppURL:           a.cfg.AppURL,
-		ContactEmail:     a.cfg.ContactEmail,
+		CurrentPath:             "/",
+		Lang:                    lang,
+		T:                       a.translator.Get(lang),
+		PortfolioItems:          items,
+		HighQueueActive:         highQueueActive,
+		TurnstileSiteKey:        a.cfg.TurnstileSiteKey,
+		AppURL:                  a.cfg.AppURL,
+		ContactEmail:            a.cfg.ContactEmail,
+		Nonce:                   r.Header.Get("X-CSP-Nonce"),
+		CloudflareInsightsToken: a.cfg.CloudflareInsightsToken,
 	}
 
 	err = a.templates["home"].ExecuteTemplate(w, "base.layout.html", data)

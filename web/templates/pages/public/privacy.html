@@ -32,7 +32,10 @@
                 {{template "components.benefit_card" dict "Index" "03" "Title" (.T.Get "PrivacySection3Title") "Desc" (.T.Get "PrivacySection3Text")}}
             </div>
             <div class="page-animate delay-300">
-                {{template "components.benefit_card" dict "Index" "04" "Title" (.T.Get "PrivacySection4Title") "Desc" (replaceEmail (.T.Get "PrivacySection4Text") .ContactEmail)}}
+                {{template "components.benefit_card" dict "Index" "04" "Title" (.T.Get "PrivacySection4Title") "Desc" (.T.Get "PrivacySection4Text")}}
+            </div>
+            <div class="page-animate delay-500">
+                {{template "components.benefit_card" dict "Index" "05" "Title" (.T.Get "PrivacySection5Title") "Desc" (replaceEmail (.T.Get "PrivacySection5Text") .ContactEmail)}}
             </div>
         </div>
     </div>

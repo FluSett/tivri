@@ -17,13 +17,15 @@ func (a *App) handleAdminLogin(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		lang := security.ResolveLocale(r)
 		data := PageData{
-			Lang:             lang,
-			T:                a.translator.Get(lang),
-			IsAdmin:          true,
-			IsAdminLogin:     true,
-			TurnstileSiteKey: a.cfg.TurnstileSiteKey,
-			AppURL:           a.cfg.AppURL,
-			ContactEmail:     a.cfg.ContactEmail,
+			Lang:                    lang,
+			T:                       a.translator.Get(lang),
+			IsAdmin:                 true,
+			IsAdminLogin:            true,
+			TurnstileSiteKey:        a.cfg.TurnstileSiteKey,
+			AppURL:                  a.cfg.AppURL,
+			ContactEmail:            a.cfg.ContactEmail,
+			Nonce:                   r.Header.Get("X-CSP-Nonce"),
+			CloudflareInsightsToken: a.cfg.CloudflareInsightsToken,
 		}
 
 		err := a.templates["login"].ExecuteTemplate(w, "base.layout.html", data)
@@ -72,14 +74,16 @@ func (a *App) handleAdminLogin(w http.ResponseWriter, r *http.Request) {
 			if err != nil || !ok {
 				lang := security.ResolveLocale(r)
 				data := PageData{
-					Lang:             lang,
-					T:                a.translator.Get(lang),
-					IsAdmin:          true,
-					IsAdminLogin:     true,
-					Error:            a.translator.Get(lang).Get("ValTurnstileFailed"),
-					TurnstileSiteKey: a.cfg.TurnstileSiteKey,
-					AppURL:           a.cfg.AppURL,
-					ContactEmail:     a.cfg.ContactEmail,
+					Lang:                    lang,
+					T:                       a.translator.Get(lang),
+					IsAdmin:                 true,
+					IsAdminLogin:            true,
+					Error:                   a.translator.Get(lang).Get("ValTurnstileFailed"),
+					TurnstileSiteKey:        a.cfg.TurnstileSiteKey,
+					AppURL:                  a.cfg.AppURL,
+					ContactEmail:            a.cfg.ContactEmail,
+					Nonce:                   r.Header.Get("X-CSP-Nonce"),
+					CloudflareInsightsToken: a.cfg.CloudflareInsightsToken,
 				}
 				w.WriteHeader(http.StatusBadRequest)
 				err = a.templates["login"].ExecuteTemplate(w, "base.layout.html", data)
@@ -194,20 +198,22 @@ func (a *App) handleAdminDashboard(w http.ResponseWriter, r *http.Request) {
 	highQueueActive, _ := a.settingsRepo.GetHighQueue(r.Context())
 	maintenanceActive, _ := a.settingsRepo.GetMaintenance(r.Context())
 	data := PageData{
-		Lang:              lang,
-		T:                 a.translator.Get(lang),
-		PortfolioItems:    items,
-		Leads:             leads,
-		ContactMessages:   msgs,
-		LeadsJSON:         leadsJSON,
-		MessagesJSON:      msgsJSON,
-		IsAdmin:           true,
-		AdminTab:          tab,
-		HighQueueActive:   highQueueActive,
-		MaintenanceActive: maintenanceActive,
-		TurnstileSiteKey:  a.cfg.TurnstileSiteKey,
-		AppURL:            a.cfg.AppURL,
-		ContactEmail:      a.cfg.ContactEmail,
+		Lang:                    lang,
+		T:                       a.translator.Get(lang),
+		PortfolioItems:          items,
+		Leads:                   leads,
+		ContactMessages:         msgs,
+		LeadsJSON:               leadsJSON,
+		MessagesJSON:            msgsJSON,
+		IsAdmin:                 true,
+		AdminTab:                tab,
+		HighQueueActive:         highQueueActive,
+		MaintenanceActive:       maintenanceActive,
+		TurnstileSiteKey:        a.cfg.TurnstileSiteKey,
+		AppURL:                  a.cfg.AppURL,
+		ContactEmail:            a.cfg.ContactEmail,
+		Nonce:                   r.Header.Get("X-CSP-Nonce"),
+		CloudflareInsightsToken: a.cfg.CloudflareInsightsToken,
 	}
 
 	err = a.templates["admin"].ExecuteTemplate(w, "base.layout.html", data)

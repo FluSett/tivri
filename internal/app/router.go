@@ -127,10 +127,12 @@ func (a *App) maintenanceMiddleware(next http.Handler) http.Handler {
 
 			lang := security.ResolveLocale(r)
 			data := PageData{
-				Lang:              lang,
-				T:                 a.translator.Get(lang),
-				MaintenanceActive: true,
-				TurnstileSiteKey:  a.cfg.TurnstileSiteKey,
+				Lang:                    lang,
+				T:                       a.translator.Get(lang),
+				MaintenanceActive:       true,
+				TurnstileSiteKey:        a.cfg.TurnstileSiteKey,
+				Nonce:                   r.Header.Get("X-CSP-Nonce"),
+				CloudflareInsightsToken: a.cfg.CloudflareInsightsToken,
 			}
 
 			err = a.templates["maintenance"].ExecuteTemplate(w, "base.layout.html", data)

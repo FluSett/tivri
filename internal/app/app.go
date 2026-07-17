@@ -35,23 +35,25 @@ const (
 )
 
 type PageData struct {
-	CurrentPath       string
-	Lang              string
-	T                 i18n.Translation
-	PortfolioItems    []portfolio.PortfolioItem
-	Leads             []project_intake.Lead
-	ContactMessages   []messaging.ContactMessage
-	LeadsJSON         string
-	MessagesJSON      string
-	IsAdmin           bool
-	IsAdminLogin      bool
-	AdminTab          string
-	Error             string
-	HighQueueActive   bool
-	MaintenanceActive bool
-	TurnstileSiteKey  string
-	AppURL            string
-	ContactEmail      string
+	CurrentPath             string
+	Lang                    string
+	T                       i18n.Translation
+	PortfolioItems          []portfolio.PortfolioItem
+	Leads                   []project_intake.Lead
+	ContactMessages         []messaging.ContactMessage
+	LeadsJSON               string
+	MessagesJSON            string
+	IsAdmin                 bool
+	IsAdminLogin            bool
+	AdminTab                string
+	Error                   string
+	HighQueueActive         bool
+	MaintenanceActive       bool
+	TurnstileSiteKey        string
+	AppURL                  string
+	ContactEmail            string
+	Nonce                   string
+	CloudflareInsightsToken string
 }
 
 type App struct {

@@ -10,18 +10,19 @@ import (
 )
 
 type Config struct {
-	Env                string
-	DBDSN              string
-	AdminUsername      string
-	AdminPassword      string
-	Port               string
-	LocalesDir         string
-	TurnstileSiteKey   string
-	TurnstileSecretKey string
-	TelegramBotToken   string
-	TelegramChatID     string
-	AppURL             string
-	ContactEmail       string
+	Env                     string
+	DBDSN                   string
+	AdminUsername           string
+	AdminPassword           string
+	Port                    string
+	LocalesDir              string
+	TurnstileSiteKey        string
+	TurnstileSecretKey      string
+	TelegramBotToken        string
+	TelegramChatID          string
+	AppURL                  string
+	ContactEmail            string
+	CloudflareInsightsToken string
 }
 
 func getEnv(key string) string {
@@ -78,19 +79,22 @@ func Load() (*Config, error) {
 		contactEmail = "contact@tivri.cc"
 	}
 
+	cloudflareInsightsToken := getEnv("CLOUDFLARE_INSIGHTS_TOKEN")
+
 	return &Config{
-		Env:                env,
-		DBDSN:              dbDSN,
-		AdminUsername:      adminUsername,
-		AdminPassword:      adminPassword,
-		Port:               port,
-		LocalesDir:         localesDir,
-		TurnstileSiteKey:   turnstileSiteKey,
-		TurnstileSecretKey: turnstileSecretKey,
-		TelegramBotToken:   telegramBotToken,
-		TelegramChatID:     telegramChatID,
-		AppURL:             appURL,
-		ContactEmail:       contactEmail,
+		Env:                     env,
+		DBDSN:                   dbDSN,
+		AdminUsername:           adminUsername,
+		AdminPassword:           adminPassword,
+		Port:                    port,
+		LocalesDir:              localesDir,
+		TurnstileSiteKey:        turnstileSiteKey,
+		TurnstileSecretKey:      turnstileSecretKey,
+		TelegramBotToken:        telegramBotToken,
+		TelegramChatID:          telegramChatID,
+		AppURL:                  appURL,
+		ContactEmail:            contactEmail,
+		CloudflareInsightsToken: cloudflareInsightsToken,
 	}, nil
 }
 
