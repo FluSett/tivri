@@ -158,7 +158,7 @@ func (sm *SecurityManager) CookieAuth(adminUsername, adminPassword string, next 
 		if sm.db != nil {
 			var expiresAt time.Time
 			err = sm.db.QueryRow(r.Context(), "SELECT expires_at FROM admin_sessions WHERE token = $1", cookie.Value).Scan(&expiresAt)
-			
+
 			if err != nil {
 				if r.Method == http.MethodGet {
 					http.Redirect(w, r, "/admin/login", http.StatusSeeOther)

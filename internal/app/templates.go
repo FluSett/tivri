@@ -121,6 +121,7 @@ func parseTemplates(webUIFS fs.FS) (map[string]*template.Template, error) {
 		"templates/partials/layout/*.html",
 		"templates/pages/public/privacy.html",
 		"templates/partials/components/lang_switcher.html",
+		"templates/partials/components/benefit_card.html",
 	)
 	if err != nil {
 		return nil, err
@@ -132,6 +133,7 @@ func parseTemplates(webUIFS fs.FS) (map[string]*template.Template, error) {
 		"templates/partials/layout/*.html",
 		"templates/pages/public/terms.html",
 		"templates/partials/components/lang_switcher.html",
+		"templates/partials/components/benefit_card.html",
 	)
 	if err != nil {
 		return nil, err

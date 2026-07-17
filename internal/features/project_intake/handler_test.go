@@ -155,7 +155,6 @@ func TestHandler_Create(t *testing.T) {
 			t.Errorf("unexpected lead fields: %+v", lead)
 		}
 
-
 	})
 }
 
