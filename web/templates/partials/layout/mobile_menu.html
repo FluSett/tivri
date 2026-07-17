@@ -1,6 +1,6 @@
 {{define "layout.mobile_menu.html"}}
     <!-- Drawer overlay -->
-    <div :class="getMobileMenuOverlayClass()" class="fixed inset-0 z-100 md:hidden transition-opacity ease-linear duration-300" role="dialog" aria-modal="true">
+    <div x-cloak :class="getMobileMenuOverlayClass()" class="fixed inset-0 z-100 md:hidden transition-opacity ease-linear duration-300" role="dialog" aria-modal="true">
         <!-- Backdrop -->
         <div class="fixed inset-0 bg-black/80"
              @click="closeMobileMenu">
