@@ -8,7 +8,7 @@
     </div>
 
     <div class="lg:col-span-11 space-y-12">
-        <div class="space-y-4 border-l-4 border-primary pl-6 md:pl-10 animate-fade-in-up">
+        <div class="space-y-4 border-l-4 border-primary pl-6 md:pl-10 page-animate">
             <div class="section-title-wrap">
                 <div class="section-accent-line"></div>
                 <span class="section-accent-text">{{.T.Get "LegalNotice"}}</span>
@@ -22,33 +22,17 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-            <div class="animate-fade-in-up">
-                <div class="benefit-card space-y-4 h-full">
-                    <span class="card-index">01</span>
-                    <h3 class="text-lg font-bold text-white tracking-tight wrap-break-word">{{.T.Get "PrivacySection1Title"}}</h3>
-                    <p class="text-sm text-neutral-400 leading-relaxed tracking-tight">{{.T.Get "PrivacySection1Text"}}</p>
-                </div>
+            <div class="page-animate">
+                {{template "components.benefit_card" dict "Index" "01" "Title" (.T.Get "PrivacySection1Title") "Desc" (.T.Get "PrivacySection1Text")}}
             </div>
-            <div class="animate-fade-in-up delay-100">
-                <div class="benefit-card space-y-4 h-full">
-                    <span class="card-index">02</span>
-                    <h3 class="text-lg font-bold text-white tracking-tight wrap-break-word">{{.T.Get "PrivacySection2Title"}}</h3>
-                    <p class="text-sm text-neutral-400 leading-relaxed tracking-tight">{{.T.Get "PrivacySection2Text"}}</p>
-                </div>
+            <div class="page-animate delay-100">
+                {{template "components.benefit_card" dict "Index" "02" "Title" (.T.Get "PrivacySection2Title") "Desc" (.T.Get "PrivacySection2Text")}}
             </div>
-            <div class="animate-fade-in-up delay-200">
-                <div class="benefit-card space-y-4 h-full">
-                    <span class="card-index">03</span>
-                    <h3 class="text-lg font-bold text-white tracking-tight wrap-break-word">{{.T.Get "PrivacySection3Title"}}</h3>
-                    <p class="text-sm text-neutral-400 leading-relaxed tracking-tight">{{.T.Get "PrivacySection3Text"}}</p>
-                </div>
+            <div class="page-animate delay-200">
+                {{template "components.benefit_card" dict "Index" "03" "Title" (.T.Get "PrivacySection3Title") "Desc" (.T.Get "PrivacySection3Text")}}
             </div>
-            <div class="animate-fade-in-up delay-300">
-                <div class="benefit-card space-y-4 h-full">
-                    <span class="card-index">04</span>
-                    <h3 class="text-lg font-bold text-white tracking-tight wrap-break-word">{{.T.Get "PrivacySection4Title"}}</h3>
-                    <p class="text-sm text-neutral-400 leading-relaxed tracking-tight">{{replaceEmail (.T.Get "PrivacySection4Text") .ContactEmail}}</p>
-                </div>
+            <div class="page-animate delay-300">
+                {{template "components.benefit_card" dict "Index" "04" "Title" (.T.Get "PrivacySection4Title") "Desc" (replaceEmail (.T.Get "PrivacySection4Text") .ContactEmail)}}
             </div>
         </div>
     </div>

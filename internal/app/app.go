@@ -26,12 +26,12 @@ import (
 )
 
 const (
-	defaultReadTimeout        = 10 * time.Second
-	defaultWriteTimeout       = 10 * time.Second
-	defaultIdleTimeout        = 120 * time.Second
-	defaultReadHeaderTimeout  = 3 * time.Second
-	gracefulShutdown          = 10 * time.Second
-	notifyTimeout             = 5 * time.Second
+	defaultReadTimeout       = 10 * time.Second
+	defaultWriteTimeout      = 10 * time.Second
+	defaultIdleTimeout       = 120 * time.Second
+	defaultReadHeaderTimeout = 3 * time.Second
+	gracefulShutdown         = 10 * time.Second
+	notifyTimeout            = 5 * time.Second
 )
 
 type PageData struct {
@@ -183,7 +183,6 @@ func New(ctx context.Context) (*App, error) {
 	}, nil
 }
 
-
 func (a *App) Close() error {
 	if a.db != nil {
 		a.db.Close()
@@ -233,5 +232,3 @@ func (a *App) Start(ctx context.Context) error {
 	}
 	return nil
 }
-
-

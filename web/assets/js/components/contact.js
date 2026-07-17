@@ -56,6 +56,51 @@ document.addEventListener('alpine:init', () => {
                 this.messageTouched = false;
                 this.submitStatus = 'idle';
                 this.resetTurnstile();
+            },
+
+            toggleForm() {
+                this.showForm = !this.showForm;
+            },
+
+            getIconClass() {
+                return this.showForm ? 'rotate-180 text-white' : '';
+            },
+
+            getFormContainerClass() {
+                return this.showForm
+                    ? 'grid-collapse grid-expand'
+                    : 'grid-collapse opacity-0 pointer-events-none delay-300';
+            },
+
+            getSubmittedClass() {
+                return this.submitted
+                    ? 'opacity-100 scale-100 pointer-events-auto'
+                    : 'opacity-0 scale-90 pointer-events-none hidden';
+            },
+
+            getNotSubmittedClass() {
+                return !this.submitted
+                    ? 'opacity-100 scale-100 pointer-events-auto'
+                    : 'opacity-0 scale-90 pointer-events-none hidden';
+            },
+
+            handleHtmxAfterRequest(event) {
+                if (event.detail.successful) {
+                    this.submitted = true;
+                    this.email = '';
+                    this.topic = '';
+                    this.message = '';
+                    sessionStorage.removeItem('contact_email');
+                    sessionStorage.removeItem('contact_topic');
+                    sessionStorage.removeItem('contact_message');
+                }
+                this.submitStatus = 'idle';
+            },
+
+            resizeTextarea(event) {
+                const el = event.target;
+                el.style.height = 'auto';
+                el.style.height = el.scrollHeight + 'px';
             }
         };
     });

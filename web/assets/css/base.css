@@ -57,3 +57,4 @@ body {
 .no-transition, .no-transition * {
     transition: none !important;
 }
+@view-transition { navigation: auto; }

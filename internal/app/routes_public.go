@@ -30,7 +30,7 @@ func (a *App) handleSitemap(w http.ResponseWriter, r *http.Request) {
 		Langs:  []string{"", "?lang=en", "?lang=uk", "?lang=ru"},
 		Pages:  []string{"privacy", "terms"},
 	}
-	
+
 	err := a.templates["sitemap"].Execute(w, data)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

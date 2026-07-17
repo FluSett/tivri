@@ -144,6 +144,67 @@ document.addEventListener('alpine:init', () => {
                 document.getElementById('intake-form').reset();
             },
 
+            openStepperForm() {
+                this.openStepper = true;
+            },
+
+            setStep(n) {
+                this.step = n;
+            },
+
+            setBudget(b) {
+                this.budget = b;
+            },
+
+            setDeadlineNeeded(val) {
+                if (!this.highQueueActive) {
+                    this.deadlineNeeded = val;
+                }
+            },
+
+            getStepperIntroClass() {
+                return !this.openStepper
+                    ? 'grid-collapse grid-expand'
+                    : 'grid-collapse opacity-0 pointer-events-none delay-300';
+            },
+
+            getStepperFormClass() {
+                return this.openStepper
+                    ? 'grid-collapse grid-expand'
+                    : 'grid-collapse opacity-0 pointer-events-none delay-300';
+            },
+
+            getSubmittedClass() {
+                return this.submitted
+                    ? 'opacity-100 scale-100 pointer-events-auto'
+                    : 'opacity-0 scale-95 pointer-events-none hidden';
+            },
+
+            getNotSubmittedClass() {
+                return !this.submitted
+                    ? 'opacity-100 scale-100 pointer-events-auto'
+                    : 'opacity-0 scale-95 pointer-events-none hidden';
+            },
+
+            getBudgetValidationClass() {
+                if (this.budgetTouched && (this.customBudget.trim() === '' || parseInt(this.customBudget, 10) < 100)) {
+                    return 'opacity-100';
+                }
+                return 'opacity-0 hidden';
+            },
+
+            handleBudgetInput(event) {
+                this.customBudget = this.customBudget.replace(/[^0-9]/g, '');
+                this.budgetTouched = true;
+            },
+
+            handleHtmxAfterRequest(event) {
+                if (event.detail.successful) {
+                    this.submitted = true;
+                }
+                this.submitStatus = 'idle';
+            },
+
             handleSubmit(event) {
                 if (!this.validateTurnstile(event)) return;
 
