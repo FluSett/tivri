@@ -25,13 +25,12 @@ func TestOutboxWorker(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	pool, err := database.Connect(ctx, dsn)
+	pool, err := database.Connect(ctx, dsn, 10, 10)
 	if err != nil {
 		t.Fatalf("failed to connect to database: %v", err)
 	}
 	defer pool.Close()
 
-	// Ensure clean table state
 	_, _ = pool.Exec(ctx, `
 		CREATE TABLE IF NOT EXISTS outbox_events (
 			id SERIAL PRIMARY KEY,
@@ -43,7 +42,6 @@ func TestOutboxWorker(t *testing.T) {
 	`)
 	_, _ = pool.Exec(ctx, "DELETE FROM outbox_events")
 
-	// Insert dummy events
 	_, err = pool.Exec(ctx, "INSERT INTO outbox_events (type, payload) VALUES ($1, $2)", "test.outbox.event", `{"data":"test"}`)
 	if err != nil {
 		t.Fatalf("failed to insert test outbox event: %v", err)
@@ -53,7 +51,6 @@ func TestOutboxWorker(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	worker := NewOutboxWorker(pool, bus, logger)
 
-	// Single polling iteration
 	worker.processPending(ctx)
 
 	if len(bus.published) != 1 {
@@ -64,7 +61,6 @@ func TestOutboxWorker(t *testing.T) {
 		t.Errorf("expected type test.outbox.event, got %s", bus.published[0].Type)
 	}
 
-	// Verify it is marked processed
 	var processed bool
 	err = pool.QueryRow(ctx, "SELECT processed FROM outbox_events LIMIT 1").Scan(&processed)
 	if err != nil {

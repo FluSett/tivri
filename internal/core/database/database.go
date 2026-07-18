@@ -5,7 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"io/fs"
 )
 
 const (
@@ -13,14 +17,14 @@ const (
 	defaultMaxConnLifetime = 1 * time.Hour
 )
 
-func Connect(ctx context.Context, dsn string) (*pgxpool.Pool, error) {
+func Connect(ctx context.Context, dsn string, maxConns, minConns int32) (*pgxpool.Pool, error) {
 	config, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
 		return nil, fmt.Errorf("database: parse config failed: %w", err)
 	}
 
-	config.MaxConns = 25
-	config.MinConns = 5
+	config.MaxConns = maxConns
+	config.MinConns = minConns
 	config.MaxConnIdleTime = defaultMaxConnIdleTime
 	config.MaxConnLifetime = defaultMaxConnLifetime
 
@@ -38,9 +42,19 @@ func Connect(ctx context.Context, dsn string) (*pgxpool.Pool, error) {
 	return pool, nil
 }
 
-func Migrate(ctx context.Context, pool *pgxpool.Pool, migrationSQL string) error {
-	_, err := pool.Exec(ctx, migrationSQL)
+func Migrate(dsn string, fs fs.FS) error {
+	d, err := iofs.New(fs, "migrations")
 	if err != nil {
+		return fmt.Errorf("database: could not create iofs for migrations: %w", err)
+	}
+
+	m, err := migrate.NewWithSourceInstance("iofs", d, dsn)
+	if err != nil {
+		return fmt.Errorf("database: could not initialize migrate instance: %w", err)
+	}
+
+	err = m.Up()
+	if err != nil && err != migrate.ErrNoChange {
 		return fmt.Errorf("database: migration failed: %w", err)
 	}
 

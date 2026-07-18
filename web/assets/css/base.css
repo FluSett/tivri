@@ -83,3 +83,8 @@ body::before {
 .htmx-request.htmx-indicator {
     opacity: 1;
 }
+
+#global-loader {
+    transition: width 0.3s ease, opacity 0.3s ease;
+    box-shadow: 0 0 10px var(--color-primary), 0 0 5px var(--color-primary);
+}

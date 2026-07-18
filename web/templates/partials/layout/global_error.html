@@ -1,9 +1,6 @@
 {{define "layout.global_error.html"}}
-<!-- Global Error UI Alert Box -->
-<div x-data="globalError"
-     :class="getErrorClass()"
-     x-cloak
-     class="fixed bottom-6 right-6 z-999 max-w-sm w-full bg-bg-dark border border-primary/40 shadow-[0_0_30px_rgba(255,51,102,0.15)] rounded-xl p-4 flex items-start space-x-3 backdrop-blur-md panel-animate">
+<div id="global-error-toast" data-ref="toast"
+     class="global-toast-error">
     <div class="shrink-0 text-primary mt-0.5">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
@@ -12,11 +9,11 @@
     <div class="grow space-y-1">
         <div class="flex items-center justify-between gap-4">
             <h4 class="text-xs font-black uppercase tracking-wider text-white">System Notice</h4>
-            <span class="text-[10px] text-neutral-400 font-mono" x-text="errorTime"></span>
+            <span data-ref="time" class="text-[10px] text-neutral-400 font-mono"></span>
         </div>
-        <p class="text-xs text-neutral-300 leading-normal" x-text="errorMessage"></p>
+        <p data-ref="message" class="text-xs text-neutral-300 leading-normal"></p>
     </div>
-    <button @click="closeError" class="text-neutral-500 hover:text-white transition-colors shrink-0">
+    <button data-ref="close" class="text-neutral-500 hover:text-white transition-colors shrink-0 cursor-pointer">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
         </svg>

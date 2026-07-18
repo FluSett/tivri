@@ -1,193 +1,247 @@
 {{define "admin.leads.html"}}
-<div class="space-y-6"
-     x-data="leadsTable"
-     data-leads="{{.LeadsJSON}}">
-    <!-- Settings Panel -->
+<form id="leads-container" data-ref="container" class="space-y-6" hx-get="/admin/api/leads" hx-target="this" hx-swap="outerHTML" hx-trigger="change">
+    <input type="hidden" name="page" value="{{.Leads.Params.Page}}" data-ref="pageInput">
+    <input type="hidden" name="client_status" value="{{if .Leads.Params.ClientStatus}}{{.Leads.Params.ClientStatus}}{{else}}all{{end}}" data-ref="clientStatusInput">
+    <input type="hidden" name="internal_status" value="{{if .Leads.Params.InternalStatus}}{{.Leads.Params.InternalStatus}}{{else}}all{{end}}" data-ref="internalStatusInput">
+    <input type="hidden" name="sort_by" value="{{if .Leads.Params.SortBy}}{{.Leads.Params.SortBy}}{{else}}date_desc{{end}}" data-ref="sortInput">
+    {{ $.BaseData.CSRFToken }}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- High Queue Configuration Box -->
         <div class="flex items-center justify-between bg-black/40 border border-white/8 p-5 rounded-2xl">
             <div class="space-y-1">
                 <h4 class="text-sm font-bold text-white uppercase tracking-wider">{{.T.Get "AdminHighQueueLabel"}}</h4>
                 <p class="text-xs text-neutral-400">{{.T.Get "AdminHighQueueHint"}}</p>
             </div>
-            <form hx-post="/admin/settings/high-queue" hx-trigger="change" hx-swap="none" class="flex items-center">
+            <div hx-post="/admin/settings/high-queue" hx-trigger="change" hx-swap="none" hx-include="find input" class="flex items-center">
+                {{ $.BaseData.CSRFToken }}
                 <label class="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" name="high_queue" value="true" class="sr-only peer" {{if .HighQueueActive}}checked{{end}}>
                     <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                 </label>
-            </form>
+            </div>
         </div>
 
-        <!-- Maintenance Mode Configuration Box -->
         <div class="flex items-center justify-between bg-black/40 border border-white/8 p-5 rounded-2xl">
             <div class="space-y-1">
                 <h4 class="text-sm font-bold text-white uppercase tracking-wider">{{.T.Get "AdminMaintenanceLabel"}}</h4>
                 <p class="text-xs text-neutral-400">{{.T.Get "AdminMaintenanceHint"}}</p>
             </div>
-            <form hx-post="/admin/settings/maintenance" hx-trigger="change" hx-swap="none" class="flex items-center">
+            <div hx-post="/admin/settings/maintenance" hx-trigger="change" hx-swap="none" hx-include="find input" class="flex items-center">
+                {{ $.BaseData.CSRFToken }}
                 <label class="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" name="maintenance" value="true" class="sr-only peer" {{if .MaintenanceActive}}checked{{end}}>
                     <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                 </label>
-            </form>
-        </div>
-    </div>
-
-    <div class="flex flex-wrap gap-4 items-center justify-between bg-black/40 border border-white/8 p-5 rounded-2xl">
-        <div class="flex flex-wrap gap-4">
-            <div class="space-y-1" x-data="dropdown">
-                <label class="block text-primary font-bold uppercase tracking-widest text-[11px] mb-1.5">{{.T.Get "LeadClientStatus"}}</label>
-                <div class="relative">
-                    <button @click="toggle" class="bg-black/60 border border-white/8 hover:border-white/20 text-xs px-3.5 py-2 rounded-full text-white focus:outline-none transition-all duration-200 cursor-pointer font-medium flex items-center gap-2 min-w-[120px] justify-between">
-                        <span x-text="clientFilter.toUpperCase()"></span>
-                        <svg class="w-3 h-3 transition-transform" :class="getIconClass()" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <div :class="getDropdownClass()" @click.outside="close"
-                          class="absolute z-50 mt-1.5 w-full rounded-xl border border-white/8 bg-bg-dark p-1 shadow-2xl panel-animate"
-                          x-cloak>
-                        <template x-for="opt in ['all', 'pending', 'active', 'done', 'canceled']">
-                            <button @click="setClientFilter(opt); close()"
-                                    class="dropdown-option capitalize"
-                                    x-text="opt"></button>
-                        </template>
-                    </div>
-                </div>
-            </div>
-            <div class="space-y-1" x-data="dropdown">
-                <label class="block text-primary font-bold uppercase tracking-widest text-[11px] mb-1.5">{{.T.Get "LeadInternalStatus"}}</label>
-                <div class="relative">
-                    <button @click="toggle" class="bg-black/60 border border-white/8 hover:border-white/20 text-xs px-3.5 py-2 rounded-xl text-white focus:outline-none transition-all duration-200 cursor-pointer font-medium flex items-center gap-2 min-w-[120px] justify-between">
-                        <span x-text="internalFilter.toUpperCase()"></span>
-                        <svg class="w-3 h-3 transition-transform" :class="getIconClass()" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <div :class="getDropdownClass()" @click.outside="close"
-                          class="absolute z-50 mt-1.5 w-full rounded-xl border border-white/8 bg-bg-dark p-1 shadow-2xl panel-animate"
-                          x-cloak>
-                        <template x-for="opt in ['all', 'pending', 'active', 'done', 'canceled']">
-                            <button @click="setInternalFilter(opt); close()"
-                                    class="dropdown-option capitalize"
-                                    x-text="opt"></button>
-                        </template>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="space-y-1" x-data="dropdown">
-            <label class="block text-primary font-bold uppercase tracking-widest text-[11px] mb-1.5">{{.T.Get "SortByLabel"}}</label>
-            <div class="relative">
-                <button @click="toggle" class="bg-black/60 border border-white/8 hover:border-white/20 text-xs px-3.5 py-2 rounded-full text-white focus:outline-none transition-all duration-200 cursor-pointer font-medium flex items-center gap-2 min-w-[160px] justify-between">
-                    <span x-text="getSortByText()"></span>
-                    <svg class="w-3 h-3 transition-transform" :class="getIconClass()" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                <div :class="getDropdownClass()" @click.outside="close"
-                     class="absolute z-50 mt-1.5 w-full rounded-xl border border-white/8 bg-bg-dark p-1 shadow-2xl text-left panel-animate"
-                     x-cloak>
-                    <button @click="setSortBy('date_desc'); close()" class="dropdown-option">Newest</button>
-                    <button @click="setSortBy('date_asc'); close()" class="dropdown-option">Oldest</button>
-                    <button @click="setSortBy('budget_desc'); close()" class="dropdown-option">Highest Budget</button>
-                    <button @click="setSortBy('budget_asc'); close()" class="dropdown-option">Lowest Budget</button>
-                    <button @click="setSortBy('name_asc'); close()" class="dropdown-option">Name A-Z</button>
-                    <button @click="setSortBy('name_desc'); close()" class="dropdown-option">Name Z-A</button>
-                </div>
             </div>
         </div>
     </div>
 
-    <div class="overflow-x-auto">
+    <div class="bg-black/40 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl mt-6">
+        <!-- Toolbar -->
+        <div class="flex flex-col sm:flex-row gap-4 items-center justify-between p-6 border-b border-white/5 bg-white/1">
+            <div class="flex flex-wrap gap-4 items-center w-full sm:w-auto">
+                {{$clientFilterLabel := $.T.Get "All"}}
+                {{if eq .Leads.Params.ClientStatus "pending"}}{{$clientFilterLabel = $.T.Get "Pending"}}
+                {{else if eq .Leads.Params.ClientStatus "active"}}{{$clientFilterLabel = $.T.Get "Active"}}
+                {{else if eq .Leads.Params.ClientStatus "done"}}{{$clientFilterLabel = $.T.Get "Done"}}
+                {{else if eq .Leads.Params.ClientStatus "canceled"}}{{$clientFilterLabel = $.T.Get "Canceled"}}
+                {{end}}
+                {{template "components.dropdown.html" dict
+                    "Label" (.T.Get "LeadClientStatus")
+                    "BtnID" "leads-client-filter-btn"
+                    "BtnRef" "clientFilterBtn"
+                    "BtnAction" "toggleClientFilter"
+                    "TextID" "leads-client-filter-text"
+                    "TextRef" "clientFilterText"
+                    "DefaultText" $clientFilterLabel
+                    "DropdownID" "leads-client-filter-dropdown"
+                    "DropdownRef" "clientFilterDropdown"
+                    "Options" (list 
+                        (dict "Label" (.T.Get "All") "Value" "all" "OptionAction" "setClientFilter") 
+                        (dict "Label" (.T.Get "Pending") "Value" "pending" "OptionAction" "setClientFilter") 
+                        (dict "Label" (.T.Get "Active") "Value" "active" "OptionAction" "setClientFilter") 
+                        (dict "Label" (.T.Get "Done") "Value" "done" "OptionAction" "setClientFilter") 
+                        (dict "Label" (.T.Get "Canceled") "Value" "canceled" "OptionAction" "setClientFilter")
+                    )
+                }}
+                {{$internalFilterLabel := $.T.Get "All"}}
+                {{if eq .Leads.Params.InternalStatus "pending"}}{{$internalFilterLabel = $.T.Get "Pending"}}
+                {{else if eq .Leads.Params.InternalStatus "active"}}{{$internalFilterLabel = $.T.Get "Active"}}
+                {{else if eq .Leads.Params.InternalStatus "done"}}{{$internalFilterLabel = $.T.Get "Done"}}
+                {{else if eq .Leads.Params.InternalStatus "canceled"}}{{$internalFilterLabel = $.T.Get "Canceled"}}
+                {{end}}
+                {{template "components.dropdown.html" dict
+                    "Label" (.T.Get "LeadInternalStatus")
+                    "BtnID" "leads-internal-filter-btn"
+                    "BtnRef" "internalFilterBtn"
+                    "BtnAction" "toggleInternalFilter"
+                    "TextID" "leads-internal-filter-text"
+                    "TextRef" "internalFilterText"
+                    "DefaultText" $internalFilterLabel
+                    "DropdownID" "leads-internal-filter-dropdown"
+                    "DropdownRef" "internalFilterDropdown"
+                    "Options" (list 
+                        (dict "Label" (.T.Get "All") "Value" "all" "OptionAction" "setInternalFilter") 
+                        (dict "Label" (.T.Get "Pending") "Value" "pending" "OptionAction" "setInternalFilter") 
+                        (dict "Label" (.T.Get "Active") "Value" "active" "OptionAction" "setInternalFilter") 
+                        (dict "Label" (.T.Get "Done") "Value" "done" "OptionAction" "setInternalFilter") 
+                        (dict "Label" (.T.Get "Canceled") "Value" "canceled" "OptionAction" "setInternalFilter")
+                    )
+                }}
+                {{$sortFilterLabel := $.T.Get "SortDateNewest"}}
+                {{if eq .Leads.Params.SortBy "date_asc"}}{{$sortFilterLabel = $.T.Get "SortDateOldest"}}
+                {{else if eq .Leads.Params.SortBy "budget_desc"}}{{$sortFilterLabel = $.T.Get "SortBudgetHigh"}}
+                {{else if eq .Leads.Params.SortBy "budget_asc"}}{{$sortFilterLabel = $.T.Get "SortBudgetLow"}}
+                {{else if eq .Leads.Params.SortBy "name_asc"}}{{$sortFilterLabel = $.T.Get "SortNameAsc"}}
+                {{else if eq .Leads.Params.SortBy "name_desc"}}{{$sortFilterLabel = $.T.Get "SortNameDesc"}}
+                {{end}}
+                {{template "components.dropdown.html" dict
+                    "Label" (.T.Get "SortByLabel")
+                    "BtnRef" "sortBtn"
+                    "BtnAction" "toggleSort"
+                    "TextRef" "sortText"
+                    "DefaultText" $sortFilterLabel
+                    "DropdownRef" "sortDropdown"
+                    "Options" (list 
+                        (dict "Label" (.T.Get "SortDateNewest") "Value" "date_desc" "OptionAction" "setSort")
+                        (dict "Label" (.T.Get "SortDateOldest") "Value" "date_asc" "OptionAction" "setSort")
+                        (dict "Label" (.T.Get "SortBudgetHigh") "Value" "budget_desc" "OptionAction" "setSort")
+                        (dict "Label" (.T.Get "SortBudgetLow") "Value" "budget_asc" "OptionAction" "setSort")
+                        (dict "Label" (.T.Get "SortNameAsc") "Value" "name_asc" "OptionAction" "setSort")
+                        (dict "Label" (.T.Get "SortNameDesc") "Value" "name_desc" "OptionAction" "setSort")
+                    )
+                }}
+            </div>
+
+            <div class="relative w-full sm:max-w-sm">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                </svg>
+                <input type="text" name="search_query" value="{{.Leads.Params.SearchQuery}}" hx-get="/admin/api/leads" hx-include="#leads-container" hx-trigger="keyup changed delay:500ms" hx-target="#leads-container" hx-swap="outerHTML" placeholder="{{.T.Get "AdminSearchPlaceholder"}}" class="w-full bg-black/40 border border-white/10 rounded-xl py-2 pl-9 pr-4 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all">
+            </div>
+        </div>
+
+    <div class="w-full overflow-x-auto">
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="border-b border-white/8 text-neutral-400 text-xs font-semibold uppercase tracking-wider">
-                    <th class="py-3 px-4">{{.T.Get "LeadTitle"}}</th>
-                    <th class="py-3 px-4">{{.T.Get "ScopeCol"}}</th>
-                    <th class="py-3 px-4">{{.T.Get "LeadContactEmail"}}</th>
-                    <th class="py-3 px-4">{{.T.Get "LeadContactInfo"}}</th>
-                    <th class="py-3 px-4">{{.T.Get "DeadlineCol"}}</th>
-                    <th class="py-3 px-4">{{.T.Get "LeadClientStatus"}}</th>
-                    <th class="py-3 px-4">{{.T.Get "LeadInternalStatus"}}</th>
-                    <th class="py-3 px-4 text-right">{{.T.Get "BudgetCol"}}</th>
-                    <th class="py-3 px-4 text-right">{{.T.Get "CreatedCol"}}</th>
-                    <th class="py-3 px-4 text-right">{{.T.Get "UpdatedCol"}}</th>
+                    <th class="table-header-cell">{{.T.Get "LeadTitle"}}</th>
+                    <th class="table-header-cell">{{.T.Get "ScopeCol"}}</th>
+                    <th class="table-header-cell">{{.T.Get "LeadContactEmail"}}</th>
+                    <th class="table-header-cell">{{.T.Get "LeadContactInfo"}}</th>
+                    <th class="table-header-cell">{{.T.Get "DeadlineCol"}}</th>
+                    <th class="table-header-cell">{{.T.Get "LeadClientStatus"}}</th>
+                    <th class="table-header-cell">{{.T.Get "LeadInternalStatus"}}</th>
+                    <th class="table-header-cell text-right">{{.T.Get "BudgetCol"}}</th>
+                    <th class="table-header-cell text-right">{{.T.Get "CreatedCol"}}</th>
+                    <th class="table-header-cell text-right">{{.T.Get "UpdatedCol"}}</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-white/4 text-sm text-neutral-300">
-                <template x-for="l in filteredLeads" :key="l.id">
-                    <tr class="hover:bg-white/2 transition-colors">
-                        <td class="py-3 px-4 font-bold text-white tracking-tight" x-text="l.companyName"></td>
-                        <td class="py-3 px-4 text-neutral-400 leading-relaxed max-w-xs" x-data="expandableText">
-                            <div :class="l.projectScope.length > 50 ? 'cursor-pointer hover:text-neutral-200 transition-colors' : ''"
-                                 @click="if (l.projectScope.length > 50) toggle()">
-                                <span :class="getCollapsedClass()" x-text="l.projectScope.length > 50 ? l.projectScope.substring(0, 50) + '...' : l.projectScope"></span>
-                                <span :class="getExpandedClass()" x-text="l.projectScope" class="whitespace-pre-wrap" x-cloak></span>
-                            </div>
-                        </td>
-                        <td class="py-3 px-4 text-neutral-400 font-medium" x-text="l.contactEmail"></td>
-                        <td class="py-3 px-4 text-neutral-400 max-w-[180px]" x-data="expandableText">
-                            <div :class="(l.contactInfo && l.contactInfo.length > 25) ? 'cursor-pointer hover:text-neutral-200 transition-colors' : ''"
-                                 @click="if (l.contactInfo && l.contactInfo.length > 25) toggle()">
-                                <span :class="getCollapsedClass()" x-text="(l.contactInfo && l.contactInfo.length > 25) ? l.contactInfo.substring(0, 25) + '...' : (l.contactInfo || '-')"></span>
-                                <span :class="getExpandedClass()" x-text="l.contactInfo" class="whitespace-pre-wrap" x-cloak></span>
-                            </div>
-                        </td>
-                        <td class="py-3 px-4">
-                            <template x-if="l.deadlineNeeded">
-                                <div class="space-y-0.5">
-                                    <span class="inline-block bg-primary/25 border border-primary/40 text-primary font-semibold text-[11px] uppercase tracking-widest px-1.5 py-0.5 rounded shadow-[0_0_10px_rgba(255,51,102,0.1)]">Strict</span>
-                                     <p class="text-xs text-neutral-400 mt-1 max-w-[150px]"
-                                        x-data="expandableText"
-                                        :class="l.deadlineSpec.length > 20 ? 'cursor-pointer hover:text-neutral-200 transition-colors' : ''"
-                                        @click="if (l.deadlineSpec.length > 20) toggle()">
-                                         <span :class="getCollapsedClass()" x-text="l.deadlineSpec.length > 20 ? l.deadlineSpec.substring(0, 20) + '...' : l.deadlineSpec"></span>
-                                         <span :class="getExpandedClass()" x-text="l.deadlineSpec" class="whitespace-pre-wrap" x-cloak></span>
-                                     </p>
-                                </div>
-                            </template>
-                            <template x-if="!l.deadlineNeeded">
-                                <span class="inline-block bg-white/10 border border-white/20 text-neutral-400 font-semibold text-[11px] uppercase tracking-widest px-1.5 py-0.5 rounded">Standard</span>
-                            </template>
-                        </td>
-                        <td class="py-3 px-4">
-                            <div x-data="dropdown" class="relative inline-block text-left">
-                                <button @click="toggle"
-                                        :class="getStatusClass(l.clientStatus)"
-                                        class="border text-xs px-2.5 py-1.5 rounded-xl focus:outline-none transition-all duration-200 cursor-pointer font-semibold flex items-center gap-1.5 whitespace-nowrap">
-                                     <span x-text="l.clientStatus.toUpperCase()"></span>
-                                     <svg class="w-3 h-3 transition-transform" :class="getIconClass()" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
-                                 </button>
-                                 <div :class="getDropdownClass()" @click.outside="close"
-                                       class="absolute z-50 mt-1.5 w-32 rounded-xl border border-white/8 bg-bg-dark p-1 shadow-2xl panel-animate"
-                                       x-cloak>
-                                     <button @click="updateStatus(l, 'client', 'pending'); close()" class="dropdown-option text-blue-400">Pending</button>
-                                     <button @click="updateStatus(l, 'client', 'active'); close()" class="dropdown-option text-yellow-400">Active</button>
-                                     <button @click="updateStatus(l, 'client', 'done'); close()" class="dropdown-option text-green-400">Done</button>
-                                     <button @click="updateStatus(l, 'client', 'canceled'); close()" class="dropdown-option text-red-400">Canceled</button>
-                                 </div>
-                            </div>
-                        </td>
-                        <td class="py-3 px-4">
-                            <div x-data="dropdown" class="relative inline-block text-left">
-                                <button @click="toggle"
-                                        :class="getStatusClass(l.internalStatus)"
-                                        class="border text-xs px-2.5 py-1.5 rounded-xl focus:outline-none transition-all duration-200 cursor-pointer font-semibold flex items-center gap-1.5 whitespace-nowrap">
-                                     <span x-text="l.internalStatus.toUpperCase()"></span>
-                                     <svg class="w-3 h-3 transition-transform" :class="getIconClass()" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
-                                 </button>
-                                 <div :class="getDropdownClass()" @click.outside="close"
-                                       class="absolute z-50 mt-1.5 w-32 rounded-xl border border-white/8 bg-bg-dark p-1 shadow-2xl panel-animate"
-                                       x-cloak>
-                                     <button @click="updateStatus(l, 'internal', 'pending'); close()" class="dropdown-option text-blue-400">Pending</button>
-                                     <button @click="updateStatus(l, 'internal', 'active'); close()" class="dropdown-option text-yellow-400">Active</button>
-                                     <button @click="updateStatus(l, 'internal', 'done'); close()" class="dropdown-option text-green-400">Done</button>
-                                     <button @click="updateStatus(l, 'internal', 'canceled'); close()" class="dropdown-option text-red-400">Canceled</button>
-                                 </div>
-                            </div>
-                        </td>
-                        <td class="py-3 px-4 text-right font-mono text-white whitespace-nowrap" x-text="formatBudgetTier(l.budget, l.isCustomBudget)"></td>
-                        <td class="py-3 px-4 table-cell-meta" x-text="l.createdAtStr"></td>
-                        <td class="py-3 px-4 table-cell-meta" x-text="l.updatedAtStr"></td>
-                    </tr>
-                </template>
+            <tbody id="leads-tbody" data-ref="tbody" class="divide-y divide-white/4 text-sm text-neutral-300">
+                {{range .Leads.Items}}
+                <tr class="table-body-row group"
+                    data-id="{{.ID}}"
+                    data-client-status="{{.ClientStatus}}"
+                    data-internal-status="{{.InternalStatus}}"
+                    data-budget="{{.Budget}}"
+                    data-created="{{.CreatedAt.Unix}}"
+                    data-name="{{.CompanyName}}">
+                    <td class="table-body-cell-highlight group/msg relative min-w-[120px]">
+                        <div class="line-clamp-2 cursor-pointer whitespace-pre-wrap transition-all duration-200" data-action="toggleExpand" title="Click to expand">{{.CompanyName}}</div>
+                    </td>
+                    <td class="table-body-cell break-all group/msg relative min-w-[200px] w-[200px]">
+                        <div class="line-clamp-2 cursor-pointer whitespace-pre-wrap transition-all duration-200" data-action="toggleExpand" title="Click to expand">{{.ProjectScope}}</div>
+                    </td>
+                    <td class="table-body-cell font-mono break-all group/msg relative min-w-[150px]">
+                        <div class="line-clamp-2 cursor-pointer whitespace-pre-wrap transition-all duration-200" data-action="toggleExpand" title="Click to expand">{{.ContactEmail}}</div>
+                    </td>
+                    <td class="table-body-cell break-all group/msg relative min-w-[150px] w-[150px]">
+                        {{if .ContactInfo}}
+                            <div class="line-clamp-2 cursor-pointer whitespace-pre-wrap transition-all duration-200" data-action="toggleExpand" title="Click to expand">{{.ContactInfo}}</div>
+                        {{else}}
+                            -
+                        {{end}}
+                    </td>
+                    <td class="table-body-cell whitespace-nowrap min-w-[120px]">
+                        {{if .DeadlineNeeded}}
+                        <div class="space-y-0.5 group/msg relative">
+                            <span class="badge-admin">Strict</span>
+                            <div class="text-xs text-neutral-400 mt-1 line-clamp-2 cursor-pointer whitespace-pre-wrap transition-all duration-200" data-action="toggleExpand" title="Click to expand">{{.DeadlineSpec}}</div>
+                        </div>
+                        {{else}}
+                        <span class="badge">Standard</span>
+                        {{end}}
+                    </td>
+                    <td class="table-body-cell" style="width: 150px;">
+                        <div class="relative w-full">
+                            {{$clientLabel := ""}}
+                            {{if eq .ClientStatus "pending"}}{{$clientLabel = $.T.Get "Pending"}}
+                            {{else if eq .ClientStatus "active"}}{{$clientLabel = $.T.Get "Active"}}
+                            {{else if eq .ClientStatus "done"}}{{$clientLabel = $.T.Get "Done"}}
+                            {{else if eq .ClientStatus "canceled"}}{{$clientLabel = $.T.Get "Canceled"}}
+                            {{end}}
+                            {{template "components.dropdown.html" dict
+                                "BtnClass" (printf "badge-status status-%s w-full justify-between" .ClientStatus)
+                                "BtnAction" "toggleClientStatus"
+                                "BtnDataID" .ID
+                                "TextRef" "clientText"
+                                "DefaultText" $clientLabel
+                                "DropdownRef" (printf "clientMenu_%d" .ID)
+                                "Options" (list 
+                                    (dict "Label" ($.T.Get "Pending") "Value" "pending" "OptionAction" "setClientStatus")
+                                    (dict "Label" ($.T.Get "Active") "Value" "active" "OptionAction" "setClientStatus")
+                                    (dict "Label" ($.T.Get "Done") "Value" "done" "OptionAction" "setClientStatus")
+                                    (dict "Label" ($.T.Get "Canceled") "Value" "canceled" "OptionAction" "setClientStatus")
+                                )
+                            }}
+                        </div>
+                    </td>
+                    <td class="table-body-cell" style="width: 150px;">
+                        <div class="relative w-full">
+                            {{$internalLabel := ""}}
+                            {{if eq .InternalStatus "pending"}}{{$internalLabel = $.T.Get "Pending"}}
+                            {{else if eq .InternalStatus "active"}}{{$internalLabel = $.T.Get "Active"}}
+                            {{else if eq .InternalStatus "done"}}{{$internalLabel = $.T.Get "Done"}}
+                            {{else if eq .InternalStatus "canceled"}}{{$internalLabel = $.T.Get "Canceled"}}
+                            {{end}}
+                            {{template "components.dropdown.html" dict
+                                "BtnClass" (printf "badge-status status-%s w-full justify-between" .InternalStatus)
+                                "BtnAction" "toggleInternalStatus"
+                                "BtnDataID" .ID
+                                "TextRef" "internalText"
+                                "DefaultText" $internalLabel
+                                "DropdownRef" (printf "internalMenu_%d" .ID)
+                                "Options" (list 
+                                    (dict "Label" ($.T.Get "Pending") "Value" "pending" "OptionAction" "setInternalStatus")
+                                    (dict "Label" ($.T.Get "Active") "Value" "active" "OptionAction" "setInternalStatus")
+                                    (dict "Label" ($.T.Get "Done") "Value" "done" "OptionAction" "setInternalStatus")
+                                    (dict "Label" ($.T.Get "Canceled") "Value" "canceled" "OptionAction" "setInternalStatus")
+                                )
+                            }}
+                        </div>
+                    </td>
+                    <td class="table-body-cell whitespace-nowrap font-mono text-right">{{ formatBudget .Budget .IsCustomBudget }}</td>
+                    <td class="table-body-cell whitespace-nowrap text-right">{{.CreatedAt.Format "2006-01-02 15:04"}}</td>
+                    <td class="table-body-cell whitespace-nowrap text-right">{{.UpdatedAt.Format "2006-01-02 15:04"}}</td>
+                </tr>
+                {{end}}
             </tbody>
         </table>
+        
+        {{if eq (len .Leads.Items) 0}}
+        <!-- Empty State -->
+        <div class="flex flex-col items-center justify-center py-24 px-4 text-center animate-fade-in-up">
+            <div class="h-24 w-24 rounded-full bg-white/5 flex items-center justify-center mb-6 ring-1 ring-white/10 shadow-[0_0_30px_rgba(255,255,255,0.03)]">
+                <svg class="w-10 h-10 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                </svg>
+            </div>
+            <h3 class="text-white font-bold text-lg mb-2">{{.T.Get "NoLeadsFoundTitle"}}</h3>
+            <p class="text-neutral-400 text-sm max-w-sm">{{.T.Get "NoLeadsFoundDesc"}}</p>
+        </div>
+        {{end}}
     </div>
-</div>
+    
+    {{template "components.pagination.html" dict "Pagination" .Leads "T" .T}}
+    </div>
+</form>
 {{end}}

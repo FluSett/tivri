@@ -1,6 +1,6 @@
 # TIVRI
 
-A high-performance client intake and portfolio management platform demonstrating modern, lightweight web architecture. Built with **Go**, **PostgreSQL**, **HTMX**, and **Alpine.js**, TIVRI delivers a responsive SPA experience without the heavy JavaScript framework bloat.
+A high-performance client intake and portfolio management platform demonstrating modern, lightweight web architecture. Built with **Go**, **PostgreSQL**, **HTMX**, and **Vanilla JS**, TIVRI delivers a responsive SPA experience without the heavy JavaScript framework bloat.
 
 ## 🚀 Core Features
 
@@ -11,12 +11,12 @@ A high-performance client intake and portfolio management platform demonstrating
 
 ## 🛠️ Tech Stack & Rationale
 
-We bypassed complex SPA frameworks (React/Vue/Solid.js) in favor of a lean, server-driven approach. While tools like Solid.js offer excellent client-side performance and compiled DOM updates, they force you to build a separate JSON API and maintain state in two places. Our HTMX + Alpine stack allows us to render HTML directly from Go, keeping a **single source of truth** on the server. This dramatically reduces complexity, eliminates the need for an external Node.js SSR server, and still delivers a highly interactive SPA feel.
+We bypassed complex SPA frameworks (React/Vue/Solid.js) in favor of a lean, server-driven approach. While tools like Solid.js offer excellent client-side performance and compiled DOM updates, they force you to build a separate JSON API and maintain state in two places. Our HTMX + Vanilla JS stack allows us to render HTML directly from Go, keeping a **single source of truth** on the server. This dramatically reduces complexity, eliminates the need for an external Node.js SSR server, and still delivers a highly interactive SPA feel.
 
 - **Go (1.26+)**: Blazing-fast backend, native concurrency, and a single compiled binary footprint.
 - **PostgreSQL (`pgxpool`)**: Direct query execution without ORM overhead for maximum transaction control.
-- **HTMX**: Wire-delivered HTML partials. We send HTML over the wire instead of JSON, eliminating heavy client-side rendering logic.
-- **Alpine.js (Strict CSP)**: Sprinkles lightweight interactivity directly onto our Go templates without a massive Virtual DOM. It is configured to run under strict Content Security Policies, proving you don't need a heavy compiled framework like Solid.js just to build a secure, XSS-resistant frontend.
+- **HTMX**: Wire-delivered HTML partials. We send HTML over the wire instead of JSON, eliminating heavy client-side rendering logic. All data formatting (dates, currency) happens natively in Go templates.
+- **Modular Vanilla JS**: Sprinkles lightweight interactivity directly onto our Go templates. By using pure Vanilla JS modules, we completely avoid massive Virtual DOMs while maintaining strict CSP compatibility.
 - **Tailwind CSS v4 & ESBuild**: Dynamic utility styling and modular JS bundled into minimal, highly-optimized assets.
 
 ## 🚢 Infrastructure & Deployment
@@ -32,10 +32,12 @@ Designed for cost-efficiency and atomic, reproducible deployments.
 
 ## 🏗️ Architectural Highlights
 
-- **Event-Driven Monolith**: Asynchronous in-memory event bus decoupling HTTP pipelines from background tasks.
-- **Transactional Outbox**: Guaranteed event delivery by writing state updates alongside events in single database transactions.
-- **Security-First**: Constant-time cryptographic verification (SHA-256) and dynamic IP-based rate limiting to prevent timing attacks and brute forcing.
-- **Self-Documenting Code**: Clean, explicit error handling and logical separation of concerns.
+- **Event-Driven Monolith**: Strict separation of business logic, data persistence, and HTTP delivery into isolated packages, powered by an asynchronous in-memory event bus that completely decouples HTTP pipelines from background tasks.
+- **HTMX Server-Driven Interactivity**: Native HTMX attribute routing handling all asynchronous server states natively, with modular Vanilla JS components reserved solely for isolated micro-interactions.
+- **Semantic Modular CSS**: Centralized design system (`components.css`) eliminating duplicate utility chains, while explicitly keeping JS-manipulated state classes inline for bulletproof DOM animations.
+- **Transactional Outbox**: Guaranteed event delivery by writing state updates alongside events in single database transactions protected by strict `context.WithTimeout` scopes.
+- **Security-First & Zero-Downtime**: Constant-time cryptographic verification (SHA-256), strict Nginx `Content-Security-Policy` blocks, and a `SIGTERM` interception bootstrapper ensuring graceful shutdown and zero active transaction corruption.
+- **Self-Documenting Code**: Clean, explicit error handling and logical separation of concerns without arbitrary magic numbers or scattered configuration.
 
 ## 💻 Local Development
 

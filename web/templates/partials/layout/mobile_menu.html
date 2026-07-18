@@ -1,30 +1,20 @@
 {{define "layout.mobile_menu.html"}}
-    <!-- Drawer overlay -->
-    <div x-cloak :class="getMobileMenuOverlayClass()" class="fixed inset-0 z-100 md:hidden transition-opacity ease-linear duration-300" role="dialog" aria-modal="true">
-        <!-- Backdrop -->
-        <div class="fixed inset-0 bg-black/80"
-             @click="closeMobileMenu">
+    <div id="mobile-menu-overlay" data-ref="mobileMenuOverlay" class="fixed inset-0 z-100 md:hidden transition-opacity ease-linear duration-300 hidden opacity-0 pointer-events-none delay-300" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-black/80" data-action="closeMenu">
         </div>
 
-        <!-- Align wrapper -->
+        <button id="close-menu-btn" data-ref="closeMenuBtn" data-action="closeMenu" class="fixed z-120 text-neutral-400 hover:text-white focus:text-white focus:outline-none focus:ring-0 select-none outline-none transition-all duration-300 hover:rotate-90 focus:rotate-90 transform cursor-pointer">
+             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+             </svg>
+        </button>
+
         <div class="fixed inset-0 flex z-110 pointer-events-none">
-            <!-- Slide panel -->
-            <div :class="getMobileMenuPanelClass()"
-                 class="relative ml-auto flex h-full w-[80%] max-w-[280px] flex-col justify-between bg-black/40 backdrop-blur-md border-l border-white/8 p-8 shadow-2xl pointer-events-auto panel-animate">
+            <div id="mobile-menu-panel" data-ref="mobileMenuPanel"
+                 class="relative ml-auto flex h-full w-[80%] max-w-[280px] flex-col justify-between bg-black/40 backdrop-blur-md border-l border-white/8 p-8 pt-16 shadow-2xl pointer-events-auto panel-animate translate-x-full transition-transform duration-300">
 
-                 <!-- Close btn -->
-                 <div class="flex justify-end w-full pt-2">
-                     <button class="text-neutral-400 hover:text-white focus:outline-none focus:ring-0 select-none outline-none transition-all duration-300 hover:rotate-90 transform cursor-pointer"
-                             @click="closeMobileMenu">
-                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                         </svg>
-                     </button>
-                 </div>
-
-                 <!-- Logo -->
                  <div class="w-full flex justify-center mt-6">
-                    <a href="/" @click="handleLogoClick($event)" class="flex items-center space-x-3 group">
+                    <a href="{{if and .IsAdmin (not .IsAdminLogin)}}/admin{{else}}/{{end}}" data-action="closeMenu" class="flex items-center space-x-3 group">
                         <div class="relative w-6 h-6 flex items-center justify-center shrink-0 logo-glow-anim">
                             <div class="absolute inset-0 bg-primary rounded-sm transform rotate-45 group-hover:rotate-90 transition-transform duration-500"></div>
                             <div class="absolute w-2 h-2 bg-bg-dark rounded-full"></div>
@@ -36,14 +26,13 @@
                     </a>
                  </div>
 
-                 <!-- Nav links -->
                  <div class="grow flex flex-col justify-center py-8">
                       {{if and .IsAdmin (not .IsAdminLogin)}}
                       <div class="flex flex-col items-start space-y-6">
-                          <a href="/admin?tab=portfolio" @click="closeMobileMenu" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "TabPortfolio"}}</a>
-                          <a href="/admin?tab=leads" @click="closeMobileMenu" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "TabLeads"}}</a>
-                          <a href="/admin?tab=messages" @click="closeMobileMenu" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "TabMessages"}}</a>
-                          <a href="/admin/logout" @click="closeMobileMenu" class="text-lg font-medium text-neutral-400 hover:text-primary transition-colors flex items-center space-x-2">
+                          <a href="/admin/portfolio" data-action="closeMenu" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "TabPortfolio"}}</a>
+                          <a href="/admin/leads" data-action="closeMenu" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "TabLeads"}}</a>
+                          <a href="/admin/messages" data-action="closeMenu" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "TabMessages"}}</a>
+                          <a href="/admin/logout" data-action="closeMenu" class="text-lg font-medium text-neutral-400 hover:text-primary transition-colors flex items-center space-x-2">
                               <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                   <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
                               </svg>
@@ -52,16 +41,15 @@
                       </div>
                       {{else if and (not .IsAdmin) (not .MaintenanceActive)}}
                        <div class="flex flex-col items-start space-y-6">
-                           <a href="/#about" @click="closeMobileMenu" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "AboutNav"}}</a>
-                           <a href="/#benefits" @click="closeMobileMenu" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "WhyNav"}}</a>
-                           <a href="/#skills" @click="closeMobileMenu" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "SkillsNav"}}</a>
-                           <a href="/#portfolio" @click="closeMobileMenu" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "PortfolioNav"}}</a>
-                           <a href="/#contact" @click="closeMobileMenu" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "ContactNav"}}</a>
+                           <a href="/#about" data-action="closeMenu" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "AboutNav"}}</a>
+                           <a href="/#benefits" data-action="closeMenu" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "WhyNav"}}</a>
+                           <a href="/#skills" data-action="closeMenu" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "SkillsNav"}}</a>
+                           <a href="/#portfolio" data-action="closeMenu" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "PortfolioNav"}}</a>
+                           <a href="/#contact" data-action="closeMenu" class="text-lg font-medium text-neutral-400 hover:text-white transition-colors">{{.T.Get "ContactNav"}}</a>
                        </div>
                        {{end}}
                  </div>
 
-                 <!-- Footer controls -->
                  <div class="pb-2 text-center">
                      <div class="h-px w-full bg-white/10 mb-8"></div>
                      <div class="flex items-center justify-center space-x-5">
