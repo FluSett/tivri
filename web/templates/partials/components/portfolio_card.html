@@ -1,48 +1,43 @@
 {{define "components.portfolio_card.html"}}
-<div class="portfolio-card">
-    <div x-data="{ activeIndex: 0, media: [{{range $i, $m := .Media}}{{if $i}},{{end}}'{{$m}}'{{end}}] }" class="space-y-4">
-        <template x-if="media.length > 0">
-            <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-black/40 border border-white/8">
-                <template x-for="(item, index) in media" :key="index">
-                    <div :class="activeIndex === index ? '' : 'hidden'" class="absolute inset-0 w-full h-full">
-                        <template x-if="item.endsWith('.mp4') || item.endsWith('.webm')">
-                            <video :src="item" class="w-full h-full object-cover" controls muted playsinline></video>
-                        </template>
-                        <template x-if="!(item.endsWith('.mp4') || item.endsWith('.webm'))">
-                            <img :src="item" class="w-full h-full object-cover" alt="{{.Title}} - Portfolio Project Showcase">
-                        </template>
-                    </div>
-                </template>
-                <template x-if="media.length > 1">
+<div class="portfolio-card portfolio-card-js">
+    <div class="space-y-4">
+        {{if gt (len .Media) 0}}
+            <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-black/40 border border-white/8 vanilla-carousel">
+                <div class="carousel-items-container absolute inset-0 w-full h-full" data-active-index="0">
+                    {{range $i, $m := .Media}}
+                        <div class="carousel-item absolute inset-0 w-full h-full transition-transform duration-500 ease-in-out" style="transform: translateX({{if eq $i 0}}0{{else}}100{{end}}%);">
+                            {{if or (strings_has_suffix $m ".mp4") (strings_has_suffix $m ".webm")}}
+                                <video src="{{$m}}" class="w-full h-full object-cover" controls muted playsinline></video>
+                            {{else}}
+                                <img src="{{$m}}" class="w-full h-full object-cover" alt="Portfolio Project Showcase">
+                            {{end}}
+                        </div>
+                    {{end}}
+                </div>
+                
+                {{if gt (len .Media) 1}}
                     <div class="absolute inset-x-0 bottom-2 flex justify-center space-x-1.5 z-10">
-                        <template x-for="(item, index) in media" :key="index">
-                            <button @click="activeIndex = index"
-                                    :class="activeIndex === index ? 'bg-primary w-4' : 'bg-white/40 w-1.5'"
-                                    class="h-1.5 rounded-full transition-all duration-300 focus:outline-none cursor-pointer"></button>
-                        </template>
+                        {{range $i, $m := .Media}}
+                            <button class="carousel-dot {{if eq $i 0}}bg-primary w-4{{else}}bg-white/40 w-1.5{{end}} h-1.5 rounded-full transition-all duration-300 focus:outline-none cursor-pointer"></button>
+                        {{end}}
                     </div>
-                </template>
-                <template x-if="media.length > 1">
                     <div>
-                        <button type="button" @click="activeIndex = (activeIndex - 1 + media.length) % media.length" class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 hover:bg-black/80 flex items-center justify-center text-white border border-white/10 hover:border-white/20 transition-all z-10 cursor-pointer">
+                        <button type="button" class="carousel-prev absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 hover:bg-black/80 flex items-center justify-center text-white border border-white/10 hover:border-white/20 transition-all z-10 cursor-pointer">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
                         </button>
-                        <button type="button" @click="activeIndex = (activeIndex + 1) % media.length" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 hover:bg-black/80 flex items-center justify-center text-white border border-white/10 hover:border-white/20 transition-all z-10 cursor-pointer">
+                        <button type="button" class="carousel-next absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 hover:bg-black/80 flex items-center justify-center text-white border border-white/10 hover:border-white/20 transition-all z-10 cursor-pointer">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
                         </button>
                     </div>
-                </template>
+                {{end}}
             </div>
-        </template>
+        {{end}}
 
         <div class="flex justify-between items-start gap-4">
             <h3 class="text-base font-bold text-white tracking-tight leading-tight wrap-break-word">{{.Title}}</h3>
         </div>
         <p class="text-neutral-400 text-sm leading-relaxed tracking-tight">{{.Description}}</p>
-        <div class="flex flex-wrap gap-2" x-data="{ tags: '{{.TechStack}}'.split(', ') }">
-            <template x-for="tag in tags">
-                <span class="bg-white/4 text-neutral-300 text-xs px-2.5 py-1 rounded-lg border border-white/6 tracking-tight font-medium" x-text="tag"></span>
-            </template>
+        <div class="flex flex-wrap gap-2 tags-container" data-tags="{{.TechStack}}">
         </div>
     </div>
 </div>

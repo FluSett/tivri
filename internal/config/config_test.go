@@ -6,7 +6,6 @@ import (
 )
 
 func TestConfigLoad_Defaults(t *testing.T) {
-	// Clean env variables
 	os.Unsetenv("APP_ENV")
 	os.Unsetenv("DB_DSN")
 	os.Unsetenv("PORT")

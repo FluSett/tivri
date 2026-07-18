@@ -1,92 +1,127 @@
 {{define "admin.messages.html"}}
-<div class="space-y-6"
-     x-data="messagesTable"
-     data-messages="{{.MessagesJSON}}">
-    <div class="flex flex-wrap gap-4 items-center justify-between bg-black/40 border border-white/8 p-5 rounded-2xl">
-        <div class="space-y-1" x-data="dropdown">
-            <label class="block text-primary font-bold uppercase tracking-widest text-[11px] mb-1.5">{{.T.Get "DirectMessagesStatus"}}</label>
-            <div class="relative">
-                <button @click="toggle" class="bg-black/60 border border-white/8 hover:border-white/20 text-xs px-3.5 py-2 rounded-xl text-white focus:outline-none transition-all duration-200 cursor-pointer font-medium flex items-center gap-2 min-w-[120px] justify-between">
-                    <span x-text="statusFilter.toUpperCase()"></span>
-                    <svg class="w-3 h-3 transition-transform" :class="getIconClass()" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                <div :class="getDropdownClass()" @click.outside="close"
-                      class="absolute z-50 mt-1.5 w-full rounded-xl border border-white/8 bg-bg-dark p-1 shadow-2xl panel-animate"
-                      x-cloak>
-                    <template x-for="opt in ['all', 'new', 'answered', 'done']">
-                        <button @click="setStatusFilter(opt); close()"
-                                class="dropdown-option capitalize"
-                                x-text="opt"></button>
-                    </template>
-                </div>
+<form id="messages-container" data-ref="messagesContainer" class="space-y-6" hx-get="/admin/api/messages" hx-target="this" hx-swap="outerHTML" hx-trigger="change">
+    <input type="hidden" name="page" value="{{.ContactMessages.Params.Page}}" data-ref="pageInput">
+    <input type="hidden" name="status" value="{{if .ContactMessages.Params.Status}}{{.ContactMessages.Params.Status}}{{else}}all{{end}}" data-ref="statusFilterInput">
+    <input type="hidden" name="sort_by" value="{{if .ContactMessages.Params.SortBy}}{{.ContactMessages.Params.SortBy}}{{else}}date_desc{{end}}" data-ref="sortInput">
+    {{ $.BaseData.CSRFToken }}
+    <div class="bg-black/40 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl mt-6">
+        <!-- Toolbar -->
+        <div class="flex flex-col sm:flex-row gap-4 items-center justify-between p-6 border-b border-white/5 bg-white/1">
+            <div class="flex flex-wrap gap-4 items-center w-full sm:w-auto">
+                {{$statusFilterLabel := $.T.Get "All"}}
+                {{if eq .ContactMessages.Params.Status "new"}}{{$statusFilterLabel = $.T.Get "DirectMessagesStatusNew"}}
+                {{else if eq .ContactMessages.Params.Status "answered"}}{{$statusFilterLabel = $.T.Get "DirectMessagesStatusAnswered"}}
+                {{else if eq .ContactMessages.Params.Status "done"}}{{$statusFilterLabel = $.T.Get "DirectMessagesStatusDone"}}
+                {{end}}
+                {{template "components.dropdown.html" dict
+                    "Label" (.T.Get "DirectMessagesStatus")
+                    "BtnRef" "statusFilterBtn"
+                    "BtnAction" "toggleStatusFilter"
+                    "TextRef" "statusFilterText"
+                    "DefaultText" $statusFilterLabel
+                    "DropdownRef" "statusFilterDropdown"
+                    "Options" (list 
+                        (dict "Label" (.T.Get "All") "Value" "" "OptionAction" "setStatusFilter")
+                        (dict "Label" (.T.Get "DirectMessagesStatusNew") "Value" "new" "OptionAction" "setStatusFilter")
+                        (dict "Label" (.T.Get "DirectMessagesStatusAnswered") "Value" "answered" "OptionAction" "setStatusFilter")
+                        (dict "Label" (.T.Get "DirectMessagesStatusDone") "Value" "done" "OptionAction" "setStatusFilter")
+                    )
+                }}
+                {{$sortFilterLabel := $.T.Get "SortDateNewest"}}
+                {{if eq .ContactMessages.Params.SortBy "date_asc"}}{{$sortFilterLabel = $.T.Get "SortDateOldest"}}
+                {{else if eq .ContactMessages.Params.SortBy "email_asc"}}{{$sortFilterLabel = $.T.Get "SortEmailAsc"}}
+                {{else if eq .ContactMessages.Params.SortBy "email_desc"}}{{$sortFilterLabel = $.T.Get "SortEmailDesc"}}
+                {{end}}
+                {{template "components.dropdown.html" dict
+                    "Label" (.T.Get "SortByLabel")
+                    "BtnRef" "sortBtn"
+                    "BtnAction" "toggleSort"
+                    "TextRef" "sortText"
+                    "DefaultText" $sortFilterLabel
+                    "DropdownRef" "sortDropdown"
+                    "Options" (list 
+                        (dict "Label" (.T.Get "SortDateNewest") "Value" "date_desc" "OptionAction" "setSort")
+                        (dict "Label" (.T.Get "SortDateOldest") "Value" "date_asc" "OptionAction" "setSort")
+                        (dict "Label" (.T.Get "SortEmailAsc") "Value" "email_asc" "OptionAction" "setSort")
+                        (dict "Label" (.T.Get "SortEmailDesc") "Value" "email_desc" "OptionAction" "setSort")
+                    )
+                }}
+            </div>
+            <div class="relative w-full sm:max-w-sm">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                </svg>
+                <input type="text" name="search_query" value="{{.ContactMessages.Params.SearchQuery}}" hx-get="/admin/api/messages" hx-include="#messages-container" hx-trigger="keyup changed delay:500ms" hx-target="#messages-container" hx-swap="outerHTML" placeholder="Search by topic or email..." class="w-full bg-black/40 border border-white/10 rounded-xl py-2 pl-9 pr-4 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all">
             </div>
         </div>
-        <div class="space-y-1" x-data="dropdown">
-            <label class="block text-primary font-bold uppercase tracking-widest text-[11px] mb-1.5">{{.T.Get "SortByLabel"}}</label>
-            <div class="relative">
-                <button @click="toggle" class="bg-black/60 border border-white/8 hover:border-white/20 text-xs px-3.5 py-2 rounded-xl text-white focus:outline-none transition-all duration-200 cursor-pointer font-medium flex items-center gap-2 min-w-[160px] justify-between">
-                    <span x-text="getSortByText()"></span>
-                    <svg class="w-3 h-3 transition-transform" :class="getIconClass()" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                <div :class="getDropdownClass()" @click.outside="close"
-                     class="absolute z-50 mt-1.5 w-full rounded-xl border border-white/8 bg-bg-dark p-1 shadow-2xl text-left panel-animate"
-                     x-cloak>
-                    <button @click="setSortBy('date_desc'); close()" class="dropdown-option">Newest</button>
-                    <button @click="setSortBy('date_asc'); close()" class="dropdown-option">Oldest</button>
-                    <button @click="setSortBy('email_asc'); close()" class="dropdown-option">Email A-Z</button>
-                    <button @click="setSortBy('email_desc'); close()" class="dropdown-option">Email Z-A</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="overflow-x-auto">
+    <div class="w-full overflow-x-auto">
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="border-b border-white/8 text-neutral-400 text-xs font-semibold uppercase tracking-wider">
-                    <th class="py-3 px-4">{{.T.Get "DirectMessagesEmail"}}</th>
-                    <th class="py-3 px-4">{{.T.Get "DirectMessagesTopic"}}</th>
-                    <th class="py-3 px-4">{{.T.Get "DirectMessagesMessage"}}</th>
-                    <th class="py-3 px-4">{{.T.Get "DirectMessagesStatus"}}</th>
-                    <th class="py-3 px-4 text-right">{{.T.Get "CreatedCol"}}</th>
-                    <th class="py-3 px-4 text-right">{{.T.Get "UpdatedCol"}}</th>
+                    <th class="table-header-cell">{{.T.Get "DirectMessagesEmail"}}</th>
+                    <th class="table-header-cell">{{.T.Get "DirectMessagesTopic"}}</th>
+                    <th class="table-header-cell">{{.T.Get "DirectMessagesMessage"}}</th>
+                    <th class="table-header-cell">{{.T.Get "DirectMessagesStatus"}}</th>
+                    <th class="table-header-cell text-right">{{.T.Get "CreatedCol"}}</th>
+                    <th class="table-header-cell text-right">{{.T.Get "UpdatedCol"}}</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-white/4 text-sm text-neutral-300">
-                <template x-for="m in filteredMessages" :key="m.id">
-                    <tr class="hover:bg-white/2 transition-colors">
-                        <td class="py-3 px-4 font-bold text-white tracking-tight" x-text="m.email"></td>
-                        <td class="py-3 px-4 text-primary font-medium" x-text="m.topic"></td>
-                        <td class="py-3 px-4 text-neutral-400 leading-relaxed max-w-md" x-data="expandableText">
-                            <div :class="m.message.length > 80 ? 'cursor-pointer hover:text-neutral-200 transition-colors' : ''"
-                                 @click="if (m.message.length > 80) toggle()">
-                                <span :class="getCollapsedClass()" x-text="m.message.length > 80 ? m.message.substring(0, 80) + '...' : m.message"></span>
-                                <span :class="getExpandedClass()" x-text="m.message" class="whitespace-pre-wrap" x-cloak></span>
-                            </div>
-                        </td>
-                        <td class="py-3 px-4">
-                            <div x-data="dropdown" class="relative inline-block text-left">
-                                <button @click="toggle"
-                                        :class="getStatusClass(m.status)"
-                                        class="border text-xs px-2.5 py-1.5 rounded-xl focus:outline-none transition-all duration-200 cursor-pointer font-semibold flex items-center gap-1.5 whitespace-nowrap">
-                                     <span x-text="m.status.toUpperCase()"></span>
-                                     <svg class="w-3 h-3 transition-transform" :class="getIconClass()" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
-                                 </button>
-                                 <div :class="getDropdownClass()" @click.outside="close"
-                                       class="absolute z-50 mt-1.5 w-32 rounded-xl border border-white/8 bg-bg-dark p-1 shadow-2xl panel-animate"
-                                       x-cloak>
-                                     <button @click="updateStatus(m, 'new'); close()" class="dropdown-option text-blue-400">New</button>
-                                     <button @click="updateStatus(m, 'answered'); close()" class="dropdown-option text-yellow-400">Answered</button>
-                                     <button @click="updateStatus(m, 'done'); close()" class="dropdown-option text-green-400">Done</button>
-                                 </div>
-                            </div>
-                        </td>
-                        <td class="py-3 px-4 table-cell-meta" x-text="m.createdAtStr"></td>
-                        <td class="py-3 px-4 table-cell-meta" x-text="m.updatedAtStr"></td>
-                    </tr>
-                </template>
+            <tbody id="messages-tbody" data-ref="tbody" class="divide-y divide-white/4 text-sm text-neutral-300">
+                {{range .ContactMessages.Items}}
+                <tr class="table-body-row group border-b border-white/5" data-id="{{.ID}}">
+                    <td class="table-body-cell-highlight font-bold break-all group/msg relative min-w-[150px]">
+                        <div class="line-clamp-2 cursor-pointer whitespace-pre-wrap transition-all duration-200" data-action="toggleExpand" title="Click to expand">{{.Email}}</div>
+                    </td>
+                    <td class="table-body-cell text-primary font-medium break-all group/msg relative min-w-[150px]">
+                        <div class="line-clamp-2 cursor-pointer whitespace-pre-wrap transition-all duration-200" data-action="toggleExpand" title="Click to expand">{{.Topic}}</div>
+                    </td>
+                    <td class="table-body-cell leading-relaxed break-all group/msg relative min-w-[250px] w-[250px]">
+                        <div class="line-clamp-2 cursor-pointer whitespace-pre-wrap transition-all duration-200" data-action="toggleExpand" title="Click to expand">{{.Message}}</div>
+                    </td>
+                    <td class="table-body-cell" style="width: 150px;">
+                        <div class="relative w-full">
+                            {{$statusLabel := ""}}
+                            {{if eq .Status "new"}}{{$statusLabel = $.T.Get "DirectMessagesStatusNew"}}
+                            {{else if eq .Status "answered"}}{{$statusLabel = $.T.Get "DirectMessagesStatusAnswered"}}
+                            {{else if eq .Status "done"}}{{$statusLabel = $.T.Get "DirectMessagesStatusDone"}}
+                            {{end}}
+                            {{template "components.dropdown.html" dict
+                                "BtnClass" (printf "badge-status status-%s w-full justify-between" .Status)
+                                "BtnAction" "toggleRowStatus"
+                                "BtnDataID" .ID
+                                "TextRef" "statusText"
+                                "DefaultText" $statusLabel
+                                "DropdownRef" (printf "statusMenu_%d" .ID)
+                                "Options" (list 
+                                    (dict "Label" ($.T.Get "DirectMessagesStatusNew") "Value" "new" "OptionAction" "updateRowStatus")
+                                    (dict "Label" ($.T.Get "DirectMessagesStatusAnswered") "Value" "answered" "OptionAction" "updateRowStatus")
+                                    (dict "Label" ($.T.Get "DirectMessagesStatusDone") "Value" "done" "OptionAction" "updateRowStatus")
+                                )
+                            }}
+                        </div>
+                    </td>
+                    <td class="table-body-cell table-cell-meta">{{.CreatedAt.Format "2006-01-02 15:04"}}</td>
+                    <td class="table-body-cell table-cell-meta">{{.UpdatedAt.Format "2006-01-02 15:04"}}</td>
+                </tr>
+                {{end}}
             </tbody>
         </table>
+        
+        {{if eq (len .ContactMessages.Items) 0}}
+        <!-- Empty State -->
+        <div class="flex flex-col items-center justify-center py-24 px-4 text-center animate-fade-in-up">
+            <div class="h-24 w-24 rounded-full bg-white/5 flex items-center justify-center mb-6 ring-1 ring-white/10 shadow-[0_0_30px_rgba(255,255,255,0.03)]">
+                <svg class="w-10 h-10 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+            </div>
+            <h3 class="text-white font-bold text-lg mb-2">{{.T.Get "NoMessagesFoundTitle"}}</h3>
+            <p class="text-neutral-400 text-sm max-w-sm">{{.T.Get "NoMessagesFoundDesc"}}</p>
+        </div>
+        {{end}}
     </div>
-</div>
+
+    {{template "components.pagination.html" dict "Pagination" .ContactMessages "T" .T}}
+    </div>
+</form>
 {{end}}

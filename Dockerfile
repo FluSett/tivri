@@ -1,51 +1,32 @@
-# Stage 1: Build static assets (Tailwind compilation & JS minification)
+# Stage 1: Asset Builder (Node 22-alpine)
 FROM node:22-alpine AS asset-builder
-
 WORKDIR /app
-
 COPY package*.json ./
-RUN npm install
-
+RUN --mount=type=cache,target=/root/.npm npm ci
 COPY web/ ./web/
 RUN npm run build
 
-# Stage 2: Build the Go application
+# Stage 2: Go App Builder (Go 1.26-alpine)
 FROM golang:1.26-alpine AS builder
-
 RUN apk add --no-cache ca-certificates tzdata
-# Create a non-root user
 RUN adduser -D -g '' appuser
-
 WORKDIR /app
-
 COPY go.mod go.sum ./
-RUN go mod download
-
+RUN --mount=type=cache,target=/go/pkg/mod go mod download
 COPY . .
+COPY --from=asset-builder /app/web/assets/dist ./web/assets/dist
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w -extldflags '-static'" -o api ./cmd/api/main.go
 
-# Copy compiled assets from asset-builder to make sure they are embedded
-COPY --from=asset-builder /app/web/assets ./web/assets
-
-# Build with -trimpath and remove buildid for minimal size
-RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w -buildid=" -o main ./cmd/api/main.go
-
-# Stage 3: Minimal runtime container (scratch)
+# Stage 3: Immutable Scratch Runtime
 FROM scratch
-
-# Copy certificates, tzdata, and user from builder
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /etc/group /etc/group
-
-WORKDIR /app
-
-COPY --from=builder /app/main ./main
-
+COPY --from=builder /app/api ./api
 ENV PORT=8080
-
 USER appuser
-
 EXPOSE 8080
-
-ENTRYPOINT ["./main"]
+ENTRYPOINT ["./api"]

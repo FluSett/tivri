@@ -1,38 +1,31 @@
 {{define "admin.portfolio.html"}}
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-12"
-     x-data="portfolioForm()">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
     <div class="lg:col-span-7 space-y-6">
         <h3 class="text-lg font-bold text-neutral-200 tracking-tight">{{.T.Get "AddPortfolio"}}</h3>
 
-        <!-- Form submits via custom JS submit handler to package reordered files correctly -->
-        <form @submit.prevent="submitForm($el)" class="space-y-6">
+        <!-- Form submits natively via HTMX to respect Rule #7 -->
+        <form id="portfolio-form" data-ref="form" class="space-y-6" hx-post="/admin/portfolio" hx-target="#portfolio-grid" hx-swap="beforeend" hx-encoding="multipart/form-data">
+            <input type="file" id="pf-hidden-media" data-ref="hiddenMedia" name="media" multiple class="hidden">
+            <input type="hidden" id="pf-hidden-tags" data-ref="hiddenTags" name="tech_stack">
+            {{ .CSRFToken }}
             <div class="space-y-2">
                 <label class="form-label-admin">{{.T.Get "PortfolioFormTitle"}}</label>
-                <input type="text" name="title" required x-model="title" placeholder="{{.T.Get "PortfolioFormTitleExample"}}" class="form-input">
+                <input type="text" id="pf-title" data-ref="title" name="title" required placeholder="{{.T.Get "PortfolioFormTitleExample"}}" class="form-input">
             </div>
 
             <div class="space-y-2">
                 <label class="form-label-admin">{{.T.Get "PortfolioFormDescription"}}</label>
-                <textarea name="description" required rows="3" x-model="description" maxlength="500" placeholder="{{.T.Get "PortfolioFormDescriptionExample"}}" class="form-input"></textarea>
+                <textarea id="pf-desc" data-ref="desc" name="description" required rows="3" maxlength="500" placeholder="{{.T.Get "PortfolioFormDescriptionExample"}}" class="form-input"></textarea>
                 <div class="flex justify-end text-xs text-neutral-400 mt-1">
-                    <span class="font-medium font-mono shrink-0" x-text="description.length + ' / 500'"></span>
+                    <span id="pf-desc-count" data-ref="descCount" class="font-medium font-mono shrink-0">0 / 500</span>
                 </div>
             </div>
 
-            <div class="space-y-2" x-data="{ tagInput: '' }">
+            <div class="space-y-2">
                 <label class="form-label-admin">{{.T.Get "PortfolioFormTechStack"}}</label>
                 <div class="form-input flex flex-wrap gap-2 items-center min-h-[42px] focus-within:border-primary/50 focus-within:shadow-[0_0_8px_rgba(255,51,102,0.1)] transition-all">
-                    <template x-for="(tag, index) in techTags" :key="index">
-                        <span class="inline-flex items-center gap-1 bg-primary/10 border border-primary/20 text-primary text-xs px-2.5 py-1 rounded-lg font-medium">
-                            <span x-text="tag"></span>
-                            <button type="button" @click="removeTag(index)" class="text-primary hover:text-white transition-colors cursor-pointer select-none outline-none font-bold text-xs ml-0.5">×</button>
-                        </span>
-                    </template>
-                    <input type="text" x-model="tagInput" 
-                           @input="handleTagInputInput($event)"
-                           @keydown.enter.prevent="handleTagInputEnter($event)"
-                           @keydown.backspace="handleTagInputBackspace($event)"
-                           @blur="handleTagInputBlur($event)"
+                    <div id="pf-tags-container" data-ref="tagsContainer" class="flex flex-wrap gap-2 items-center"></div>
+                    <input type="text" id="pf-tag-input" data-ref="tagInput"
                            placeholder="{{.T.Get "PortfolioFormTechStackExample"}}" 
                            class="bg-transparent border-0 p-0 text-sm text-white focus:ring-0 focus:outline-none grow min-w-[80px]">
                 </div>
@@ -42,113 +35,93 @@
             <div class="space-y-2">
                 <label class="form-label-admin">{{.T.Get "PortfolioFormMedia"}}</label>
                 <div class="relative group">
-                    <input type="file" multiple accept="image/*,video/*" @change="handleFiles($el)" class="form-input file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-white/8 file:text-white hover:file:bg-white/15 text-xs">
+                    <input type="file" id="pf-media-input" data-ref="mediaInput" multiple accept="image/*,video/*" class="form-input file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-white/8 file:text-white hover:file:bg-white/15 text-xs">
                 </div>
                 <p class="text-xs text-neutral-400 font-medium tracking-tight mt-1">{{.T.Get "PortfolioFormMediaHint"}}</p>
             </div>
 
-            <!-- Interactive File Row / Reordering / Removing List -->
-            <template x-if="hasMediaPreviews">
-                <div class="space-y-3 bg-black/30 border border-white/8 p-4 rounded-xl">
-                    <h4 class="text-xs font-bold text-neutral-400 uppercase tracking-wider">Arrange Upload Media</h4>
-                    <div class="space-y-2">
-                        <template x-for="(item, index) in mediaPreviews" :key="item.id">
-                            <div class="flex items-center justify-between bg-white/2 border border-white/5 p-2.5 rounded-lg gap-3">
-                                <div class="flex items-center space-x-3 min-w-0">
-                                    <div class="w-12 h-12 rounded bg-black/40 overflow-hidden shrink-0 border border-white/8 relative">
-                                        <template x-if="item.isVideo">
-                                            <div class="absolute inset-0 flex items-center justify-center text-neutral-400">
-                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"></path></svg>
-                                            </div>
-                                        </template>
-                                        <template x-if="!item.isVideo">
-                                            <img :src="item.url" class="w-full h-full object-cover">
-                                        </template>
-                                    </div>
-                                    <span class="text-xs text-neutral-300 truncate max-w-[200px]" x-text="item.name"></span>
-                                </div>
-                                <div class="flex items-center space-x-1.5 shrink-0">
-                                    <button type="button" @click="moveItem(index, -1)" :disabled="index === 0" class="w-7 h-7 flex items-center justify-center bg-white/4 hover:bg-white/10 disabled:opacity-30 disabled:pointer-events-none rounded border border-white/8 text-white transition-colors">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"></path></svg>
-                                    </button>
-                                    <button type="button" @click="moveItem(index, 1)" :disabled="index === mediaPreviews.length - 1" class="w-7 h-7 flex items-center justify-center bg-white/4 hover:bg-white/10 disabled:opacity-30 disabled:pointer-events-none rounded border border-white/8 text-white transition-colors">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
-                                    </button>
-                                    <button type="button" @click="removeItem(index)" class="w-7 h-7 flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 rounded border border-red-500/20 text-red-400 transition-colors ml-2">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                    </button>
-                                </div>
-                            </div>
-                        </template>
-                    </div>
+            <div id="pf-media-list-container" data-ref="mediaListContainer" class="space-y-3 bg-black/30 border border-white/8 p-4 rounded-xl hidden">
+                <h4 class="text-xs font-bold text-neutral-400 uppercase tracking-wider">Arrange Upload Media</h4>
+                <div id="pf-media-list" data-ref="mediaList" class="space-y-2">
                 </div>
-            </template>
+            </div>
 
             <div class="flex justify-end pt-4">
-                <button type="submit" 
-                        :disabled="!title.trim() || !description.trim() || mediaPreviews.length === 0"
-                        :class="(!title.trim() || !description.trim() || mediaPreviews.length === 0) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary/80 hover:shadow-[0_0_20px_rgba(255,51,102,0.35)] cursor-pointer'"
-                        class="bg-primary text-white font-bold px-8 py-3 rounded-xl transition-all text-sm tracking-tight">
+                <button type="submit" id="pf-submit-btn" data-ref="submitBtn" disabled
+                        class="bg-primary text-white font-bold px-8 py-3 rounded-xl transition-all text-sm tracking-tight opacity-50 cursor-not-allowed">
                     {{.T.Get "PortfolioFormSubmit"}}
                 </button>
             </div>
         </form>
+
+<template id="pf-tag-template">
+    <div class="flex items-center gap-1 bg-white/10 text-white text-xs px-2.5 py-1 rounded-md border border-white/10">
+        <span data-ref="text"></span>
+        <button type="button" data-action="removeTag" class="text-neutral-400 hover:text-white transition-colors cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+    </div>
+</template>
+
+<template id="pf-media-row-template">
+    <div class="flex items-center justify-between bg-black/40 border border-white/5 rounded-lg p-2 group hover:border-white/10 transition-all">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded bg-white/5 overflow-hidden shrink-0 flex items-center justify-center border border-white/5" data-ref="preview">
+            </div>
+            <div class="flex flex-col">
+                <span class="text-xs text-neutral-300 font-medium truncate max-w-[150px] sm:max-w-[200px]" data-ref="name"></span>
+                <span class="text-[10px] text-neutral-500 font-mono" data-ref="size"></span>
+            </div>
+        </div>
+        <div class="flex items-center gap-1 opacity-100 sm:opacity-50 sm:group-hover:opacity-100 transition-opacity">
+            <button type="button" data-action="moveUp" class="w-7 h-7 flex items-center justify-center text-neutral-400 hover:text-white hover:bg-white/10 rounded transition-all cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+            </button>
+            <button type="button" data-action="moveDown" class="w-7 h-7 flex items-center justify-center text-neutral-400 hover:text-white hover:bg-white/10 rounded transition-all cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div class="w-px h-4 bg-white/10 mx-1"></div>
+            <button type="button" data-action="removeMedia" class="w-7 h-7 flex items-center justify-center text-primary/70 hover:text-primary hover:bg-primary/10 rounded transition-all cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </button>
+        </div>
+    </div>
+</template>
+
+<template id="pf-preview-tag-template">
+    <span class="bg-primary/15 text-primary text-xs px-2.5 py-1 rounded-lg border border-primary/20 tracking-tight font-medium" data-ref="text"></span>
+</template>
+
     </div>
 
     <div class="lg:col-span-5 space-y-6">
         <h3 class="text-lg font-bold text-neutral-200 tracking-tight">{{.T.Get "PortfolioPreviewTitle"}}</h3>
         <div class="portfolio-card">
             <div class="space-y-4">
-                <template x-if="hasMediaPreviews">
-                    <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-black/40 border border-white/8">
-                        <template x-for="(item, index) in mediaPreviews" :key="item.id">
-                            <div :class="getPreviewClass(index)" class="absolute inset-0 w-full h-full transition-all duration-300">
-                                <template x-if="item.isVideo">
-                                    <video :src="item.url" class="w-full h-full object-cover" controls muted playsinline></video>
-                                </template>
-                                <template x-if="!item.isVideo">
-                                    <img :src="item.url" class="w-full h-full object-cover" alt="Portfolio media">
-                                </template>
-                            </div>
-                        </template>
-                        <template x-if="hasMultipleMediaPreviews">
-                            <div class="absolute inset-x-0 bottom-2 flex justify-center space-x-1.5 z-10">
-                                <template x-for="(item, index) in mediaPreviews" :key="item.id">
-                                    <button type="button" @click="activeIndex = index"
-                                            :class="activeIndex === index ? 'bg-primary w-4' : 'bg-white/40 w-1.5'"
-                                            class="h-1.5 rounded-full transition-all duration-300 focus:outline-none"></button>
-                                </template>
-                            </div>
-                        </template>
-                        </template>
-                        <template x-if="hasMultipleMediaPreviews">
-                            <div>
-                                <button type="button" @click="prevPreview" class="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 hover:bg-black/80 flex items-center justify-center text-white border border-white/10 hover:border-white/20 transition-all z-10">
-                                    <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
-                                </button>
-                                <button type="button" @click="nextPreview" class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 hover:bg-black/80 flex items-center justify-center text-white border border-white/10 hover:border-white/20 transition-all z-10">
-                                    <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
-                                </button>
-                            </div>
-                        </template>
+                <div id="pf-preview-carousel" data-ref="previewCarousel" class="hidden relative w-full aspect-video rounded-xl overflow-hidden bg-black/40 border border-white/8">
+                    <div id="pf-preview-carousel-items" data-ref="previewCarouselItems" class="absolute inset-0 w-full h-full"></div>
+                    <div id="pf-preview-carousel-dots" data-ref="previewCarouselDots" class="absolute inset-x-0 bottom-2 justify-center space-x-1.5 z-10 hidden"></div>
+                    <div id="pf-preview-carousel-controls" data-ref="previewCarouselControls" class="hidden">
+                        <button type="button" id="pf-preview-prev-btn" data-action="prevImage" data-ref="previewPrevBtn" class="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 hover:bg-black/80 flex items-center justify-center text-white border border-white/10 hover:border-white/20 transition-all z-10">
+                            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+                        </button>
+                        <button type="button" id="pf-preview-next-btn" data-action="nextImage" data-ref="previewNextBtn" class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 hover:bg-black/80 flex items-center justify-center text-white border border-white/10 hover:border-white/20 transition-all z-10">
+                            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+                        </button>
                     </div>
-                </template>
+                </div>
 
                 <div class="flex justify-between items-start gap-4">
-                    <h3 class="text-base font-bold text-white tracking-tight leading-tight wrap-break-word" x-text="title || 'Project Title'"></h3>
+                    <h3 class="text-base font-bold text-white tracking-tight leading-tight wrap-break-word" id="pf-preview-title" data-ref="previewTitle">Project Title</h3>
                 </div>
-                <p class="text-neutral-400 text-sm leading-relaxed tracking-tight" x-text="description || 'A brief description of your project will be displayed here, showcasing your work and achievements.'"></p>
+                <p class="text-neutral-400 text-sm leading-relaxed tracking-tight" id="pf-preview-desc" data-ref="previewDesc">A brief description of your project will be displayed here, showcasing your work and achievements.</p>
                 <div class="flex flex-wrap gap-2">
-                    <template x-for="(tag, index) in techTags" :key="index">
-                        <span class="bg-white/4 text-neutral-300 text-xs px-2.5 py-1 rounded-lg border border-white/6 tracking-tight font-medium" x-text="tag"></span>
-                    </template>
-                    <template x-if="hasNoTechTags">
-                        <div class="flex gap-2 opacity-30 select-none">
-                            <span class="bg-white/4 text-neutral-300 text-xs px-2.5 py-1 rounded-lg border border-white/6 tracking-tight font-medium">Go</span>
-                            <span class="bg-white/4 text-neutral-300 text-xs px-2.5 py-1 rounded-lg border border-white/6 tracking-tight font-medium">Postgres</span>
-                            <span class="bg-white/4 text-neutral-300 text-xs px-2.5 py-1 rounded-lg border border-white/6 tracking-tight font-medium">HTMX</span>
-                        </div>
-                    </template>
+                    <div id="pf-preview-tags" data-ref="previewTags" class="flex flex-wrap gap-2"></div>
+                    <div id="pf-preview-tags-default" data-ref="previewTagsDefault" class="flex gap-2 opacity-30 select-none">
+                        <span class="bg-white/4 text-neutral-300 text-xs px-2.5 py-1 rounded-lg border border-white/6 tracking-tight font-medium">Go</span>
+                        <span class="bg-white/4 text-neutral-300 text-xs px-2.5 py-1 rounded-lg border border-white/6 tracking-tight font-medium">Postgres</span>
+                        <span class="bg-white/4 text-neutral-300 text-xs px-2.5 py-1 rounded-lg border border-white/6 tracking-tight font-medium">HTMX</span>
+                    </div>
                 </div>
             </div>
         </div>

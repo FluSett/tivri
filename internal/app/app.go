@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"html/template"
 	"io/fs"
 	"log/slog"
 	"net/http"
@@ -16,60 +15,32 @@ import (
 	"tivri/internal/config"
 	"tivri/internal/core/database"
 	"tivri/internal/core/security"
+	"tivri/internal/datastore"
 	"tivri/internal/eventbus"
-	"tivri/internal/features/messaging"
-	"tivri/internal/features/notifications"
-	"tivri/internal/features/portfolio"
-	"tivri/internal/features/project_intake"
-	"tivri/internal/features/settings"
 	"tivri/internal/i18n"
+	"tivri/internal/services"
+	"tivri/internal/web/handlers"
+	"tivri/internal/web/render"
+	"tivri/internal/workers/notifications"
 )
 
 const (
-	defaultReadTimeout       = 10 * time.Second
-	defaultWriteTimeout      = 10 * time.Second
+	defaultReadTimeout       = 60 * time.Second
+	defaultWriteTimeout      = 60 * time.Second
 	defaultIdleTimeout       = 120 * time.Second
-	defaultReadHeaderTimeout = 3 * time.Second
+	defaultReadHeaderTimeout = 10 * time.Second
 	gracefulShutdown         = 10 * time.Second
 	notifyTimeout            = 5 * time.Second
 )
 
-type PageData struct {
-	CurrentPath             string
-	Lang                    string
-	T                       i18n.Translation
-	PortfolioItems          []portfolio.PortfolioItem
-	Leads                   []project_intake.Lead
-	ContactMessages         []messaging.ContactMessage
-	LeadsJSON               string
-	MessagesJSON            string
-	IsAdmin                 bool
-	IsAdminLogin            bool
-	AdminTab                string
-	Error                   string
-	HighQueueActive         bool
-	MaintenanceActive       bool
-	TurnstileSiteKey        string
-	AppURL                  string
-	ContactEmail            string
-	Nonce                   string
-	CloudflareInsightsToken string
-}
-
 type App struct {
-	cfg              *config.Config
-	db               *pgxpool.Pool
-	translator       *i18n.Translator
-	templates        map[string]*template.Template
-	portfolioHandler *portfolio.Handler
-	leadHandler      *project_intake.Handler
-	contactHandler   *messaging.Handler
-	settingsRepo     settings.Repository
-	logger           *slog.Logger
-	webFS            fs.FS
-	securityMgr      *security.SecurityManager
-	eventBus         eventbus.Bus
-	telegramWorker   *notifications.TelegramWorker
+	cfg            *config.Config
+	db             *pgxpool.Pool
+	logger         *slog.Logger
+	webFS          fs.FS
+	eventBus       eventbus.Bus
+	telegramWorker *notifications.TelegramWorker
+	router         http.Handler
 }
 
 func New(ctx context.Context) (*App, error) {
@@ -103,19 +74,12 @@ func New(ctx context.Context) (*App, error) {
 		}
 	}
 
-	if cfg.Env == "development" {
-		logger.Info("development admin credentials",
-			slog.String("username", cfg.AdminUsername),
-			slog.String("password", cfg.AdminPassword),
-		)
-	}
-
-	db, err := database.Connect(ctx, cfg.DBDSN)
+	db, err := database.Connect(ctx, cfg.DBDSN, cfg.DBMaxConns, cfg.DBMinConns)
 	if err != nil {
 		return nil, err
 	}
 
-	err = database.Migrate(ctx, db, postgresMigrationSQL)
+	err = database.Migrate(cfg.DBDSN, postgresMigrationFS)
 	if err != nil {
 		db.Close()
 		return nil, err
@@ -128,9 +92,17 @@ func New(ctx context.Context) (*App, error) {
 	}
 
 	eventBus := eventbus.NewMemoryEventBus(ctx, logger)
-	portfolioRepo := portfolio.NewPostgresRepository(db)
-	leadRepo := project_intake.NewPostgresRepository(db)
-	contactRepo := messaging.NewPostgresRepository(db)
+	store := datastore.NewStore(db)
+
+	portfolioRepo := datastore.NewPortfolioRepo(store)
+	intakeRepo := datastore.NewIntakeRepo(store)
+	contactRepo := datastore.NewContactRepo(store)
+	settingsRepo := datastore.NewSettingsRepo(store)
+	outboxRepo := datastore.NewOutboxRepo(store)
+
+	intakeService := services.NewIntakeService(store, intakeRepo, outboxRepo)
+	contactService := services.NewContactService(store, contactRepo, outboxRepo)
+	portfolioService := services.NewPortfolioService(portfolioRepo, eventBus)
 
 	webUIFS, err := fs.Sub(tivri.WebFS, "web")
 	if err != nil {
@@ -138,25 +110,19 @@ func New(ctx context.Context) (*App, error) {
 		return nil, err
 	}
 
-	templates, err := parseTemplates(webUIFS)
+	render.InitAssets(webUIFS, "assets/dist/manifest.json")
+	renderer, err := render.NewRenderer(webUIFS)
 	if err != nil {
 		db.Close()
 		return nil, err
 	}
 
-	portfolioHandler := portfolio.NewHandler(portfolioRepo, eventBus, templates["home"])
-	leadHandler := project_intake.NewHandler(leadRepo, eventBus, templates["home"], translator, cfg.TurnstileSecretKey)
-	contactHandler := messaging.NewHandler(contactRepo, eventBus, templates["home"], translator, cfg.TurnstileSecretKey)
-	settingsRepo := settings.NewRepository(db)
 	outboxWorker := eventbus.NewOutboxWorker(db, eventBus, logger)
 	emailWorker := notifications.NewEmailWorker()
 	telegramWorker := notifications.NewTelegramWorker(cfg.TelegramBotToken, cfg.TelegramChatID)
 
-	eventBus.Subscribe("portfolio.created", portfolioHandler.HandlePortfolioCreated)
-	eventBus.Subscribe("project_intake.applied", leadHandler.HandleProjectApplied)
 	eventBus.Subscribe("project_intake.applied", emailWorker.HandleEvent)
 	eventBus.Subscribe("project_intake.applied", telegramWorker.HandleEvent)
-	eventBus.Subscribe("contact.created", contactHandler.HandleMessageCreated)
 	eventBus.Subscribe("contact.created", emailWorker.HandleEvent)
 	eventBus.Subscribe("contact.created", telegramWorker.HandleEvent)
 	eventBus.Subscribe("settings.high_queue_changed", telegramWorker.HandleEvent)
@@ -168,20 +134,30 @@ func New(ctx context.Context) (*App, error) {
 
 	securityMgr := security.NewSecurityManager(ctx, logger, db)
 
+	publicHandler := handlers.NewPublicHandler(
+		renderer, translator, portfolioRepo, intakeService, contactService,
+		settingsRepo, cfg.TurnstileSecretKey, cfg.Env == "production",
+	)
+
+	adminHandler := handlers.NewAdminHandler(
+		renderer, cfg, securityMgr, portfolioService, portfolioRepo,
+		intakeRepo, contactRepo, settingsRepo, eventBus,
+	)
+
+	router, err := newRouter(cfg, logger, webUIFS, securityMgr, settingsRepo, translator, renderer, publicHandler, adminHandler)
+	if err != nil {
+		db.Close()
+		return nil, err
+	}
+
 	return &App{
-		cfg:              cfg,
-		db:               db,
-		translator:       translator,
-		templates:        templates,
-		portfolioHandler: portfolioHandler,
-		leadHandler:      leadHandler,
-		contactHandler:   contactHandler,
-		settingsRepo:     settingsRepo,
-		logger:           logger,
-		webFS:            webUIFS,
-		securityMgr:      securityMgr,
-		eventBus:         eventBus,
-		telegramWorker:   telegramWorker,
+		cfg:            cfg,
+		db:             db,
+		logger:         logger,
+		webFS:          webUIFS,
+		eventBus:       eventBus,
+		telegramWorker: telegramWorker,
+		router:         router,
 	}, nil
 }
 
@@ -193,14 +169,9 @@ func (a *App) Close() error {
 }
 
 func (a *App) Start(ctx context.Context) error {
-	router, err := a.newRouter()
-	if err != nil {
-		return err
-	}
-
 	server := &http.Server{
 		Addr:              ":" + a.cfg.Port,
-		Handler:           router,
+		Handler:           a.router,
 		ReadTimeout:       defaultReadTimeout,
 		WriteTimeout:      defaultWriteTimeout,
 		IdleTimeout:       defaultIdleTimeout,
@@ -212,7 +183,6 @@ func (a *App) Start(ctx context.Context) error {
 	go func() {
 		<-ctx.Done()
 		a.logger.Info("shutting down server gracefully...")
-
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), gracefulShutdown)
 		defer cancel()
 

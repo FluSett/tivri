@@ -1,15 +1,20 @@
 {
+  "name": "tivri",
+  "version": "1.0.0",
+  "private": true,
   "scripts": {
-    "build:css": "tailwindcss -i web/assets/css/input.css -o web/assets/dist/css/theme.css",
-    "build:js": "esbuild web/assets/js/app.js --bundle --minify --outfile=web/assets/dist/js/app.min.js",
-    "build": "npm run build:css && npm run build:js",
+    "clean": "rimraf web/assets/dist",
+    "build:css": "tailwindcss -i web/assets/css/input.css -o web/assets/css/theme.css",
+    "build:js": "esbuild web/assets/js/app.js web/assets/js/admin.js web/assets/css/theme.css --bundle --minify --external:/assets/* --outdir=web/assets/dist --entry-names=[dir]/[name]-[hash] --metafile=web/assets/dist/manifest.json",
+    "build": "npm run clean && npm run build:css && npm run build:js && rimraf web/assets/css/theme.css",
     "format": "prettier --write \"web/assets/js/**/*.js\""
   },
   "devDependencies": {
-    "@tailwindcss/cli": "^4.3.2",
+    "@tailwindcss/cli": "^4.3.3",
     "esbuild": "^0.28.1",
     "prettier": "^3.9.5",
-    "tailwindcss": "^4.3.2"
+    "rimraf": "^6.1.3",
+    "tailwindcss": "^4.3.3"
   },
   "allowScripts": {
     "esbuild": true,

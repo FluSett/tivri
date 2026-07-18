@@ -1,11 +1,11 @@
 {{define "components.lang_switcher"}}
 {{if .IsMobile}}
-<button type="button" {{if eq .Lang "en"}}disabled class="{{.DisabledClass}}"{{else}}data-preserve-scroll @click="changeLanguage('en')" class="{{.NormalClass}}"{{end}}>EN</button>
-<button type="button" {{if eq .Lang "uk"}}disabled class="{{.DisabledClass}}"{{else}}data-preserve-scroll @click="changeLanguage('uk')" class="{{.NormalClass}}"{{end}}>UA</button>
-<button type="button" {{if eq .Lang "ru"}}disabled class="{{.DisabledClass}}"{{else}}data-preserve-scroll @click="changeLanguage('ru')" class="{{.NormalClass}}"{{end}}>RU</button>
+<button type="button" {{if eq .Lang "en"}}disabled class="{{.DisabledClass}}"{{else}}data-preserve-scroll data-lang="en" class="lang-switch-btn {{.NormalClass}}"{{end}}>EN</button>
+<button type="button" {{if eq .Lang "uk"}}disabled class="{{.DisabledClass}}"{{else}}data-preserve-scroll data-lang="uk" class="lang-switch-btn {{.NormalClass}}"{{end}}>UA</button>
+<button type="button" {{if eq .Lang "ru"}}disabled class="{{.DisabledClass}}"{{else}}data-preserve-scroll data-lang="ru" class="lang-switch-btn {{.NormalClass}}"{{end}}>RU</button>
 {{else}}
-<button type="button" {{if eq .Lang "en"}}disabled class="{{.DisabledClass}}"{{else}}hx-get="/api/lang?lang=en" hx-target="body" hx-swap="outerHTML transition:true" @click="setLocaleChange()" data-preserve-scroll class="{{.NormalClass}}"{{end}}>EN</button>
-<button type="button" {{if eq .Lang "uk"}}disabled class="{{.DisabledClass}}"{{else}}hx-get="/api/lang?lang=uk" hx-target="body" hx-swap="outerHTML transition:true" @click="setLocaleChange()" data-preserve-scroll class="{{.NormalClass}}"{{end}}>UA</button>
-<button type="button" {{if eq .Lang "ru"}}disabled class="{{.DisabledClass}}"{{else}}hx-get="/api/lang?lang=ru" hx-target="body" hx-swap="outerHTML transition:true" @click="setLocaleChange()" data-preserve-scroll class="{{.NormalClass}}"{{end}}>RU</button>
+<button type="button" {{if eq .Lang "en"}}disabled class="{{.DisabledClass}}"{{else}}hx-get="/api/lang?lang=en" hx-target="body" hx-swap="outerHTML transition:true show:none" data-preserve-scroll class="lang-switch-desktop {{.NormalClass}}"{{end}}>EN</button>
+<button type="button" {{if eq .Lang "uk"}}disabled class="{{.DisabledClass}}"{{else}}hx-get="/api/lang?lang=uk" hx-target="body" hx-swap="outerHTML transition:true show:none" data-preserve-scroll class="lang-switch-desktop {{.NormalClass}}"{{end}}>UA</button>
+<button type="button" {{if eq .Lang "ru"}}disabled class="{{.DisabledClass}}"{{else}}hx-get="/api/lang?lang=ru" hx-target="body" hx-swap="outerHTML transition:true show:none" data-preserve-scroll class="lang-switch-desktop {{.NormalClass}}"{{end}}>RU</button>
 {{end}}
 {{end}}

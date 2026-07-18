@@ -61,7 +61,6 @@ func (sm *SecurityManager) cleanupLoop(ctx context.Context) {
 			}
 			sm.mu.Unlock()
 
-			// Clean up expired sessions from database
 			_, err := sm.db.Exec(ctx, "DELETE FROM admin_sessions WHERE expires_at < $1", now)
 			if err != nil {
 				sm.logger.Error("security: failed to cleanup expired sessions", slog.Any("error", err))
