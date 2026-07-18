@@ -10,7 +10,7 @@
                     <svg class="w-4 h-4 drop-shadow-[0_0_8px_rgba(255,51,102,0.5)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
-                    <span>Tech Update</span>
+                    <span>{{.T.Get "TechBannerTitle"}}</span>
                 </div>
                 <div class="flex items-center gap-1 -mt-1 -mr-1">
                     <button data-action="toggleTechInfo" class="text-neutral-500 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/10" title="More Info">
@@ -27,23 +27,23 @@
             </div>
             
             <p class="text-sm text-neutral-300 leading-relaxed font-medium">
-                We've recently rewritten the stack from Go, Alpine.js, & HTMX to Go, HTMX, & Vanilla JS.
+                {{.T.Get "TechBannerText"}}
             </p>
 
             <div id="tech-banner-info" data-ref="techInfo" class="hidden mt-4 pt-4 border-t border-white/10 text-sm text-neutral-400 space-y-3 page-animate">
-                <p><strong class="text-white text-xs uppercase tracking-widest font-bold">The Benefits</strong></p>
+                <p><strong class="text-white text-xs uppercase tracking-widest font-bold">{{.T.Get "TechBannerBenefitsTitle"}}</strong></p>
                 <ul class="space-y-2">
                     <li class="flex items-start gap-2">
                         <svg class="w-4 h-4 text-primary shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        <span>Removed Alpine.js overhead for a lighter payload.</span>
+                        <span>{{.T.Get "TechBannerBenefit1"}}</span>
                     </li>
                     <li class="flex items-start gap-2">
                         <svg class="w-4 h-4 text-primary shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        <span>Vanilla JS gives finer control over DOM and animations.</span>
+                        <span>{{.T.Get "TechBannerBenefit2"}}</span>
                     </li>
                     <li class="flex items-start gap-2">
                         <svg class="w-4 h-4 text-primary shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        <span>Better performance and cleaner separation of concerns.</span>
+                        <span>{{.T.Get "TechBannerBenefit3"}}</span>
                     </li>
                 </ul>
             </div>
