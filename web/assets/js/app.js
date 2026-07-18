@@ -8,6 +8,7 @@ import { initGlobalSuccess } from './core/success.js';
 import { initLayout } from './core/layout.js';
 import { initCookieConsent } from './components/cookieConsent.js';
 import { initStatePersistence } from './core/state.js';
+import { initTechBanner } from './components/techBanner.js';
 
 import { initPortfolioCards } from './components/portfolio_card.js';
 import { initStepper } from './components/stepper.js';
@@ -80,6 +81,7 @@ router.on(/.*/, () => {
     const tdLayout = initLayout();
     const tdScroll = initScroll();
     const tdCookie = initCookieConsent();
+    const tdTech = initTechBanner();
 
     return () => {
         if (tdError) tdError();
@@ -87,6 +89,7 @@ router.on(/.*/, () => {
         if (tdLayout) tdLayout();
         if (tdScroll) tdScroll();
         if (tdCookie) tdCookie();
+        if (tdTech) tdTech();
     };
 });
 
