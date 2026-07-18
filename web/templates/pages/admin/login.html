@@ -1,6 +1,6 @@
 {{define "content"}}
 <div class="max-w-md mx-auto my-4 md:my-8 admin-panel-box page-animate">
-    <div class="text-center space-y-3">
+    <div class="text-center space-y-3 mb-8">
         <h2 class="text-3xl font-black tracking-tight text-white">{{.T.Get "LoginTitle"}}</h2>
         <p class="text-xs text-neutral-400 tracking-wide max-w-[280px] mx-auto leading-relaxed">{{.T.Get "LoginSubtitle"}}</p>
     </div>
@@ -11,15 +11,17 @@
     </div>
     {{end}}
 
-    <form method="POST" action="/admin/login" class="space-y-6" x-data="loginForm">
+    <h1 class="sr-only">Admin Login</h1>
+    <form id="login-form" data-ref="form" method="POST" action="/admin/login" class="space-y-6">
+        {{ .CSRFToken }}
         <div class="space-y-2">
             <label class="form-label">{{.T.Get "LabelUsername"}}</label>
-            <input type="text" name="username" required autocomplete="username" placeholder="{{.T.Get "PlaceholderUsername"}}" class="form-input" x-model="username">
+            <input type="text" data-ref="usernameInput" name="username" required autocomplete="username" placeholder="{{.T.Get "PlaceholderUsername"}}" class="form-input">
         </div>
 
         <div class="space-y-2">
             <label class="form-label">{{.T.Get "LabelPassword"}}</label>
-            <input type="password" name="password" required autocomplete="current-password" placeholder="{{.T.Get "PlaceholderPassword"}}" class="form-input" x-model="password">
+            <input type="password" data-ref="passwordInput" name="password" required autocomplete="current-password" placeholder="{{.T.Get "PlaceholderPassword"}}" class="form-input">
         </div>
 
         <div class="p-3 bg-white/3 border border-white/5 rounded-xl">
@@ -28,16 +30,19 @@
 
         {{if .TurnstileSiteKey}}
         <div class="flex justify-center py-2">
-            <div x-ref="turnstileContainer"></div>
+            <div data-ref="turnstileContainer"></div>
+            <input type="hidden" name="cf-turnstile-response" data-ref="turnstileInput">
         </div>
         {{end}}
 
-        <button type="submit" 
-                :disabled="!username.trim() || !password.trim()"
-                :class="(!username.trim() || !password.trim()) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary/80 hover:shadow-[0_0_15px_rgba(255,51,102,0.4)] cursor-pointer'"
-                class="w-full bg-primary text-white font-bold py-3.5 rounded-xl transition-all duration-300 text-xs uppercase tracking-widest">
+        <button type="submit" data-ref="submitBtn" disabled
+                class="w-full bg-primary text-white font-bold py-3.5 rounded-xl transition-all duration-300 text-xs uppercase tracking-widest opacity-50 cursor-not-allowed">
             {{.T.Get "BtnLogin"}}
         </button>
     </form>
 </div>
+{{end}}
+
+{{define "extra_js"}}
+<script defer src="{{AssetURL "web/assets/js/admin.js"}}"></script>
 {{end}}

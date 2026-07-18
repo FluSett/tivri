@@ -6,12 +6,15 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strconv"
 	"strings"
 )
 
 type Config struct {
 	Env                     string
 	DBDSN                   string
+	DBMaxConns              int32
+	DBMinConns              int32
 	AdminUsername           string
 	AdminPassword           string
 	Port                    string
@@ -23,6 +26,7 @@ type Config struct {
 	AppURL                  string
 	ContactEmail            string
 	CloudflareInsightsToken string
+	CSRFAuthKey             []byte
 }
 
 func getEnv(key string) string {
@@ -54,6 +58,18 @@ func Load() (*Config, error) {
 		adminPassword = "secret"
 	}
 
+	dbMaxConnsStr := getEnv("DB_MAX_CONNS")
+	dbMaxConns := int32(25)
+	if val, err := strconv.ParseInt(dbMaxConnsStr, 10, 32); err == nil {
+		dbMaxConns = int32(val)
+	}
+
+	dbMinConnsStr := getEnv("DB_MIN_CONNS")
+	dbMinConns := int32(5)
+	if val, err := strconv.ParseInt(dbMinConnsStr, 10, 32); err == nil {
+		dbMinConns = int32(val)
+	}
+
 	port := getEnv("PORT")
 	if port == "" {
 		port = "8080"
@@ -81,9 +97,25 @@ func Load() (*Config, error) {
 
 	cloudflareInsightsToken := getEnv("CLOUDFLARE_INSIGHTS_TOKEN")
 
+	csrfAuthKeyStr := getEnv("CSRF_AUTH_KEY")
+	var csrfAuthKey []byte
+	if csrfAuthKeyStr != "" {
+		csrfAuthKey = []byte(csrfAuthKeyStr)
+		if len(csrfAuthKey) != 32 {
+			slog.Warn("CSRF_AUTH_KEY must be exactly 32 bytes, CSRF protection may fail or panic")
+		}
+	} else {
+		csrfAuthKey = []byte("01234567890123456789012345678901")
+		if env == "production" {
+			slog.Warn("CSRF_AUTH_KEY is not set in production! Using insecure fallback key.")
+		}
+	}
+
 	return &Config{
 		Env:                     env,
 		DBDSN:                   dbDSN,
+		DBMaxConns:              dbMaxConns,
+		DBMinConns:              dbMinConns,
 		AdminUsername:           adminUsername,
 		AdminPassword:           adminPassword,
 		Port:                    port,
@@ -95,6 +127,7 @@ func Load() (*Config, error) {
 		AppURL:                  appURL,
 		ContactEmail:            contactEmail,
 		CloudflareInsightsToken: cloudflareInsightsToken,
+		CSRFAuthKey:             csrfAuthKey,
 	}, nil
 }
 

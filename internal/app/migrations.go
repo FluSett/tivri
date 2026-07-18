@@ -1,6 +1,6 @@
 package app
 
-import _ "embed"
+import "embed"
 
-//go:embed migrations/postgres.sql
-var postgresMigrationSQL string
+//go:embed migrations/*.sql
+var postgresMigrationFS embed.FS

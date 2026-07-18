@@ -18,7 +18,6 @@ func TestNewTranslator(t *testing.T) {
 				t.Fatalf("locale %s is nil", lang)
 			}
 
-			// Validate core key existence
 			val := locale.Get("MetaTitle")
 			if val == "" || val == "MetaTitle" {
 				t.Errorf("missing MetaTitle translation for %s, got %s", lang, val)

@@ -78,13 +78,12 @@ func TestSecurityManagerLockouts(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	pool, err := database.Connect(ctx, dsn)
+	pool, err := database.Connect(ctx, dsn, 10, 10)
 	if err != nil {
 		t.Fatalf("failed to connect database: %v", err)
 	}
 	defer pool.Close()
 
-	// Ensure system tables exist
 	_, _ = pool.Exec(ctx, `
 		CREATE TABLE IF NOT EXISTS admin_login_attempts (
 			ip TEXT PRIMARY KEY,
@@ -106,12 +105,10 @@ func TestSecurityManagerLockouts(t *testing.T) {
 	req := httptest.NewRequest("POST", "/admin/login", nil)
 	req.RemoteAddr = "127.0.0.1:1234"
 
-	// Initial check
 	if sm.IsLockedOut(req) {
 		t.Error("expected not locked out initially")
 	}
 
-	// Fail attempts
 	for i := 0; i < 5; i++ {
 		sm.RecordFailedAttempt(req)
 	}
@@ -120,13 +117,11 @@ func TestSecurityManagerLockouts(t *testing.T) {
 		t.Error("expected locked out after 5 failures")
 	}
 
-	// Success resets attempts
 	sm.RecordSuccessfulAttempt(req)
 	if sm.IsLockedOut(req) {
 		t.Error("expected lockout reset after success")
 	}
 
-	// Token generation
 	token, err := sm.GenerateToken(ctx)
 	if err != nil {
 		t.Fatalf("failed to generate token: %v", err)

@@ -1,4 +1,5 @@
-// Global utility to handle Alpine state reset only on hard reloads (not locale swaps)
+import { bindRefs } from './state.js';
+
 export function tivriHandleLocaleChange(onNormalLoad) {
     const isLocaleChange = sessionStorage.getItem('locale_change') === 'true';
     if (!isLocaleChange) {
@@ -9,27 +10,68 @@ export function tivriHandleLocaleChange(onNormalLoad) {
 }
 window.tivriHandleLocaleChange = tivriHandleLocaleChange;
 
-// Scroll preservation and height freezing on htmx body swaps
-(function () {
-    sessionStorage.clear();
-    if ('scrollRestoration' in history) {
-        history.scrollRestoration = 'manual';
-    }
-    window.scrollTo({ top: 0, behavior: 'instant' });
+export function initScroll() {
+    const teardowns = [];
 
-    document.addEventListener('click', function (e) {
+    const localeChange = sessionStorage.getItem('locale_change');
+    const tivriScroll = sessionStorage.getItem('tivri_scroll');
+    const htmxNav = sessionStorage.getItem('tivri_htmx_nav');
+
+    sessionStorage.clear();
+
+    if (localeChange) sessionStorage.setItem('locale_change', localeChange);
+    if (tivriScroll) sessionStorage.setItem('tivri_scroll', tivriScroll);
+    if (htmxNav) sessionStorage.setItem('tivri_htmx_nav', htmxNav);
+
+    if (!localeChange && !tivriScroll) {
+        if ('scrollRestoration' in history) {
+            history.scrollRestoration = 'manual';
+        }
+        window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+
+    const clickPreserveHandler = function (e) {
         if (e.target.closest('[data-preserve-scroll]')) {
             sessionStorage.setItem('tivri_scroll', window.scrollY);
         }
-    });
+    };
+    document.addEventListener('click', clickPreserveHandler);
+    teardowns.push(() => document.removeEventListener('click', clickPreserveHandler));
 
-    document.addEventListener('htmx:beforeSwap', function (e) {
+    const beforeSwapHandler = function (e) {
+        document.documentElement.classList.add('no-transition');
+        sessionStorage.setItem('tivri_htmx_nav', 'true');
+
         if (sessionStorage.getItem('tivri_scroll') !== null) {
             document.documentElement.style.minHeight = document.documentElement.scrollHeight + 'px';
         }
-    });
 
-    document.addEventListener('htmx:afterSettle', function (e) {
+        if (e.detail.serverResponse) {
+            try {
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(e.detail.serverResponse, 'text/html');
+                var oldHeader = document.querySelector('[data-ref="header"]');
+                var newHeader = doc.querySelector('[data-ref="header"]');
+                if (oldHeader && newHeader) {
+                    newHeader.className = oldHeader.className;
+                }
+
+                var oldFooter = document.querySelector('[data-ref="footer"]');
+                var newFooter = doc.querySelector('[data-ref="footer"]');
+                if (oldFooter && newFooter) {
+                    newFooter.className = oldFooter.className;
+                }
+
+                e.detail.serverResponse = doc.documentElement.outerHTML;
+            } catch (err) {
+                console.error('Failed to parse server response:', err);
+            }
+        }
+    };
+    document.addEventListener('htmx:beforeSwap', beforeSwapHandler);
+    teardowns.push(() => document.removeEventListener('htmx:beforeSwap', beforeSwapHandler));
+
+    const afterSettleHandler = function (e) {
         const s = sessionStorage.getItem('tivri_scroll');
         if (s !== null) {
             setTimeout(function () {
@@ -48,39 +90,27 @@ window.tivriHandleLocaleChange = tivriHandleLocaleChange;
                 html.style.minHeight = '';
             }, 50);
         }
-    });
-})();
+    };
+    document.addEventListener('htmx:afterSettle', afterSettleHandler);
+    teardowns.push(() => document.removeEventListener('htmx:afterSettle', afterSettleHandler));
 
-(function () {
-    var footerActive = false;
+    let footerActive = false;
 
     function updateScrollState() {
-        var header = document.getElementById('site-header');
+        const refs = bindRefs(document.body);
+        const header = refs.header;
+
         if (header) {
             if (window.scrollY > 50) {
-                header.classList.add(
-                    'backdrop-blur-lg',
-                    'bg-black/90',
-                    'border-b',
-                    'border-white/[0.08]',
-                    'py-5',
-                    'shadow-[0_4px_30px_rgba(0,0,0,0.8)]'
-                );
+                header.classList.add('header-scrolled');
                 header.classList.remove('bg-transparent', 'border-transparent', 'py-10');
             } else {
-                header.classList.remove(
-                    'backdrop-blur-lg',
-                    'bg-black/90',
-                    'border-b',
-                    'border-white/[0.08]',
-                    'py-5',
-                    'shadow-[0_4px_30px_rgba(0,0,0,0.8)]'
-                );
+                header.classList.remove('header-scrolled');
                 header.classList.add('bg-transparent', 'border-transparent', 'py-10');
             }
         }
 
-        var footer = document.getElementById('site-footer');
+        const footer = refs.footer;
         if (footer) {
             var scrollY = window.pageYOffset || window.scrollY;
             var maxScroll = document.documentElement.scrollHeight - window.innerHeight;
@@ -89,27 +119,28 @@ window.tivriHandleLocaleChange = tivriHandleLocaleChange;
 
             if (isAtBottom && !footerActive) {
                 footerActive = true;
-                footer.classList.add(
-                    'backdrop-blur-lg',
-                    'bg-black/90',
-                    'border-white/[0.08]',
-                    'shadow-[0_-4px_30px_rgba(0,0,0,0.8)]'
-                );
+                footer.classList.add('footer-scrolled');
                 footer.classList.remove('bg-transparent', 'border-transparent');
             } else if (!isAtBottom && footerActive) {
                 footerActive = false;
-                footer.classList.remove(
-                    'backdrop-blur-lg',
-                    'bg-black/90',
-                    'border-white/[0.08]',
-                    'shadow-[0_-4px_30px_rgba(0,0,0,0.8)]'
-                );
+                footer.classList.remove('footer-scrolled');
                 footer.classList.add('bg-transparent', 'border-transparent');
             }
         }
     }
 
     window.addEventListener('scroll', updateScrollState);
+    teardowns.push(() => window.removeEventListener('scroll', updateScrollState));
+
+    const afterSwapHandler = function () {
+        updateScrollState();
+        setTimeout(updateScrollState, 50);
+        setTimeout(function () {
+            document.documentElement.classList.remove('no-transition');
+        }, 100);
+    };
+    document.addEventListener('htmx:afterSwap', afterSwapHandler);
+    teardowns.push(() => document.removeEventListener('htmx:afterSwap', afterSwapHandler));
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', updateScrollState);
@@ -117,38 +148,5 @@ window.tivriHandleLocaleChange = tivriHandleLocaleChange;
         updateScrollState();
     }
 
-    document.addEventListener('htmx:beforeSwap', function (evt) {
-        document.documentElement.classList.add('no-transition');
-        sessionStorage.setItem('tivri_htmx_nav', 'true');
-
-        if (evt.detail.serverResponse) {
-            try {
-                var parser = new DOMParser();
-                var doc = parser.parseFromString(evt.detail.serverResponse, 'text/html');
-                var oldHeader = document.getElementById('site-header');
-                var newHeader = doc.getElementById('site-header');
-                if (oldHeader && newHeader) {
-                    newHeader.className = oldHeader.className;
-                }
-
-                var oldFooter = document.getElementById('site-footer');
-                var newFooter = doc.getElementById('site-footer');
-                if (oldFooter && newFooter) {
-                    newFooter.className = oldFooter.className;
-                }
-
-                evt.detail.serverResponse = doc.documentElement.outerHTML;
-            } catch (e) {
-                console.error('Failed to parse server response:', e);
-            }
-        }
-    });
-
-    document.addEventListener('htmx:afterSwap', function () {
-        updateScrollState();
-        setTimeout(updateScrollState, 50);
-        setTimeout(function () {
-            document.documentElement.classList.remove('no-transition');
-        }, 100);
-    });
-})();
+    return () => teardowns.forEach((fn) => fn());
+}

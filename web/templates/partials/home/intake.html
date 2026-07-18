@@ -1,21 +1,20 @@
 {{define "home.intake.html"}}
-<div class="border border-white/8 bg-white/2 p-8 rounded-xl hover:border-primary/30 hover:shadow-[0_0_30px_rgba(255,51,102,0.05)] transition-all duration-500"
-     x-data="stepper({{.HighQueueActive}})">
+<div id="stepper-container" data-ref="container" data-high-queue="{{if .HighQueueActive}}true{{else}}false{{end}}" class="border border-white/8 bg-white/2 p-8 rounded-xl hover:border-primary/30 hover:shadow-[0_0_30px_rgba(255,51,102,0.05)] transition-all duration-500">
 
-    <div :class="getStepperIntroClass()">
+    <div id="stepper-intro" data-ref="intro" class="grid-collapse grid-expand">
         <div class="space-y-6">
             <h3 class="text-xl font-bold text-white tracking-tight">{{.T.Get "ContactHeadline"}}</h3>
             <p class="text-sm text-neutral-400 leading-relaxed">{{.T.Get "ContactSub"}}</p>
-            <button @click="openStepperForm" class="btn-primary px-8 py-3.5">
+            <button id="stepper-open-btn" data-ref="openBtn" data-action="open" class="btn-primary px-8 py-3.5">
                 <span>{{.T.Get "ContactBtn"}}</span>
             </button>
         </div>
     </div>
 
-    <div :class="getStepperFormClass()" x-cloak>
+    <div id="stepper-form-container" data-ref="formContainer" class="grid-collapse opacity-0 pointer-events-none delay-300">
         <div class="space-y-6">
-            <div :class="getSubmittedClass()" class="text-center py-8 space-y-5 transition-all duration-300">
-            <div class="w-16 h-16 bg-green-500/10 border border-green-500/20 text-green-400 rounded-full flex items-center justify-center mx-auto shadow-[0_0_15px_rgba(34,197,94,0.15)]">
+            <div id="stepper-submitted-view" data-ref="submittedView" class="text-center py-8 space-y-5 transition-all duration-300 opacity-0 scale-95 pointer-events-none hidden">
+            <div class="stepper-success-icon">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
                 </svg>
@@ -25,24 +24,24 @@
                 <p class="text-xs text-neutral-400 max-w-sm mx-auto leading-relaxed">{{.T.Get "SuccessMsg"}}</p>
             </div>
             <div class="flex justify-center gap-3 pt-2">
-                <button type="button" @click="resetForm()"
+                <button type="button" id="stepper-reset-btn" data-ref="resetBtn" data-action="close"
                         class="btn-secondary cursor-pointer">
                     {{.T.Get "CloseBtn"}}
                 </button>
             </div>
         </div>
 
-            <div :class="getNotSubmittedClass()" class="space-y-6 transition-all duration-300">
+            <div id="stepper-not-submitted-view" data-ref="notSubmittedView" class="space-y-6 transition-all duration-300 opacity-100 scale-100 pointer-events-auto">
             <div class="flex items-center justify-between pb-3 border-b border-white/8">
                 <h2 class="text-xs font-bold uppercase tracking-widest text-primary">{{.T.Get "IntakeTitle"}}</h2>
                 <span class="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
-                    {{.T.Get "StepLabel"}} <span x-text="step"></span> / <span x-text="totalSteps"></span>
+                    {{.T.Get "StepLabel"}} <span id="stepper-progress-text-step" data-ref="progressTextStep">1</span> / <span id="stepper-progress-text-total" data-ref="progressTextTotal">5</span>
                 </span>
             </div>
 
             <div class="h-1.5 bg-white/4 border border-white/8 rounded-full overflow-hidden">
-             <div class="h-full bg-linear-to-r from-primary via-[#ff5c8a] to-primary animate-shimmer shadow-[0_0_15px_rgba(255,51,102,0.75)] rounded-full transition-all duration-500"
-                  :style="'width: ' + ((step / totalSteps) * 100) + '%'"></div>
+             <div id="stepper-progress-bar" data-ref="progressBar" class="stepper-progress"
+                  style="width: 20%"></div>
             </div>
 
             {{if .HighQueueActive}}
@@ -57,217 +56,186 @@
             </div>
             {{end}}
 
-            <form id="intake-form"
-                  @submit.prevent="handleSubmit($event)"
+            <form id="intake-form" data-ref="form"
                   hx-post="/api/intake"
                   hx-target="this"
                   hx-swap="none"
-                  @htmx:after-request="handleHtmxAfterRequest($event)"
                   class="space-y-5">
+                {{ .CSRFToken }}
                 <input type="hidden" name="lang" value="{{.Lang}}">
-                <input type="hidden" name="budget" :value="budget">
-                <input type="hidden" name="custom_budget" :value="budget === 'other' ? customBudget : ''">
-                <input type="hidden" name="deadline_needed" :value="deadlineNeeded ? 'true' : 'false'">
-                <input type="hidden" name="deadline_spec" :value="deadlineNeeded ? deadlineSpec : ''">
+                <input type="hidden" name="budget" id="stepper-budget-hidden" data-ref="budgetHidden">
+                <input type="hidden" name="custom_budget" id="stepper-custom-budget-hidden" data-ref="customBudgetHidden">
+                <input type="hidden" name="deadline_needed" id="stepper-deadline-needed-hidden" data-ref="deadlineNeededHidden">
+                <input type="hidden" name="deadline_spec" id="stepper-deadline-spec-hidden" data-ref="deadlineSpecHidden">
                 {{if .TurnstileSiteKey}}
-                <input type="hidden" name="cf-turnstile-response" x-model="turnstileToken">
+                <input type="hidden" name="cf-turnstile-response" id="stepper-turnstile-input" data-ref="turnstileInput">
                 {{end}}
 
                 <div class="grid grid-cols-1 grid-rows-1 items-start relative">
-                <div :class="step === 1 ? '' : 'hidden'" x-bind="transitionWizard" class="col-start-1 row-start-1 w-full space-y-4">
+                <div id="stepper-step-1" data-ref="step1" class="col-start-1 row-start-1 w-full space-y-4">
                     <div class="space-y-1">
                         <label class="form-label">{{.T.Get "CompanyNameLabel"}}</label>
                         <p class="text-[11px] text-neutral-400 mb-2">{{.T.Get "CompanyNameHint"}}</p>
                     </div>
                     <input type="text"
+                           id="stepper-name" data-ref="name"
                            name="company_name"
-                           x-model="nameText"
                            minlength="2"
                            maxlength="150"
                            class="form-input"
-                           placeholder="{{.T.Get "PlaceholderCompany"}}"
-                           @input.debounce.500ms="nameTouched = true"
-                           @blur="nameTouched = true">
+                           placeholder="{{.T.Get "PlaceholderCompany"}}">
                       <div class="flex justify-between items-center text-[10px]">
-                          <span :class="nameTouched && nameText.trim().length < 2 ? '' : 'hidden'" class="text-primary font-medium">
+                          <span id="stepper-name-error" data-ref="nameError" class="hidden text-primary font-medium">
                               {{.T.Get "ValMinChars2"}}
                           </span>
-                          <span :class="!nameTouched || nameText.trim().length >= 2 ? '' : 'hidden'"></span>
-                          <span class="text-neutral-400 font-semibold font-mono text-xs" x-text="nameText.length + ' / 150'"></span>
+                          <span></span>
+                          <span id="stepper-name-count" data-ref="nameCount" class="text-neutral-400 font-semibold font-mono text-xs">0 / 150</span>
                       </div>
                     <div class="flex justify-between items-center">
                         <div class="flex gap-2">
-                            <button type="button" @click="resetForm"
+                            <button type="button" id="stepper-close-btn" data-ref="closeBtn" data-action="close"
                                     class="btn-secondary cursor-pointer">
-                                {{.T.Get "CancelBtn"}}
+                                {{.T.Get "CloseBtn"}}
                             </button>
                         </div>
-                        <button type="button" @click="setStep(2)"
-                                class="btn-primary-form cursor-pointer disabled:cursor-not-allowed"
-                                :disabled="!canGoNext(1)">
+                        <button type="button" id="stepper-name-next" data-ref="nameNext" data-action="next"
+                                class="btn-primary-form cursor-pointer disabled:cursor-not-allowed">
                             {{.T.Get "NextBtn"}}
                         </button>
                     </div>
                 </div>
 
-                <div :class="step === 2 ? '' : 'hidden'" x-bind="transitionWizard" class="col-start-1 row-start-1 w-full space-y-4">
+                <div id="stepper-step-2" data-ref="step2" class="col-start-1 row-start-1 w-full space-y-4 hidden">
                     <div class="space-y-1">
                         <label class="form-label">{{.T.Get "ProjectScopeLabel"}}</label>
                         <p class="text-[11px] text-neutral-400 mb-2">{{.T.Get "ProjectScopeHint"}}</p>
                     </div>
-                    <textarea name="project_scope"
-                              x-model="scopeText"
+                    <textarea id="stepper-scope" data-ref="scope"
+                              name="project_scope"
                               minlength="20"
                               maxlength="2000"
                               rows="4"
-                              @input.debounce.500ms="scopeTouched = true"
-                              @blur="scopeTouched = true"
                               class="form-input resize-none"
                               placeholder="{{.T.Get "PlaceholderScope"}}"></textarea>
                       <div class="flex justify-between items-center text-[10px]">
-                          <span :class="scopeTouched && scopeText.trim().length < 20 ? '' : 'hidden'" class="text-primary font-medium">
+                          <span id="stepper-scope-error" data-ref="scopeError" class="hidden text-primary font-medium">
                               {{.T.Get "ValMinChars20"}}
                           </span>
-                          <span :class="!scopeTouched || scopeText.trim().length >= 20 ? '' : 'hidden'"></span>
-                          <span class="text-neutral-400 font-semibold font-mono text-xs" x-text="scopeText.length + ' / 2000'"></span>
+                          <span></span>
+                          <span id="stepper-scope-count" data-ref="scopeCount" class="text-neutral-400 font-semibold font-mono text-xs">0 / 2000</span>
                       </div>
                     <div class="flex justify-between items-center">
                         <div class="flex gap-2">
-                            <button type="button" @click="setStep(1)"
+                            <button type="button" id="stepper-scope-prev" data-ref="scopePrev" data-action="prev"
                                     class="btn-secondary cursor-pointer">
                                 {{.T.Get "PrevBtn"}}
                             </button>
                         </div>
-                        <button type="button" @click="setStep(3)"
-                                class="btn-primary-form cursor-pointer disabled:cursor-not-allowed"
-                                :disabled="!canGoNext(2)">
+                        <button type="button" id="stepper-scope-next" data-ref="scopeNext" data-action="next"
+                                class="btn-primary-form cursor-pointer disabled:cursor-not-allowed">
                             {{.T.Get "NextBtn"}}
                         </button>
                     </div>
                 </div>
 
-                <div :class="step === 3 ? '' : 'hidden'" x-bind="transitionWizard" class="col-start-1 row-start-1 w-full space-y-4">
+                <div id="stepper-step-3" data-ref="step3" class="col-start-1 row-start-1 w-full space-y-4 hidden">
                     <div class="space-y-1">
                         <label class="form-label">{{.T.Get "DeadlineStepTitle"}}</label>
                         <p class="text-[11px] text-neutral-400 mb-2">{{.T.Get "DeadlineStepHint"}}</p>
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
-                        <button type="button"
-                                @click="setDeadlineNeeded(true)"
-                                :class="deadlineNeeded ? 'btn-choice-active' : 'btn-choice'"
-                                :disabled="highQueueActive"
+                        <button type="button" id="stepper-deadline-strict" data-ref="deadlineStrict"
                                 class="btn-choice cursor-pointer flex flex-col justify-between min-h-[70px] disabled:opacity-50 disabled:cursor-not-allowed">
                             <span class="text-xs font-bold uppercase tracking-wider">{{.T.Get "DeadlineStrictTitle"}}</span>
                             <span class="text-[10px] text-neutral-500 mt-1">{{.T.Get "DeadlineStrictDesc"}}</span>
                         </button>
-                        <button type="button"
-                                @click="setDeadlineNeeded(false)"
-                                :class="!deadlineNeeded ? 'btn-choice-active' : 'btn-choice'"
-                                :disabled="highQueueActive"
+                        <button type="button" id="stepper-deadline-standard" data-ref="deadlineStandard"
                                 class="btn-choice cursor-pointer flex flex-col justify-between min-h-[70px] disabled:opacity-50 disabled:cursor-not-allowed">
                             <span class="text-xs font-bold uppercase tracking-wider">{{.T.Get "DeadlineStandardTitle"}}</span>
                             <span class="text-[10px] text-neutral-500 mt-1">{{.T.Get "DeadlineStandardDesc"}}</span>
                         </button>
                     </div>
 
-                    <div :class="highQueueActive ? '' : 'hidden'" x-cloak class="text-[11px] text-neutral-400 bg-white/2 border border-white/8 p-3 rounded-lg leading-normal">
+                    <div {{if not .HighQueueActive}}class="hidden"{{end}} class="text-[11px] text-neutral-400 bg-white/2 border border-white/8 p-3 rounded-lg leading-normal">
                         {{.T.Get "DeadlineUnavailableMsg"}}
                     </div>
 
-                    <div :class="deadlineNeeded && !highQueueActive ? '' : 'hidden'" x-cloak class="space-y-2">
+                    <div id="stepper-deadline-input-container" data-ref="deadlineInputContainer" class="space-y-2 hidden">
                         <input type="text"
-                               x-model="deadlineSpec"
+                               id="stepper-deadline-spec" data-ref="deadlineSpec"
                                maxlength="300"
-                               @input.debounce.500ms="deadlineTouched = true"
-                               @blur="deadlineTouched = true"
                                class="form-input"
                                placeholder="{{.T.Get "DeadlineSpecPlaceholder"}}">
                         <div class="flex justify-between items-center text-[10px]">
-                            <span :class="deadlineTouched && deadlineSpec.trim().length < 2 ? '' : 'hidden'" class="text-primary font-medium">
+                            <span id="stepper-deadline-error" data-ref="deadlineError" class="hidden text-primary font-medium">
                                 {{.T.Get "ValMinChars2"}}
                             </span>
-                            <span :class="!deadlineTouched || deadlineSpec.trim().length >= 2 ? '' : 'hidden'"></span>
-                            <span class="text-neutral-400 font-semibold font-mono text-xs" x-text="deadlineSpec.length + ' / 300'"></span>
+                            <span></span>
+                            <span id="stepper-deadline-count" data-ref="deadlineCount" class="text-neutral-400 font-semibold font-mono text-xs">0 / 300</span>
                         </div>
                         <p class="text-[10px] text-neutral-500 leading-relaxed">{{.T.Get "DeadlinePriorityInfo"}}</p>
                     </div>
 
                     <div class="flex justify-between items-center pt-2">
                         <div class="flex gap-2">
-                            <button type="button" @click="setStep(2)"
+                            <button type="button" id="stepper-deadline-prev" data-ref="deadlinePrev" data-action="prev"
                                     class="btn-secondary cursor-pointer">
                                 {{.T.Get "PrevBtn"}}
                             </button>
                         </div>
-                        <button type="button" @click="setStep(4)"
-                                class="btn-primary-form cursor-pointer disabled:cursor-not-allowed"
-                                :disabled="!canGoNext(3)">
+                        <button type="button" id="stepper-deadline-next" data-ref="deadlineNext" data-action="next"
+                                class="btn-primary-form cursor-pointer disabled:cursor-not-allowed">
                             {{.T.Get "NextBtn"}}
                         </button>
                     </div>
                 </div>
 
-                <div :class="step === 4 ? '' : 'hidden'" x-bind="transitionWizard" class="col-start-1 row-start-1 w-full space-y-4">
+                <div id="stepper-step-4" data-ref="step4" class="col-start-1 row-start-1 w-full space-y-4 hidden">
                     <div class="space-y-1">
                         <label class="form-label">{{.T.Get "BudgetValueLabel"}}</label>
                     </div>
                     <div class="grid grid-cols-2 gap-3">
-                        <button type="button" @click="setBudget('250000')"
-                                :class="budget === '250000' ? 'btn-choice-active' : 'btn-choice'"
-                                class="btn-choice cursor-pointer">
+                        <button type="button" data-val="250000" class="stepper-budget-btn btn-choice cursor-pointer">
                             <span class="block text-[10px] text-neutral-500 mb-0.5">{{.T.Get "BudgetSmall"}}</span>
                             <span class="text-xs font-bold">{{.T.Get "BudgetSmallRange"}}</span>
                         </button>
-                        <button type="button" @click="setBudget('750000')"
-                                :class="budget === '750000' ? 'btn-choice-active' : 'btn-choice'"
-                                class="btn-choice cursor-pointer">
+                        <button type="button" data-val="750000" class="stepper-budget-btn btn-choice cursor-pointer">
                             <span class="block text-[10px] text-neutral-500 mb-0.5">{{.T.Get "BudgetStarter"}}</span>
                             <span class="text-xs font-bold">{{.T.Get "BudgetStarterRange"}}</span>
                         </button>
-                        <button type="button" @click="setBudget('1750000')"
-                                :class="budget === '1750000' ? 'btn-choice-active' : 'btn-choice'"
-                                class="btn-choice cursor-pointer">
+                        <button type="button" data-val="1750000" class="stepper-budget-btn btn-choice cursor-pointer">
                             <span class="block text-[10px] text-neutral-500 mb-0.5">{{.T.Get "BudgetGrowth"}}</span>
                             <span class="text-xs font-bold">{{.T.Get "BudgetGrowthRange"}}</span>
                         </button>
-                        <button type="button" @click="setBudget('5000000')"
-                                :class="budget === '5000000' ? 'btn-choice-active' : 'btn-choice'"
-                                class="btn-choice cursor-pointer">
+                        <button type="button" data-val="5000000" class="stepper-budget-btn btn-choice cursor-pointer">
                             <span class="block text-[10px] text-neutral-500 mb-0.5">{{.T.Get "BudgetScale"}}</span>
                             <span class="text-xs font-bold">{{.T.Get "BudgetScaleRange"}}</span>
                         </button>
-                        <button type="button" @click="setBudget('11250000')"
-                                :class="budget === '11250000' ? 'btn-choice-active' : 'btn-choice'"
-                                class="btn-choice cursor-pointer">
+                        <button type="button" data-val="11250000" class="stepper-budget-btn btn-choice cursor-pointer">
                             <span class="block text-[10px] text-neutral-500 mb-0.5">{{.T.Get "BudgetEnterprise"}}</span>
                             <span class="text-xs font-bold">{{.T.Get "BudgetEnterpriseRange"}}</span>
                         </button>
-                        <button type="button" @click="setBudget('20000000')"
-                                :class="budget === '20000000' ? 'btn-choice-active' : 'btn-choice'"
-                                class="btn-choice cursor-pointer">
+                        <button type="button" data-val="20000000" class="stepper-budget-btn btn-choice cursor-pointer">
                             <span class="block text-[10px] text-neutral-500 mb-0.5">{{.T.Get "BudgetPremium"}}</span>
                             <span class="text-xs font-bold">{{.T.Get "BudgetPremiumRange"}}</span>
                         </button>
-                        <button type="button" @click="setBudget('other')"
-                                :class="budget === 'other' ? 'btn-choice-active' : 'btn-choice'"
-                                class="col-span-2 btn-choice cursor-pointer">
+                        <button type="button" data-val="other" class="stepper-budget-btn col-span-2 btn-choice cursor-pointer">
                             <span class="block text-[10px] text-neutral-500 mb-0.5">{{.T.Get "BudgetCustomLabel"}}</span>
                             <span class="text-xs font-bold">{{.T.Get "BudgetOtherLabel"}}</span>
                         </button>
                     </div>
 
-                    <div :class="budget === 'other' ? '' : 'hidden'" x-cloak class="space-y-2">
+                    <div id="stepper-custom-budget-container" data-ref="customBudgetContainer" class="space-y-2 hidden">
                         <label class="block text-xs font-bold uppercase tracking-wider text-neutral-500">{{.T.Get "PreciseBudgetLabel"}}</label>
                         <input type="text"
+                               id="stepper-custom-budget" data-ref="customBudget"
                                inputmode="numeric"
                                pattern="[0-9]*"
-                               x-model="customBudget"
-                               @input.debounce.500ms="handleBudgetInput($event)"
-                               @blur="budgetTouched = true"
+                               maxlength="15"
                                class="form-input"
                                placeholder="{{.T.Get "PlaceholderCustomBudget"}}">
-                         <div class="flex justify-between items-center text-[10px] mt-1" :class="getBudgetValidationClass()">
+                         <div id="stepper-custom-budget-error" data-ref="customBudgetError" class="justify-between items-center text-[10px] mt-1 opacity-0 hidden">
                              <span class="text-primary font-medium">
                                  {{.T.Get "ValMinBudget100"}}
                              </span>
@@ -276,20 +244,19 @@
 
                     <div class="flex justify-between items-center pt-2">
                         <div class="flex gap-2">
-                            <button type="button" @click="setStep(3)"
+                            <button type="button" id="stepper-budget-prev" data-ref="budgetPrev" data-action="prev"
                                     class="btn-secondary cursor-pointer">
                                 {{.T.Get "PrevBtn"}}
                             </button>
                         </div>
-                        <button type="button" @click="setStep(5)"
-                                class="btn-primary-form cursor-pointer disabled:cursor-not-allowed"
-                                :disabled="!canGoNext(4)">
+                        <button type="button" id="stepper-budget-next" data-ref="budgetNext" data-action="next"
+                                class="btn-primary-form cursor-pointer disabled:cursor-not-allowed">
                             {{.T.Get "NextBtn"}}
                         </button>
                     </div>
                 </div>
 
-                <div :class="step === 5 ? '' : 'hidden'" x-bind="transitionWizard" class="col-start-1 row-start-1 w-full space-y-5">
+                <div id="stepper-step-5" data-ref="step5" class="col-start-1 row-start-1 w-full space-y-5 hidden">
                     <div class="space-y-1">
                         <label class="form-label">{{.T.Get "ContactStepTitle"}}</label>
                         <p class="text-xs text-neutral-400">{{.T.Get "ContactStepHint"}}</p>
@@ -298,16 +265,14 @@
                     <div class="space-y-2">
                         <label class="block text-xs font-semibold uppercase tracking-wider text-neutral-500">{{.T.Get "ContactEmailLabel"}} <span class="text-primary">*</span></label>
                         <input type="email"
+                               id="stepper-contact-email" data-ref="contactEmail"
                                name="contact_email"
                                required
                                minlength="5"
                                maxlength="254"
-                               x-model="contactEmail"
-                               @input.debounce.500ms="emailTouched = true"
-                               @blur="emailTouched = true"
                                class="form-input"
                                placeholder="{{.T.Get "PlaceholderIntakeEmail"}}">
-                          <div class="flex justify-between items-center text-[10px] mt-1" :class="emailTouched && (contactEmail.trim().length < 5 || !contactEmail.includes('@') || !contactEmail.includes('.')) ? 'opacity-100' : 'opacity-0 hidden'">
+                          <div id="stepper-contact-email-error" data-ref="contactEmailError" class="justify-between items-center text-[10px] mt-1 opacity-0 hidden">
                               <span class="text-primary font-medium">
                                   {{.T.Get "ValValidEmail"}}
                               </span>
@@ -316,30 +281,34 @@
 
                     <div class="space-y-2">
                         <label class="block text-xs font-semibold uppercase tracking-wider text-neutral-500">{{.T.Get "OtherContactLabel"}}</label>
-                        <input type="text"
+                        <textarea
+                               id="stepper-contact-info" data-ref="contactInfo"
                                name="contact_info"
                                maxlength="100"
-                               x-model="contactInfo"
-                               class="form-input"
-                               placeholder="{{.T.Get "PlaceholderOtherContact"}}">
+                               rows="3"
+                               class="form-input resize-none"
+                               placeholder="{{.T.Get "PlaceholderOtherContact"}}"></textarea>
+                        <div class="flex justify-between items-center text-[10px]">
+                            <span></span>
+                            <span id="stepper-contact-info-count" data-ref="contactInfoCount" class="text-neutral-400 font-semibold font-mono text-xs">0 / 100</span>
+                        </div>
                     </div>
 
                     {{if .TurnstileSiteKey}}
                     <div class="flex justify-center py-2">
-                        <div x-ref="turnstileContainer"></div>
+                        <div id="stepper-turnstile-container" data-ref="turnstileContainer"></div>
                     </div>
                     {{end}}
 
                     <div class="flex justify-between pt-2">
-                        <button type="button" @click="setStep(4)"
+                        <button type="button" id="stepper-contact-prev" data-ref="contactPrev" data-action="prev"
                                 class="btn-secondary cursor-pointer">
                             {{.T.Get "PrevBtn"}}
                         </button>
-                        <button type="submit"
-                                :disabled="submitStatus !== 'idle' || !contactEmail.includes('@') || !contactEmail.includes('.')"
+                        <button type="submit" id="stepper-submit-btn" data-ref="submitBtn" disabled
                                 class="btn-primary flex items-center justify-center space-x-2 min-w-[120px] py-3 px-6">
-                                <span :class="submitStatus === 'idle' ? 'opacity-100' : 'opacity-0 hidden'">{{.T.Get "FormSubmitBtn"}}</span>
-                            <span :class="submitStatus !== 'idle' ? 'opacity-100 flex items-center space-x-2' : 'opacity-0 hidden'">
+                                <span id="stepper-submit-text" data-ref="submitText">{{.T.Get "FormSubmitBtn"}}</span>
+                            <span id="stepper-submit-spinner" data-ref="submitSpinner" class="opacity-0 hidden">
                                 <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>

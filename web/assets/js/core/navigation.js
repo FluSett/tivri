@@ -54,5 +54,52 @@ export function initNavigation() {
     });
 }
 
-// Execute immediately when imported
+document.addEventListener(
+    'click',
+    function (e) {
+        const link = e.target.closest('a');
+        if (!link) return;
+
+        const href = link.getAttribute('href');
+        if (!href) return;
+
+        const isRootHash = href.startsWith('/#') && window.location.pathname === '/';
+        const isPureHash = href.startsWith('#');
+
+        if (isRootHash || isPureHash) {
+            const hashStr = isRootHash ? href.substring(1) : href;
+            if (hashStr && hashStr !== '#') {
+                const target = document.querySelector(hashStr);
+                if (target) {
+                    e.preventDefault();
+                    e.stopPropagation(); // Hide the click from HTMX
+                    target.scrollIntoView({ behavior: 'smooth' });
+                    if (history.pushState) history.pushState(null, null, hashStr);
+
+                    if (link.closest('[data-action="closeMenu"]') || link.getAttribute('data-action') === 'closeMenu') {
+                        window.dispatchEvent(new CustomEvent('tivri-close-menu'));
+                    }
+                }
+            }
+            return;
+        }
+
+        if (
+            link.origin === window.location.origin &&
+            link.pathname === window.location.pathname &&
+            link.search === window.location.search &&
+            !link.hash
+        ) {
+            e.preventDefault();
+            e.stopPropagation();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            if (link.closest('[data-action="closeMenu"]') || link.getAttribute('data-action') === 'closeMenu') {
+                window.dispatchEvent(new CustomEvent('tivri-close-menu'));
+            }
+        }
+    },
+    true
+); // use capture phase to run before HTMX body listener
+
 initNavigation();

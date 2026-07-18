@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{.T.Get "MetaTitle"}}</title>
+    <title>{{if .PageTitle}}{{.PageTitle}} | {{.T.Get "MetaTitle"}}{{else}}{{.T.Get "MetaTitle"}}{{end}}</title>
     <meta name="description" content="{{.T.Get "MetaDescription"}}">
     <meta name="htmx-config" content='{"globalViewTransitions":true, "includeIndicatorStyles":false}'>
     
@@ -13,16 +13,14 @@
     <link rel="alternate" hreflang="uk" href="{{.AppURL}}{{.CurrentPath}}?lang=uk" />
     <link rel="alternate" hreflang="ru" href="{{.AppURL}}{{.CurrentPath}}?lang=ru" />
     
-    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:title" content="{{.T.Get "MetaTitle"}}">
+    <meta property="og:title" content="{{if .PageTitle}}{{.PageTitle}} | {{.T.Get "MetaTitle"}}{{else}}{{.T.Get "MetaTitle"}}{{end}}">
     <meta property="og:description" content="{{.T.Get "MetaDescription"}}">
     <meta property="og:url" content="{{.AppURL}}/">
     <meta property="og:image" content="{{.AppURL}}/assets/img/branding/logo.webp">
     
-    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{.T.Get "MetaTitle"}}">
+    <meta name="twitter:title" content="{{if .PageTitle}}{{.PageTitle}} | {{.T.Get "MetaTitle"}}{{else}}{{.T.Get "MetaTitle"}}{{end}}">
     <meta name="twitter:description" content="{{.T.Get "MetaDescription"}}">
     <meta name="twitter:image" content="{{.AppURL}}/assets/img/branding/logo.webp">
     
@@ -49,27 +47,21 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
     
     <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
-    <script src="/assets/dist/js/app.min.js?v={{assetVersion}}" defer></script>
-    
-    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/intersect@3.x.x/dist/cdn.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/csp@3.x.x/dist/cdn.min.js"></script>
-
+    <script defer src="{{AssetURL "web/assets/js/app.js"}}"></script>
 
     {{if .TurnstileSiteKey}}
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
     {{end}}
-    <link rel="stylesheet" href="/assets/dist/css/theme.css?v={{assetVersion}}">
+    <link rel="stylesheet" href="{{AssetURL "web/assets/css/theme.css"}}">
 </head>
-<body class="min-h-dvh flex flex-col justify-between font-sans selection:bg-primary selection:text-white relative"
-      :class="getOverflowClass()"
-      x-data="layout"
-      @resize.window="handleResize()"
+<body id="app-body" class="min-h-dvh flex flex-col justify-between font-sans selection:bg-primary selection:text-white relative"
       data-turnstile-sitekey="{{.TurnstileSiteKey}}">
       
+    <div id="global-loader" class="fixed top-0 left-0 h-1 bg-primary z-9999 opacity-0 transition-opacity duration-300 w-0"></div>
+
     {{template "layout.background_grid.html" .}}
     {{template "layout.global_error.html" .}}
+    {{template "layout.global_success.html" .}}
 
     {{template "layout.header.html" .}}
     {{template "layout.mobile_menu.html" .}}
@@ -80,5 +72,6 @@
 
     {{template "layout.cookie_consent" .}}
     {{template "layout.footer.html" .}}
+    {{block "extra_js" .}}{{end}}
 </body>
 </html>

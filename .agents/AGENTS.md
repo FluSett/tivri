@@ -20,14 +20,20 @@ Defines absolute runtime behavior and constraints. No exceptions.
 ## 4. 🚫 No Magical Variables
 - **Dynamic Configuration**: Never hardcode domains (e.g. `tivri.cc`), emails, ports, or API endpoints. Inject them via environment variables and pass them down into handlers/templates.
 - **Named Constants**: Never leave arbitrary `time.Second` multipliers or numeric literals scattered in business logic. Extract them to clear, localized `const` declarations.
-- **No Inline JavaScript**: Never use inline `<script>` tags in HTML templates (except for non-executable metadata like JSON-LD). Pass dynamic data using HTML5 data attributes (`data-*`) on elements and retrieve them via external JS or Alpine components.
+- **No Inline JavaScript**: Never use inline `<script>` tags in HTML templates (except for non-executable metadata like JSON-LD). Pass dynamic data using HTML5 data attributes (`data-*`) on elements and retrieve them via external modular Vanilla JS.
 
 ## 5. ♻️ DRY Architecture
 - **HTML & Templates**: Never duplicate identical HTML structure. Extract reusable UI elements into Go template components and inject data via the `dict` helper.
-- **Frontend State**: Utilize official Alpine.js plugins (like `@alpinejs/persist`) to handle state storage natively, entirely avoiding verbose JavaScript boilerplate.
-- **Numeric Timestamps**: Represent dates in JSON payloads as Unix timestamps (seconds since epoch, `int64`) to facilitate simple client-side sorting and avoid timezone serialization quirks.
-- **Modular JavaScript**: Break large JavaScript logic into smaller, feature-specific modules (e.g., in `core/`) and import them into `app.js` using ES modules to prevent monolithic scripts.
-- **Centralized CSS**: Avoid duplicate inline utility styling chains in HTML templates. Consolidate common design patterns into reusable utility classes across modular CSS files (e.g., `base.css`, `components.css`, `utilities.css`) and `@import` them into `input.css`.
+- **Frontend State**: Use clean, modular Vanilla JS components and centralized state management to handle state storage natively without relying on heavy frameworks like Alpine.js or React.
+- **Server-Side Formatting**: Never duplicate data formatting logic (like dates or currency) in JavaScript. Render all formatted data natively on the server using Go templates (e.g. `{{.CreatedAt.Format "2006-01-02 15:04"}}`) and pass it via HTMX.
+- **Modular JavaScript**: Break large JavaScript logic into smaller, feature-specific modules (e.g., in `core/`) and import them into `app.js` using ES modules to prevent monolithic scripts. Always use the shared utilities in `core/` (like `validators.js`, `storage.js`, and `dom.js`) instead of re-implementing DOM manipulation, validation, or `sessionStorage` operations.
+- **Centralized CSS vs JS State**: Consolidate purely visual UI patterns into modular CSS files (e.g., `components.css`). However, NEVER abstract Tailwind utilities that are dynamically toggled by JavaScript (like `hidden`, `opacity-0`, `translate-x-full`) into custom CSS classes via `@apply`. These stateful utilities MUST remain explicitly inline on the HTML elements, otherwise `classList` manipulation will fail.
 
 ## 6. 🛠️ Lint & Static Warnings Code Quality
 - **Always Resolve Warnings**: Never ignore warnings or errors reported by linters or compilation tools. Proactively refactor any hardcoded style hex values, invalid Tailwind classes, Go warnings, or structural code analysis notices.
+
+## 7. 🛡️ Security & Reliability Invariants
+- **HTMX Native Operations**: Never build custom global event routing for form submissions. You must rely natively on HTMX attributes (`hx-post`, `hx-target`) for server communication. Vanilla JS is strictly reserved for visual micro-interactions and HTMX lifecycle hooks.
+- **Strict Context Timeouts**: Never pass an unbounded HTTP context directly into a database query. All datastore operations must enforce `context.WithTimeout` wrappers.
+- **Content-Security-Policy**: Nginx must strictly enforce CSP blocking unauthorized or inline scripts.
+- **Graceful Shutdown**: The entry point MUST implement `os.Signal` interception to safely drain connections and active transactions before container termination.

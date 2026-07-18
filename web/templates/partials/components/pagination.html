@@ -1,0 +1,67 @@
+{{define "components.pagination.html"}}
+{{$currentPage := .Pagination.Page}}
+{{$totalPages := .Pagination.TotalPages}}
+{{$totalItems := .Pagination.TotalItems}}
+{{$pageSize := .Pagination.PageSize}}
+
+<div class="flex items-center justify-between border-t border-white/5 bg-white/1 px-6 py-4">
+    <!-- Mobile view -->
+    <div class="flex flex-1 items-center justify-between sm:hidden">
+        <button type="button" data-action="setPage" data-page="{{if gt $currentPage 1}}{{sub $currentPage 1}}{{else}}1{{end}}" class="relative inline-flex items-center rounded-md px-2 py-2 text-neutral-400 border border-white/10 hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors" {{if le $currentPage 1}}disabled{{end}}>
+            <span class="sr-only">Previous</span>
+            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
+            </svg>
+        </button>
+        <span class="text-sm font-semibold text-white">
+            {{$currentPage}} / {{$totalPages}}
+        </span>
+        <button type="button" data-action="setPage" data-page="{{if lt $currentPage $totalPages}}{{add $currentPage 1}}{{else}}{{$totalPages}}{{end}}" class="relative inline-flex items-center rounded-md px-2 py-2 text-neutral-400 border border-white/10 hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors" {{if ge $currentPage $totalPages}}disabled{{end}}>
+            <span class="sr-only">Next</span>
+            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+            </svg>
+        </button>
+    </div>
+
+    <!-- Desktop view -->
+    <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+        <div>
+            <p class="text-sm text-neutral-400">
+                {{.T.Get "PaginationShowing"}}
+                <span class="font-medium text-white">{{if eq $totalItems 0}}0{{else}}{{add (mul (sub $currentPage 1) $pageSize) 1}}{{end}}</span>
+                {{.T.Get "PaginationTo"}}
+                <span class="font-medium text-white">{{if gt (mul $currentPage $pageSize) $totalItems}}{{$totalItems}}{{else}}{{mul $currentPage $pageSize}}{{end}}</span>
+                {{.T.Get "PaginationOf"}}
+                <span class="font-medium text-white">{{$totalItems}}</span>
+                {{.T.Get "PaginationResults"}}
+            </p>
+        </div>
+        <div>
+            {{if gt $totalPages 1}}
+            <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                <!-- Previous Page -->
+                <button type="button" data-action="setPage" data-page="{{if gt $currentPage 1}}{{sub $currentPage 1}}{{else}}1{{end}}" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-neutral-400 ring-1 ring-inset ring-white/10 hover:bg-white/5 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed transition-colors" {{if le $currentPage 1}}disabled{{end}}>
+                    <span class="sr-only">Previous</span>
+                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+                
+                <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-white ring-1 ring-inset ring-white/10">
+                    {{$currentPage}} / {{$totalPages}}
+                </span>
+
+                <!-- Next Page -->
+                <button type="button" data-action="setPage" data-page="{{if lt $currentPage $totalPages}}{{add $currentPage 1}}{{else}}{{$totalPages}}{{end}}" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-neutral-400 ring-1 ring-inset ring-white/10 hover:bg-white/5 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed transition-colors" {{if ge $currentPage $totalPages}}disabled{{end}}>
+                    <span class="sr-only">Next</span>
+                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </nav>
+            {{end}}
+        </div>
+    </div>
+</div>
+{{end}}
