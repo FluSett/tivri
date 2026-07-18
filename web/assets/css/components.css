@@ -489,7 +489,7 @@ input:disabled {
 }
 
 .section-grid {
-    @apply grid grid-cols-1 lg:grid-cols-12 gap-8 items-center my-auto grow;
+    @apply grid grid-cols-1 lg:grid-cols-12 gap-8 items-center mt-4 md:mt-8 mb-auto;
 }
 
 .heading-hero {
