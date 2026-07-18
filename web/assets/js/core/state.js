@@ -115,8 +115,9 @@ export function delegate(container, eventName, selector, handler) {
  * Clears in-memory persisted states on standard HTMX navigations (not locale changes).
  */
 export function initStatePersistence() {
-    document.addEventListener('htmx:beforeSwap', () => {
-        if (sessionStorage.getItem('locale_change') !== 'true') {
+    document.addEventListener('htmx:beforeSwap', (e) => {
+        const isMainNavigation = e.detail.target && e.detail.target.id === 'app-body';
+        if (isMainNavigation && sessionStorage.getItem('locale_change') !== 'true') {
             window.__tivriPersistedStates = {};
         }
     });

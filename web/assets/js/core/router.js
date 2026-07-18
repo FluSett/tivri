@@ -6,29 +6,32 @@ class Router {
         this.initialized = false;
 
         this.routeTimeout = null;
+        this.majorSwapPending = false;
+
+        document.addEventListener('htmx:beforeSwap', (e) => {
+            const targetEl = e.detail.target || e.target;
+            const targetId = targetEl ? targetEl.id : null;
+            
+            const isTargetedId = targetId && ['app-body', 'messages-container', 'leads-container'].includes(targetId);
+            const isBody = targetEl === document.body;
+            
+            if (isTargetedId || isBody) {
+                this.majorSwapPending = true;
+                this.teardown();
+            }
+        });
 
         document.addEventListener('htmx:load', (e) => {
-            // Handle major route swaps or local table swaps
-            if (
-                e.target &&
-                e.target.id &&
-                !['app-body', 'messages-container', 'leads-container'].includes(e.target.id) &&
-                e.target !== document.body
-            )
-                return;
+            if (this.majorSwapPending) {
+                this.majorSwapPending = false;
+                clearTimeout(this.routeTimeout);
+                this.routeTimeout = setTimeout(() => this.handleRoute(), 50);
+            }
+        });
 
+        document.addEventListener('htmx:historyRestore', () => {
             clearTimeout(this.routeTimeout);
             this.routeTimeout = setTimeout(() => this.handleRoute(), 50);
-        });
-        document.addEventListener('htmx:beforeSwap', (e) => {
-            if (
-                e.target &&
-                e.target.id &&
-                !['app-body', 'messages-container', 'leads-container'].includes(e.target.id) &&
-                e.target !== document.body
-            )
-                return;
-            this.teardown();
         });
 
         document.addEventListener('DOMContentLoaded', () => {
