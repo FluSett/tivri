@@ -31,6 +31,7 @@ Defines absolute runtime behavior and constraints. No exceptions.
 
 ## 6. 🛠️ Lint & Static Warnings Code Quality
 - **Always Resolve Warnings**: Never ignore warnings or errors reported by linters or compilation tools. Proactively refactor any hardcoded style hex values, invalid Tailwind classes, Go warnings, or structural code analysis notices.
+- **Tailwind Conflicting Classes**: The Tailwind Intellisense plugin frequently flags mutually exclusive state classes (e.g., `text-white` vs `placeholder:text-neutral-500`, or `peer-checked:bg-primary` vs `peer-not-checked:bg-white/10`) as conflicts if they exist on the same element. To resolve these cleanly without writing inline styles or disabling the linter, completely separate the classes across different DOM elements (e.g., placing `text-white` on a wrapper `<div>` and `placeholder:text-neutral-500` on the child `<input>`, relying on Tailwind's native `inherit` behavior).
 
 ## 7. 🛡️ Security & Reliability Invariants
 - **HTMX Native Operations**: Never build custom global event routing for form submissions. You must rely natively on HTMX attributes (`hx-post`, `hx-target`) for server communication. Vanilla JS is strictly reserved for visual micro-interactions and HTMX lifecycle hooks.

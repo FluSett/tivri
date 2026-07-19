@@ -6,52 +6,51 @@
     {{ $.BaseData.CSRFToken }}
     <div class="bg-black/40 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl mt-6">
         <!-- Toolbar -->
-        <div class="flex flex-col sm:flex-row gap-4 items-center justify-between p-6 border-b border-white/5 bg-white/1">
-            <div class="flex flex-wrap gap-4 items-center w-full sm:w-auto">
-                {{$statusFilterLabel := $.T.Get "All"}}
-                {{if eq .ContactMessages.Params.Status "new"}}{{$statusFilterLabel = $.T.Get "DirectMessagesStatusNew"}}
-                {{else if eq .ContactMessages.Params.Status "answered"}}{{$statusFilterLabel = $.T.Get "DirectMessagesStatusAnswered"}}
-                {{else if eq .ContactMessages.Params.Status "done"}}{{$statusFilterLabel = $.T.Get "DirectMessagesStatusDone"}}
-                {{end}}
-                {{template "components.dropdown.html" dict
-                    "Label" (.T.Get "DirectMessagesStatus")
-                    "BtnRef" "statusFilterBtn"
-                    "BtnAction" "toggleStatusFilter"
-                    "TextRef" "statusFilterText"
-                    "DefaultText" $statusFilterLabel
-                    "DropdownRef" "statusFilterDropdown"
-                    "Options" (list 
-                        (dict "Label" (.T.Get "All") "Value" "" "OptionAction" "setStatusFilter")
-                        (dict "Label" (.T.Get "DirectMessagesStatusNew") "Value" "new" "OptionAction" "setStatusFilter")
-                        (dict "Label" (.T.Get "DirectMessagesStatusAnswered") "Value" "answered" "OptionAction" "setStatusFilter")
-                        (dict "Label" (.T.Get "DirectMessagesStatusDone") "Value" "done" "OptionAction" "setStatusFilter")
-                    )
-                }}
-                {{$sortFilterLabel := $.T.Get "SortDateNewest"}}
-                {{if eq .ContactMessages.Params.SortBy "date_asc"}}{{$sortFilterLabel = $.T.Get "SortDateOldest"}}
-                {{else if eq .ContactMessages.Params.SortBy "email_asc"}}{{$sortFilterLabel = $.T.Get "SortEmailAsc"}}
-                {{else if eq .ContactMessages.Params.SortBy "email_desc"}}{{$sortFilterLabel = $.T.Get "SortEmailDesc"}}
-                {{end}}
-                {{template "components.dropdown.html" dict
-                    "Label" (.T.Get "SortByLabel")
-                    "BtnRef" "sortBtn"
-                    "BtnAction" "toggleSort"
-                    "TextRef" "sortText"
-                    "DefaultText" $sortFilterLabel
-                    "DropdownRef" "sortDropdown"
-                    "Options" (list 
-                        (dict "Label" (.T.Get "SortDateNewest") "Value" "date_desc" "OptionAction" "setSort")
-                        (dict "Label" (.T.Get "SortDateOldest") "Value" "date_asc" "OptionAction" "setSort")
-                        (dict "Label" (.T.Get "SortEmailAsc") "Value" "email_asc" "OptionAction" "setSort")
-                        (dict "Label" (.T.Get "SortEmailDesc") "Value" "email_desc" "OptionAction" "setSort")
-                    )
-                }}
-            </div>
-            <div class="relative w-full sm:max-w-sm">
+        <div class="flex flex-wrap items-end gap-4 p-6 border-b border-white/5 bg-white/1">
+            {{$statusFilterLabel := $.T.Get "All"}}
+            {{if eq .ContactMessages.Params.Status "new"}}{{$statusFilterLabel = $.T.Get "DirectMessagesStatusNew"}}
+            {{else if eq .ContactMessages.Params.Status "answered"}}{{$statusFilterLabel = $.T.Get "DirectMessagesStatusAnswered"}}
+            {{else if eq .ContactMessages.Params.Status "done"}}{{$statusFilterLabel = $.T.Get "DirectMessagesStatusDone"}}
+            {{end}}
+            {{template "components.dropdown.html" dict
+                "Label" (.T.Get "DirectMessagesStatus")
+                "BtnRef" "statusFilterBtn"
+                "BtnAction" "toggleStatusFilter"
+                "TextRef" "statusFilterText"
+                "DefaultText" $statusFilterLabel
+                "DropdownRef" "statusFilterDropdown"
+                "Options" (list 
+                    (dict "Label" (.T.Get "All") "Value" "" "OptionAction" "setStatusFilter")
+                    (dict "Label" (.T.Get "DirectMessagesStatusNew") "Value" "new" "OptionAction" "setStatusFilter")
+                    (dict "Label" (.T.Get "DirectMessagesStatusAnswered") "Value" "answered" "OptionAction" "setStatusFilter")
+                    (dict "Label" (.T.Get "DirectMessagesStatusDone") "Value" "done" "OptionAction" "setStatusFilter")
+                )
+            }}
+            {{$sortFilterLabel := $.T.Get "SortDateNewest"}}
+            {{if eq .ContactMessages.Params.SortBy "date_asc"}}{{$sortFilterLabel = $.T.Get "SortDateOldest"}}
+            {{else if eq .ContactMessages.Params.SortBy "email_asc"}}{{$sortFilterLabel = $.T.Get "SortEmailAsc"}}
+            {{else if eq .ContactMessages.Params.SortBy "email_desc"}}{{$sortFilterLabel = $.T.Get "SortEmailDesc"}}
+            {{end}}
+            {{template "components.dropdown.html" dict
+                "Label" (.T.Get "SortByLabel")
+                "BtnRef" "sortBtn"
+                "BtnAction" "toggleSort"
+                "TextRef" "sortText"
+                "DefaultText" $sortFilterLabel
+                "DropdownRef" "sortDropdown"
+                "Options" (list 
+                    (dict "Label" (.T.Get "SortDateNewest") "Value" "date_desc" "OptionAction" "setSort")
+                    (dict "Label" (.T.Get "SortDateOldest") "Value" "date_asc" "OptionAction" "setSort")
+                    (dict "Label" (.T.Get "SortEmailAsc") "Value" "email_asc" "OptionAction" "setSort")
+                    (dict "Label" (.T.Get "SortEmailDesc") "Value" "email_desc" "OptionAction" "setSort")
+                )
+            }}
+
+            <div class="relative flex-1 min-w-[240px] max-w-sm text-white">
                 <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                 </svg>
-                <input type="text" name="search_query" value="{{.ContactMessages.Params.SearchQuery}}" hx-get="/admin/api/messages" hx-include="#messages-container" hx-trigger="keyup changed delay:500ms" hx-target="#messages-container" hx-swap="outerHTML" placeholder="Search by topic or email..." class="w-full bg-black/40 border border-white/10 rounded-xl py-2 pl-9 pr-4 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all">
+                <input type="text" name="search_query" value="{{.ContactMessages.Params.SearchQuery}}" hx-get="/admin/api/messages" hx-include="#messages-container" hx-trigger="keyup changed delay:500ms" hx-target="#messages-container" hx-swap="outerHTML" placeholder="Search by topic or email..." class="w-full bg-black/40 border border-white/10 rounded-xl py-2 pl-9 pr-4 text-sm placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all">
             </div>
         </div>
     <div class="w-full overflow-x-auto">
