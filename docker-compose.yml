@@ -37,6 +37,8 @@ services:
       - NET_BIND_SERVICE
     security_opt:
       - no-new-privileges:true
+    volumes:
+      - tivri_uploads:/web/assets/uploads
     ulimits:
       nofile:
         soft: 65535
@@ -51,6 +53,7 @@ services:
 
 volumes:
   tivri_pgdata:
+  tivri_uploads:
 
 networks:
   tivri_net:
