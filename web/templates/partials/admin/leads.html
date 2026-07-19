@@ -13,9 +13,9 @@
             </div>
             <div hx-post="/admin/settings/high-queue" hx-trigger="change" hx-swap="none" hx-include="find input" class="flex items-center">
                 {{ $.BaseData.CSRFToken }}
-                <label class="relative inline-flex items-center cursor-pointer">
+                <label class="relative inline-flex items-center cursor-pointer bg-white/10 rounded-full">
                     <input type="checkbox" name="high_queue" value="true" class="sr-only peer" {{if .HighQueueActive}}checked{{end}}>
-                    <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                    <div class="w-11 h-6 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                 </label>
             </div>
         </div>
@@ -27,9 +27,9 @@
             </div>
             <div hx-post="/admin/settings/maintenance" hx-trigger="change" hx-swap="none" hx-include="find input" class="flex items-center">
                 {{ $.BaseData.CSRFToken }}
-                <label class="relative inline-flex items-center cursor-pointer">
+                <label class="relative inline-flex items-center cursor-pointer bg-white/10 rounded-full">
                     <input type="checkbox" name="maintenance" value="true" class="sr-only peer" {{if .MaintenanceActive}}checked{{end}}>
-                    <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                    <div class="w-11 h-6 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                 </label>
             </div>
         </div>
@@ -37,86 +37,84 @@
 
     <div class="bg-black/40 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl mt-6">
         <!-- Toolbar -->
-        <div class="flex flex-col sm:flex-row gap-4 items-center justify-between p-6 border-b border-white/5 bg-white/1">
-            <div class="flex flex-wrap gap-4 items-center w-full sm:w-auto">
-                {{$clientFilterLabel := $.T.Get "All"}}
-                {{if eq .Leads.Params.ClientStatus "pending"}}{{$clientFilterLabel = $.T.Get "Pending"}}
-                {{else if eq .Leads.Params.ClientStatus "active"}}{{$clientFilterLabel = $.T.Get "Active"}}
-                {{else if eq .Leads.Params.ClientStatus "done"}}{{$clientFilterLabel = $.T.Get "Done"}}
-                {{else if eq .Leads.Params.ClientStatus "canceled"}}{{$clientFilterLabel = $.T.Get "Canceled"}}
-                {{end}}
-                {{template "components.dropdown.html" dict
-                    "Label" (.T.Get "LeadClientStatus")
-                    "BtnID" "leads-client-filter-btn"
-                    "BtnRef" "clientFilterBtn"
-                    "BtnAction" "toggleClientFilter"
-                    "TextID" "leads-client-filter-text"
-                    "TextRef" "clientFilterText"
-                    "DefaultText" $clientFilterLabel
-                    "DropdownID" "leads-client-filter-dropdown"
-                    "DropdownRef" "clientFilterDropdown"
-                    "Options" (list 
-                        (dict "Label" (.T.Get "All") "Value" "all" "OptionAction" "setClientFilter") 
-                        (dict "Label" (.T.Get "Pending") "Value" "pending" "OptionAction" "setClientFilter") 
-                        (dict "Label" (.T.Get "Active") "Value" "active" "OptionAction" "setClientFilter") 
-                        (dict "Label" (.T.Get "Done") "Value" "done" "OptionAction" "setClientFilter") 
-                        (dict "Label" (.T.Get "Canceled") "Value" "canceled" "OptionAction" "setClientFilter")
-                    )
-                }}
-                {{$internalFilterLabel := $.T.Get "All"}}
-                {{if eq .Leads.Params.InternalStatus "pending"}}{{$internalFilterLabel = $.T.Get "Pending"}}
-                {{else if eq .Leads.Params.InternalStatus "active"}}{{$internalFilterLabel = $.T.Get "Active"}}
-                {{else if eq .Leads.Params.InternalStatus "done"}}{{$internalFilterLabel = $.T.Get "Done"}}
-                {{else if eq .Leads.Params.InternalStatus "canceled"}}{{$internalFilterLabel = $.T.Get "Canceled"}}
-                {{end}}
-                {{template "components.dropdown.html" dict
-                    "Label" (.T.Get "LeadInternalStatus")
-                    "BtnID" "leads-internal-filter-btn"
-                    "BtnRef" "internalFilterBtn"
-                    "BtnAction" "toggleInternalFilter"
-                    "TextID" "leads-internal-filter-text"
-                    "TextRef" "internalFilterText"
-                    "DefaultText" $internalFilterLabel
-                    "DropdownID" "leads-internal-filter-dropdown"
-                    "DropdownRef" "internalFilterDropdown"
-                    "Options" (list 
-                        (dict "Label" (.T.Get "All") "Value" "all" "OptionAction" "setInternalFilter") 
-                        (dict "Label" (.T.Get "Pending") "Value" "pending" "OptionAction" "setInternalFilter") 
-                        (dict "Label" (.T.Get "Active") "Value" "active" "OptionAction" "setInternalFilter") 
-                        (dict "Label" (.T.Get "Done") "Value" "done" "OptionAction" "setInternalFilter") 
-                        (dict "Label" (.T.Get "Canceled") "Value" "canceled" "OptionAction" "setInternalFilter")
-                    )
-                }}
-                {{$sortFilterLabel := $.T.Get "SortDateNewest"}}
-                {{if eq .Leads.Params.SortBy "date_asc"}}{{$sortFilterLabel = $.T.Get "SortDateOldest"}}
-                {{else if eq .Leads.Params.SortBy "budget_desc"}}{{$sortFilterLabel = $.T.Get "SortBudgetHigh"}}
-                {{else if eq .Leads.Params.SortBy "budget_asc"}}{{$sortFilterLabel = $.T.Get "SortBudgetLow"}}
-                {{else if eq .Leads.Params.SortBy "name_asc"}}{{$sortFilterLabel = $.T.Get "SortNameAsc"}}
-                {{else if eq .Leads.Params.SortBy "name_desc"}}{{$sortFilterLabel = $.T.Get "SortNameDesc"}}
-                {{end}}
-                {{template "components.dropdown.html" dict
-                    "Label" (.T.Get "SortByLabel")
-                    "BtnRef" "sortBtn"
-                    "BtnAction" "toggleSort"
-                    "TextRef" "sortText"
-                    "DefaultText" $sortFilterLabel
-                    "DropdownRef" "sortDropdown"
-                    "Options" (list 
-                        (dict "Label" (.T.Get "SortDateNewest") "Value" "date_desc" "OptionAction" "setSort")
-                        (dict "Label" (.T.Get "SortDateOldest") "Value" "date_asc" "OptionAction" "setSort")
-                        (dict "Label" (.T.Get "SortBudgetHigh") "Value" "budget_desc" "OptionAction" "setSort")
-                        (dict "Label" (.T.Get "SortBudgetLow") "Value" "budget_asc" "OptionAction" "setSort")
-                        (dict "Label" (.T.Get "SortNameAsc") "Value" "name_asc" "OptionAction" "setSort")
-                        (dict "Label" (.T.Get "SortNameDesc") "Value" "name_desc" "OptionAction" "setSort")
-                    )
-                }}
-            </div>
+        <div class="flex flex-wrap items-end gap-4 p-6 border-b border-white/5 bg-white/1">
+            {{$clientFilterLabel := $.T.Get "All"}}
+            {{if eq .Leads.Params.ClientStatus "pending"}}{{$clientFilterLabel = $.T.Get "Pending"}}
+            {{else if eq .Leads.Params.ClientStatus "active"}}{{$clientFilterLabel = $.T.Get "Active"}}
+            {{else if eq .Leads.Params.ClientStatus "done"}}{{$clientFilterLabel = $.T.Get "Done"}}
+            {{else if eq .Leads.Params.ClientStatus "canceled"}}{{$clientFilterLabel = $.T.Get "Canceled"}}
+            {{end}}
+            {{template "components.dropdown.html" dict
+                "Label" (.T.Get "LeadClientStatus")
+                "BtnID" "leads-client-filter-btn"
+                "BtnRef" "clientFilterBtn"
+                "BtnAction" "toggleClientFilter"
+                "TextID" "leads-client-filter-text"
+                "TextRef" "clientFilterText"
+                "DefaultText" $clientFilterLabel
+                "DropdownID" "leads-client-filter-dropdown"
+                "DropdownRef" "clientFilterDropdown"
+                "Options" (list 
+                    (dict "Label" (.T.Get "All") "Value" "all" "OptionAction" "setClientFilter") 
+                    (dict "Label" (.T.Get "Pending") "Value" "pending" "OptionAction" "setClientFilter") 
+                    (dict "Label" (.T.Get "Active") "Value" "active" "OptionAction" "setClientFilter") 
+                    (dict "Label" (.T.Get "Done") "Value" "done" "OptionAction" "setClientFilter") 
+                    (dict "Label" (.T.Get "Canceled") "Value" "canceled" "OptionAction" "setClientFilter")
+                )
+            }}
+            {{$internalFilterLabel := $.T.Get "All"}}
+            {{if eq .Leads.Params.InternalStatus "pending"}}{{$internalFilterLabel = $.T.Get "Pending"}}
+            {{else if eq .Leads.Params.InternalStatus "active"}}{{$internalFilterLabel = $.T.Get "Active"}}
+            {{else if eq .Leads.Params.InternalStatus "done"}}{{$internalFilterLabel = $.T.Get "Done"}}
+            {{else if eq .Leads.Params.InternalStatus "canceled"}}{{$internalFilterLabel = $.T.Get "Canceled"}}
+            {{end}}
+            {{template "components.dropdown.html" dict
+                "Label" (.T.Get "LeadInternalStatus")
+                "BtnID" "leads-internal-filter-btn"
+                "BtnRef" "internalFilterBtn"
+                "BtnAction" "toggleInternalFilter"
+                "TextID" "leads-internal-filter-text"
+                "TextRef" "internalFilterText"
+                "DefaultText" $internalFilterLabel
+                "DropdownID" "leads-internal-filter-dropdown"
+                "DropdownRef" "internalFilterDropdown"
+                "Options" (list 
+                    (dict "Label" (.T.Get "All") "Value" "all" "OptionAction" "setInternalFilter") 
+                    (dict "Label" (.T.Get "Pending") "Value" "pending" "OptionAction" "setInternalFilter") 
+                    (dict "Label" (.T.Get "Active") "Value" "active" "OptionAction" "setInternalFilter") 
+                    (dict "Label" (.T.Get "Done") "Value" "done" "OptionAction" "setInternalFilter") 
+                    (dict "Label" (.T.Get "Canceled") "Value" "canceled" "OptionAction" "setInternalFilter")
+                )
+            }}
+            {{$sortFilterLabel := $.T.Get "SortDateNewest"}}
+            {{if eq .Leads.Params.SortBy "date_asc"}}{{$sortFilterLabel = $.T.Get "SortDateOldest"}}
+            {{else if eq .Leads.Params.SortBy "budget_desc"}}{{$sortFilterLabel = $.T.Get "SortBudgetHigh"}}
+            {{else if eq .Leads.Params.SortBy "budget_asc"}}{{$sortFilterLabel = $.T.Get "SortBudgetLow"}}
+            {{else if eq .Leads.Params.SortBy "name_asc"}}{{$sortFilterLabel = $.T.Get "SortNameAsc"}}
+            {{else if eq .Leads.Params.SortBy "name_desc"}}{{$sortFilterLabel = $.T.Get "SortNameDesc"}}
+            {{end}}
+            {{template "components.dropdown.html" dict
+                "Label" (.T.Get "SortByLabel")
+                "BtnRef" "sortBtn"
+                "BtnAction" "toggleSort"
+                "TextRef" "sortText"
+                "DefaultText" $sortFilterLabel
+                "DropdownRef" "sortDropdown"
+                "Options" (list 
+                    (dict "Label" (.T.Get "SortDateNewest") "Value" "date_desc" "OptionAction" "setSort")
+                    (dict "Label" (.T.Get "SortDateOldest") "Value" "date_asc" "OptionAction" "setSort")
+                    (dict "Label" (.T.Get "SortBudgetHigh") "Value" "budget_desc" "OptionAction" "setSort")
+                    (dict "Label" (.T.Get "SortBudgetLow") "Value" "budget_asc" "OptionAction" "setSort")
+                    (dict "Label" (.T.Get "SortNameAsc") "Value" "name_asc" "OptionAction" "setSort")
+                    (dict "Label" (.T.Get "SortNameDesc") "Value" "name_desc" "OptionAction" "setSort")
+                )
+            }}
 
-            <div class="relative w-full sm:max-w-sm">
+            <div class="relative flex-1 min-w-[240px] max-w-sm text-white">
                 <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                 </svg>
-                <input type="text" name="search_query" value="{{.Leads.Params.SearchQuery}}" hx-get="/admin/api/leads" hx-include="#leads-container" hx-trigger="keyup changed delay:500ms" hx-target="#leads-container" hx-swap="outerHTML" placeholder="{{.T.Get "AdminSearchPlaceholder"}}" class="w-full bg-black/40 border border-white/10 rounded-xl py-2 pl-9 pr-4 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all">
+                <input type="text" name="search_query" value="{{.Leads.Params.SearchQuery}}" hx-get="/admin/api/leads" hx-include="#leads-container" hx-trigger="keyup changed delay:500ms" hx-target="#leads-container" hx-swap="outerHTML" placeholder="{{.T.Get "AdminSearchPlaceholder"}}" class="w-full bg-black/40 border border-white/10 rounded-xl py-2 pl-9 pr-4 text-sm placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all">
             </div>
         </div>
 
