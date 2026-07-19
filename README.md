@@ -28,8 +28,7 @@ Designed for cost-efficiency and atomic, reproducible deployments.
 - **Cloudflare DNS & Security**: Cloudflare manages our DNS, proxies traffic to obscure origin IPs, and integrates Cloudflare Turnstile to block automated bot submissions. We also utilize privacy-first Cloudflare Web Analytics with a dynamic, user-consented cookie banner for compliance.
 - **Custom Domain & Automated SSL**: Nginx acts as our reverse proxy, terminating TLS connections. We use Certbot (Let's Encrypt) to automatically provision and renew SSL certificates for our custom domain.
 - **Custom Email Domain**: Platform notifications and client communications are securely routed using SMTP configured for our custom agency domain, ensuring high deliverability.
-- **Dockerized Environment**: The application and PostgreSQL database run in isolated, easily reproducible containers. Our optimized production Docker image is incredibly minimalist—weighing in at just **~22MB**. It contains only the standalone Go binary and static assets, completely bypassing heavy OS base images or Node.js runtimes.
-
+- **Dockerized Environment**: The application and PostgreSQL database run in isolated, easily reproducible containers. Our optimized production Docker image is incredibly minimalist—weighing in at just **~22MB**. It contains only the standalone Go binary and static assets running in a `scratch` container, completely bypassing heavy OS base images or Node.js runtimes. **Note:** Because the binary executes from the root (`/`) of an immutable scratch filesystem, persistent storage volumes (like file uploads) must be explicitly mapped to absolute root paths (e.g., `/web/assets/uploads`) in `docker-compose.yml`.
 ## 🏗️ Architectural Highlights
 
 - **Event-Driven Monolith**: Strict separation of business logic, data persistence, and HTTP delivery into isolated packages, powered by an asynchronous in-memory event bus that completely decouples HTTP pipelines from background tasks.
