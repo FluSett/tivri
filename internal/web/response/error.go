@@ -4,14 +4,18 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+
+	"tivri/internal/web/middleware"
 )
 
 // This prevents leakage of internal Go stack traces, database states, or paths.
 func Error(w http.ResponseWriter, r *http.Request, err error, statusCode int, userMsg string) {
+	reqID := middleware.GetRequestID(r.Context())
 	if err != nil {
 		slog.Error("request failed",
 			slog.String("path", r.URL.Path),
 			slog.String("method", r.Method),
+			slog.String("request_id", reqID),
 			slog.String("error", err.Error()),
 			slog.Int("status", statusCode),
 		)
@@ -29,10 +33,12 @@ func Error(w http.ResponseWriter, r *http.Request, err error, statusCode int, us
 }
 
 func JSONError(w http.ResponseWriter, r *http.Request, err error, statusCode int, userMsg string) {
+	reqID := middleware.GetRequestID(r.Context())
 	if err != nil {
 		slog.Error("api request failed",
 			slog.String("path", r.URL.Path),
 			slog.String("method", r.Method),
+			slog.String("request_id", reqID),
 			slog.String("error", err.Error()),
 			slog.Int("status", statusCode),
 		)

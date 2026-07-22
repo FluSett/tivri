@@ -136,7 +136,7 @@ func New(ctx context.Context) (*App, error) {
 
 	publicHandler := handlers.NewPublicHandler(
 		renderer, translator, portfolioRepo, intakeService, contactService,
-		settingsRepo, cfg.TurnstileSecretKey, cfg.Env == "production",
+		settingsRepo, db, cfg.TurnstileSecretKey, cfg.Env == "production",
 	)
 
 	adminHandler := handlers.NewAdminHandler(

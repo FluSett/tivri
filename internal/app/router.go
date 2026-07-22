@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gorilla/csrf"
 
@@ -38,7 +39,7 @@ func newRouter(
 	uploadHandler := http.StripPrefix("/assets/uploads/", http.FileServer(http.Dir("web/assets/uploads")))
 
 	mux.Handle("GET /assets/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Cache-Control", "public, max-age=2592000, no-transform")
+		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 		if strings.HasPrefix(r.URL.Path, "/assets/uploads/") {
 			uploadHandler.ServeHTTP(w, r)
 			return
@@ -74,11 +75,7 @@ func newRouter(
 
 	uiMux.HandleFunc("GET /robots.txt", publicHandler.HandleRobots)
 	uiMux.HandleFunc("GET /sitemap.xml", publicHandler.HandleSitemap)
-	uiMux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status":"ok"}`))
-	})
+	uiMux.HandleFunc("GET /healthz", publicHandler.HandleHealthz)
 	uiMux.HandleFunc("GET /privacy", publicHandler.HandlePrivacy)
 	uiMux.HandleFunc("GET /terms", publicHandler.HandleTerms)
 	uiMux.HandleFunc("GET /", publicHandler.HandleHome)
@@ -103,11 +100,15 @@ func newRouter(
 	uiMux.HandleFunc("POST /admin/settings/high-queue", adminAuth(adminHandler.HandleAdminSettingsHighQueue))
 	uiMux.HandleFunc("POST /admin/settings/maintenance", adminAuth(adminHandler.HandleAdminSettingsMaintenance))
 
-	mux.HandleFunc("POST /api/intake", publicHandler.HandleIntakeCreate)
-	mux.HandleFunc("POST /api/contact", publicHandler.HandleContactCreate)
+	rateLimiter := middleware.RateLimiterMiddleware(10, 1*time.Minute)
+	mux.HandleFunc("POST /api/intake", rateLimiter(http.HandlerFunc(publicHandler.HandleIntakeCreate)).ServeHTTP)
+	mux.HandleFunc("POST /api/contact", rateLimiter(http.HandlerFunc(publicHandler.HandleContactCreate)).ServeHTTP)
 
 	uiHandler := middleware.MaintenanceMiddleware(settingsRepo, renderer)(uiMux)
 	uiHandler = middleware.BaseDataMiddleware(cfg, translator)(uiHandler)
+	uiHandler = middleware.SecurityHeadersMiddleware(uiHandler)
+	uiHandler = middleware.CSPNonceMiddleware(uiHandler)
+	uiHandler = middleware.RequestIDMiddleware(uiHandler)
 
 	csrfMiddleware := csrf.Protect(
 		cfg.CSRFAuthKey,

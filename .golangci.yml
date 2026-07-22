@@ -1,0 +1,50 @@
+run:
+  timeout: 5m
+  issues-exit-code: 1
+  tests: true
+
+linters:
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - typecheck
+    - unused
+    - gosec
+    - goconst
+    - bodyclose
+    - unconvert
+    - gocritic
+    - revive
+    - misspell
+    - nolintlint
+    - prealloc
+    - exportloopref
+    - noctx
+
+linters-settings:
+  govet:
+    check-shadowing: true
+  gosec:
+    severity: medium
+    confidence: medium
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - style
+      - performance
+  revive:
+    confidence: 0.8
+  nolintlint:
+    allow-unused: false
+    require-explanation: true
+    require-specific: true
+
+issues:
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0
