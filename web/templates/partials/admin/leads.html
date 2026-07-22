@@ -4,7 +4,6 @@
     <input type="hidden" name="client_status" value="{{if .Leads.Params.ClientStatus}}{{.Leads.Params.ClientStatus}}{{else}}all{{end}}" data-ref="clientStatusInput">
     <input type="hidden" name="internal_status" value="{{if .Leads.Params.InternalStatus}}{{.Leads.Params.InternalStatus}}{{else}}all{{end}}" data-ref="internalStatusInput">
     <input type="hidden" name="sort_by" value="{{if .Leads.Params.SortBy}}{{.Leads.Params.SortBy}}{{else}}date_desc{{end}}" data-ref="sortInput">
-    {{ $.BaseData.CSRFToken }}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="flex items-center justify-between bg-black/40 border border-white/8 p-5 rounded-2xl">
             <div class="space-y-1">
@@ -12,10 +11,9 @@
                 <p class="text-xs text-neutral-400">{{.T.Get "AdminHighQueueHint"}}</p>
             </div>
             <div hx-post="/admin/settings/high-queue" hx-trigger="change" hx-swap="none" hx-include="find input" class="flex items-center">
-                {{ $.BaseData.CSRFToken }}
                 <label class="relative inline-flex items-center cursor-pointer bg-white/10 rounded-full">
                     <input type="checkbox" name="high_queue" value="true" class="sr-only peer" {{if .HighQueueActive}}checked{{end}}>
-                    <div class="w-11 h-6 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                    <div class="w-11 h-6 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                 </label>
             </div>
         </div>
@@ -26,10 +24,9 @@
                 <p class="text-xs text-neutral-400">{{.T.Get "AdminMaintenanceHint"}}</p>
             </div>
             <div hx-post="/admin/settings/maintenance" hx-trigger="change" hx-swap="none" hx-include="find input" class="flex items-center">
-                {{ $.BaseData.CSRFToken }}
                 <label class="relative inline-flex items-center cursor-pointer bg-white/10 rounded-full">
                     <input type="checkbox" name="maintenance" value="true" class="sr-only peer" {{if .MaintenanceActive}}checked{{end}}>
-                    <div class="w-11 h-6 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                    <div class="w-11 h-6 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                 </label>
             </div>
         </div>
@@ -110,11 +107,11 @@
                 )
             }}
 
-            <div class="relative flex-1 min-w-[240px] max-w-sm text-white">
+            <div class="relative flex-1 min-w-60 max-w-sm text-white">
                 <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                 </svg>
-                <input type="text" name="search_query" value="{{.Leads.Params.SearchQuery}}" hx-get="/admin/api/leads" hx-include="#leads-container" hx-trigger="keyup changed delay:500ms" hx-target="#leads-container" hx-swap="outerHTML" placeholder="{{.T.Get "AdminSearchPlaceholder"}}" class="w-full bg-black/40 border border-white/10 rounded-xl py-2 pl-9 pr-4 text-sm placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all">
+                <input type="text" id="leads-search-input" name="search_query" value="{{.Leads.Params.SearchQuery}}" hx-get="/admin/api/leads" hx-include="#leads-container" hx-trigger="keyup changed delay:500ms" hx-target="#leads-container" hx-swap="outerHTML" placeholder="{{.T.Get "AdminSearchPlaceholder"}}" class="w-full bg-black/40 border border-white/10 rounded-xl py-2 pl-9 pr-4 text-sm placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all">
             </div>
         </div>
 
@@ -143,30 +140,30 @@
                     data-budget="{{.Budget}}"
                     data-created="{{.CreatedAt.Unix}}"
                     data-name="{{.CompanyName}}">
-                    <td class="table-body-cell-highlight group/msg relative min-w-[120px]">
+                    <td class="table-body-cell-highlight group/msg relative min-w-30">
                         <div class="line-clamp-2 cursor-pointer whitespace-pre-wrap transition-all duration-200" data-action="toggleExpand" title="Click to expand">{{.CompanyName}}</div>
                     </td>
-                    <td class="table-body-cell break-all group/msg relative min-w-[200px] w-[200px]">
+                    <td class="table-body-cell break-all group/msg relative min-w-50 w-50">
                         <div class="line-clamp-2 cursor-pointer whitespace-pre-wrap transition-all duration-200" data-action="toggleExpand" title="Click to expand">{{.ProjectScope}}</div>
                     </td>
-                    <td class="table-body-cell font-mono break-all group/msg relative min-w-[150px]">
+                    <td class="table-body-cell font-mono break-all group/msg relative min-w-37.5">
                         <div class="line-clamp-2 cursor-pointer whitespace-pre-wrap transition-all duration-200" data-action="toggleExpand" title="Click to expand">{{.ContactEmail}}</div>
                     </td>
-                    <td class="table-body-cell break-all group/msg relative min-w-[150px] w-[150px]">
+                    <td class="table-body-cell break-all group/msg relative min-w-37.5 w-37.5">
                         {{if .ContactInfo}}
                             <div class="line-clamp-2 cursor-pointer whitespace-pre-wrap transition-all duration-200" data-action="toggleExpand" title="Click to expand">{{.ContactInfo}}</div>
                         {{else}}
                             -
                         {{end}}
                     </td>
-                    <td class="table-body-cell whitespace-nowrap min-w-[120px]">
+                    <td class="table-body-cell whitespace-nowrap min-w-30">
                         {{if .DeadlineNeeded}}
                         <div class="space-y-0.5 group/msg relative">
-                            <span class="badge-admin">Strict</span>
+                            <span class="badge-admin">{{$.T.Get "DeadlineStrict"}}</span>
                             <div class="text-xs text-neutral-400 mt-1 line-clamp-2 cursor-pointer whitespace-pre-wrap transition-all duration-200" data-action="toggleExpand" title="Click to expand">{{.DeadlineSpec}}</div>
                         </div>
                         {{else}}
-                        <span class="badge">Standard</span>
+                        <span class="badge">{{$.T.Get "DeadlineStandard"}}</span>
                         {{end}}
                     </td>
                     <td class="table-body-cell" style="width: 150px;">

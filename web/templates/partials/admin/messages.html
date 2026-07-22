@@ -3,7 +3,6 @@
     <input type="hidden" name="page" value="{{.ContactMessages.Params.Page}}" data-ref="pageInput">
     <input type="hidden" name="status" value="{{if .ContactMessages.Params.Status}}{{.ContactMessages.Params.Status}}{{else}}all{{end}}" data-ref="statusFilterInput">
     <input type="hidden" name="sort_by" value="{{if .ContactMessages.Params.SortBy}}{{.ContactMessages.Params.SortBy}}{{else}}date_desc{{end}}" data-ref="sortInput">
-    {{ $.BaseData.CSRFToken }}
     <div class="bg-black/40 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl mt-6">
         <!-- Toolbar -->
         <div class="flex flex-wrap items-end gap-4 p-6 border-b border-white/5 bg-white/1">
@@ -46,11 +45,11 @@
                 )
             }}
 
-            <div class="relative flex-1 min-w-[240px] max-w-sm text-white">
+            <div class="relative flex-1 min-w-60 max-w-sm text-white">
                 <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                 </svg>
-                <input type="text" name="search_query" value="{{.ContactMessages.Params.SearchQuery}}" hx-get="/admin/api/messages" hx-include="#messages-container" hx-trigger="keyup changed delay:500ms" hx-target="#messages-container" hx-swap="outerHTML" placeholder="Search by topic or email..." class="w-full bg-black/40 border border-white/10 rounded-xl py-2 pl-9 pr-4 text-sm placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all">
+                <input type="text" id="messages-search-input" name="search_query" value="{{.ContactMessages.Params.SearchQuery}}" hx-get="/admin/api/messages" hx-include="#messages-container" hx-trigger="keyup changed delay:500ms" hx-target="#messages-container" hx-swap="outerHTML" placeholder="{{.T.Get "AdminSearchMessagesPlaceholder"}}" class="w-full bg-black/40 border border-white/10 rounded-xl py-2 pl-9 pr-4 text-sm placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all">
             </div>
         </div>
     <div class="w-full overflow-x-auto">
@@ -68,13 +67,13 @@
             <tbody id="messages-tbody" data-ref="tbody" class="divide-y divide-white/4 text-sm text-neutral-300">
                 {{range .ContactMessages.Items}}
                 <tr class="table-body-row group border-b border-white/5" data-id="{{.ID}}">
-                    <td class="table-body-cell-highlight font-bold break-all group/msg relative min-w-[150px]">
+                    <td class="table-body-cell-highlight font-bold break-all group/msg relative min-w-37.5">
                         <div class="line-clamp-2 cursor-pointer whitespace-pre-wrap transition-all duration-200" data-action="toggleExpand" title="Click to expand">{{.Email}}</div>
                     </td>
-                    <td class="table-body-cell text-primary font-medium break-all group/msg relative min-w-[150px]">
+                    <td class="table-body-cell text-primary font-medium break-all group/msg relative min-w-37.5">
                         <div class="line-clamp-2 cursor-pointer whitespace-pre-wrap transition-all duration-200" data-action="toggleExpand" title="Click to expand">{{.Topic}}</div>
                     </td>
-                    <td class="table-body-cell leading-relaxed break-all group/msg relative min-w-[250px] w-[250px]">
+                    <td class="table-body-cell leading-relaxed break-all group/msg relative min-w-62.5 w-62.5">
                         <div class="line-clamp-2 cursor-pointer whitespace-pre-wrap transition-all duration-200" data-action="toggleExpand" title="Click to expand">{{.Message}}</div>
                     </td>
                     <td class="table-body-cell" style="width: 150px;">

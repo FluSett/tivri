@@ -23,11 +23,11 @@
 
             <div class="space-y-2">
                 <label class="form-label-admin">{{.T.Get "PortfolioFormTechStack"}}</label>
-                <div class="form-input flex flex-wrap gap-2 items-center min-h-[42px] focus-within:border-primary/50 focus-within:shadow-[0_0_8px_rgba(255,51,102,0.1)] transition-all">
+                <div class="form-input flex flex-wrap gap-2 items-center min-h-10.5 focus-within:border-primary/50 focus-within:shadow-[0_0_8px_rgba(255,51,102,0.1)] transition-all">
                     <div id="pf-tags-container" data-ref="tagsContainer" class="flex flex-wrap gap-2 items-center"></div>
                     <input type="text" id="pf-tag-input" data-ref="tagInput"
                            placeholder="{{.T.Get "PortfolioFormTechStackExample"}}" 
-                           class="bg-transparent border-0 p-0 text-sm text-white focus:ring-0 focus:outline-none grow min-w-[80px]">
+                           class="bg-transparent border-0 p-0 text-sm text-white focus:ring-0 focus:outline-none grow min-w-20">
                 </div>
                 <p class="text-xs text-neutral-400 leading-normal">{{.T.Get "PortfolioFormTechStackHint"}}</p>
             </div>
@@ -41,7 +41,7 @@
             </div>
 
             <div id="pf-media-list-container" data-ref="mediaListContainer" class="space-y-3 bg-black/30 border border-white/8 p-4 rounded-xl hidden">
-                <h4 class="text-xs font-bold text-neutral-400 uppercase tracking-wider">Arrange Upload Media</h4>
+                <h4 class="text-xs font-bold text-neutral-400 uppercase tracking-wider">{{.T.Get "PortfolioArrangeMedia"}}</h4>
                 <div id="pf-media-list" data-ref="mediaList" class="space-y-2">
                 </div>
             </div>
@@ -69,7 +69,7 @@
             <div class="w-10 h-10 rounded bg-white/5 overflow-hidden shrink-0 flex items-center justify-center border border-white/5" data-ref="preview">
             </div>
             <div class="flex flex-col">
-                <span class="text-xs text-neutral-300 font-medium truncate max-w-[150px] sm:max-w-[200px]" data-ref="name"></span>
+                <span class="text-xs text-neutral-300 font-medium truncate max-w-37.5 sm:max-w-50" data-ref="name"></span>
                 <span class="text-[10px] text-neutral-500 font-mono" data-ref="size"></span>
             </div>
         </div>
@@ -112,9 +112,9 @@
                 </div>
 
                 <div class="flex justify-between items-start gap-4">
-                    <h3 class="text-base font-bold text-white tracking-tight leading-tight wrap-break-word" id="pf-preview-title" data-ref="previewTitle">Project Title</h3>
+                    <h3 class="text-base font-bold text-white tracking-tight leading-tight wrap-break-word" id="pf-preview-title" data-ref="previewTitle">{{.T.Get "PortfolioPreviewDefaultTitle"}}</h3>
                 </div>
-                <p class="text-neutral-400 text-sm leading-relaxed tracking-tight" id="pf-preview-desc" data-ref="previewDesc">A brief description of your project will be displayed here, showcasing your work and achievements.</p>
+                <p class="text-neutral-400 text-sm leading-relaxed tracking-tight" id="pf-preview-desc" data-ref="previewDesc">{{.T.Get "PortfolioPreviewDefaultDesc"}}</p>
                 <div class="flex flex-wrap gap-2">
                     <div id="pf-preview-tags" data-ref="previewTags" class="flex flex-wrap gap-2"></div>
                     <div id="pf-preview-tags-default" data-ref="previewTagsDefault" class="flex gap-2 opacity-30 select-none">
