@@ -35,8 +35,10 @@ Designed for cost-efficiency and atomic, reproducible deployments.
 - **HTMX Server-Driven Interactivity**: Native HTMX attribute routing handling all asynchronous server states natively, with modular Vanilla JS components reserved solely for isolated micro-interactions.
 - **Semantic Modular CSS**: Centralized design system (`components.css`) eliminating duplicate utility chains, while explicitly keeping JS-manipulated state classes inline for bulletproof DOM animations.
 - **Transactional Outbox**: Guaranteed event delivery by writing state updates alongside events in single database transactions protected by strict `context.WithTimeout` scopes.
-- **Security-First & Zero-Downtime**: Constant-time cryptographic verification (SHA-256), strict Nginx `Content-Security-Policy` blocks, and a `SIGTERM` interception bootstrapper ensuring graceful shutdown and zero active transaction corruption.
-- **Self-Documenting Code**: Clean, explicit error handling and logical separation of concerns without arbitrary magic numbers or scattered configuration.
+- **Security-First & Response Headers**: Constant-time cryptographic verification (SHA-256), security response headers (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`), strict Nginx `Content-Security-Policy` blocks, and a `SIGTERM` interception bootstrapper ensuring graceful shutdown and zero active transaction corruption.
+- **Cache-Busted Immutable Assets**: SHA-256 asset content hashing (`?v=hash`) with `Cache-Control: public, max-age=31536000, immutable` headers for instant cache invalidation and optimal loading speeds.
+- **Self-Documenting & Structured Observability**: Go 1.21+ native `log/slog` structured logging, `.golangci.yml` static security analysis, comprehensive HTTP handler tests (`httptest`), and modular sub-domain handler decomposition (`admin_auth.go`, `admin_leads.go`, `admin_portfolio.go`).
+- **Composite Database Indexing**: Optimized PostgreSQL composite indexes (`000002_composite_indexes.up.sql`) guaranteeing sub-millisecond filtering on admin lead and message queries.
 
 ## 💻 Local Development
 

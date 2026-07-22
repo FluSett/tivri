@@ -241,5 +241,16 @@
     "TechBannerBenefitsTitle": "The Benefits",
     "TechBannerBenefit1": "Removed Alpine.js overhead for a lighter payload.",
     "TechBannerBenefit2": "Vanilla JS gives finer control over DOM and animations.",
-    "TechBannerBenefit3": "Better performance and cleaner separation of concerns."
+    "TechBannerBenefit3": "Better performance and cleaner separation of concerns.",
+    "Error404Title": "Page Not Found",
+    "Error404Desc": "The page you are looking for does not exist, has been moved, or is temporarily unavailable.",
+    "BackToHome": "Back to Home",
+    "AdminSearchMessagesPlaceholder": "Search by topic or email...",
+    "PortfolioArrangeMedia": "Arrange Upload Media",
+    "PortfolioPreviewDefaultTitle": "Project Title",
+    "PortfolioPreviewDefaultDesc": "A brief description of your project will be displayed here, showcasing your work and achievements.",
+    "DeadlineStrict": "Strict",
+    "DeadlineStandard": "Standard",
+    "PaginationPrevious": "Previous",
+    "PaginationNext": "Next"
 }
