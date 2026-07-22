@@ -2,7 +2,7 @@ package notifications
 
 import (
 	"context"
-	"fmt"
+	"log/slog"
 
 	"tivri/internal/eventbus"
 )
@@ -14,7 +14,7 @@ func NewEmailWorker() *EmailWorker {
 }
 
 func (w *EmailWorker) HandleEvent(ctx context.Context, e eventbus.Event) error {
-	fmt.Printf("Notifications Worker: Email dispatched for event type %q\n", e.Type)
+	slog.Info("Notifications Worker: Email dispatched", "event_type", e.Type)
 
 	return nil
 }

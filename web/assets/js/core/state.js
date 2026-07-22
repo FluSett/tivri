@@ -110,6 +110,8 @@ export function delegate(container, eventName, selector, handler) {
     return () => container.removeEventListener(eventName, fn);
 }
 
+import { getStorageItem } from './storage.js';
+
 /**
  * Initializes global state persistence logic.
  * Clears in-memory persisted states on standard HTMX navigations (not locale changes).
@@ -117,7 +119,7 @@ export function delegate(container, eventName, selector, handler) {
 export function initStatePersistence() {
     document.addEventListener('htmx:beforeSwap', (e) => {
         const isMainNavigation = e.detail.target && e.detail.target.id === 'app-body';
-        if (isMainNavigation && sessionStorage.getItem('locale_change') !== 'true') {
+        if (isMainNavigation && getStorageItem('locale_change') !== 'true') {
             window.__tivriPersistedStates = {};
         }
     });

@@ -1,0 +1,105 @@
+openapi: 3.0.3
+info:
+  title: Tivri Software Engineering Platform API
+  description: Public API endpoints for project intake submission, contact messages, and system health checks.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Local Development Server
+paths:
+  /healthz:
+    get:
+      summary: Health Check Endpoint
+      description: Returns service and database connection status.
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  database:
+                    type: string
+                    example: healthy
+        '503':
+          description: Database connectivity failure
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: database unreachable
+  /api/intake:
+    post:
+      summary: Submit Project Intake Lead
+      description: Rate-limited public endpoint to submit project estimates and lead requirements.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - company_name
+                - project_scope
+                - budget
+                - contact_email
+              properties:
+                company_name:
+                  type: string
+                project_scope:
+                  type: string
+                budget:
+                  type: string
+                contact_email:
+                  type: string
+                contact_info:
+                  type: string
+                deadline_needed:
+                  type: string
+                deadline_spec:
+                  type: string
+      responses:
+        '200':
+          description: HTML partial notification on success
+        '400':
+          description: Invalid input or failed Turnstile CAPTCHA
+        '429':
+          description: Too many requests (rate limited)
+  /api/contact:
+    post:
+      summary: Submit Contact Message
+      description: Rate-limited public endpoint to send contact inquiries.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - email
+                - topic
+                - message
+              properties:
+                email:
+                  type: string
+                topic:
+                  type: string
+                message:
+                  type: string
+      responses:
+        '200':
+          description: HTML partial notification on success
+        '400':
+          description: Invalid input or failed Turnstile CAPTCHA
+        '429':
+          description: Too many requests (rate limited)

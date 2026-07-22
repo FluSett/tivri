@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -16,13 +16,15 @@ func main() {
 
 	server, err := app.New(ctx)
 	if err != nil {
-		log.Fatalf("failed to initialize application: %v", err)
+		slog.Error("failed to initialize application", "error", err)
+		os.Exit(1)
 	}
 
 	defer server.Close()
 
 	err = server.Start(ctx)
 	if err != nil {
-		log.Fatalf("application error: %v", err)
+		slog.Error("application error", "error", err)
+		os.Exit(1)
 	}
 }

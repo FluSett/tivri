@@ -1,0 +1,2 @@
+DROP INDEX IF EXISTS idx_intake_leads_client_internal_created;
+DROP INDEX IF EXISTS idx_contact_messages_status_created;

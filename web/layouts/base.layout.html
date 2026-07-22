@@ -6,6 +6,7 @@
     <title>{{if .PageTitle}}{{.PageTitle}} | {{.T.Get "MetaTitle"}}{{else}}{{.T.Get "MetaTitle"}}{{end}}</title>
     <meta name="description" content="{{.T.Get "MetaDescription"}}">
     <meta name="htmx-config" content='{"globalViewTransitions":true, "includeIndicatorStyles":false}'>
+    <meta name="csrf-token" content="{{.CSRFTokenVal}}">
     
     <!-- SEO Localization Alternates -->
     <link rel="alternate" hreflang="x-default" href="{{.AppURL}}{{.CurrentPath}}" />

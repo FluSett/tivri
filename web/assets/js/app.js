@@ -16,6 +16,10 @@ import { initContact } from './components/contact.js';
 
 document.addEventListener('htmx:configRequest', (event) => {
     window.htmx.config.globalViewTransitions = true;
+    const token = document.querySelector('meta[name="csrf-token"]')?.content;
+    if (token) {
+        event.detail.headers['X-CSRF-Token'] = token;
+    }
 });
 
 // Suppress expected AbortErrors from skipped HTMX view transitions

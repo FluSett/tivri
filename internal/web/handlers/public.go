@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 	"strings"
@@ -15,6 +16,10 @@ import (
 	"tivri/internal/web/response"
 )
 
+type databasePinger interface {
+	Ping(ctx context.Context) error
+}
+
 type PublicHandler struct {
 	renderer        *render.Renderer
 	translator      *i18n.Translator
@@ -22,6 +27,7 @@ type PublicHandler struct {
 	intakeService   *services.IntakeService
 	contactService  *services.ContactService
 	settingsRepo    core.SettingsRepository
+	dbPinger        databasePinger
 	turnstileSecret string
 	isProd          bool
 }
@@ -33,6 +39,7 @@ func NewPublicHandler(
 	intakeService *services.IntakeService,
 	contactService *services.ContactService,
 	settingsRepo core.SettingsRepository,
+	dbPinger databasePinger,
 	turnstileSecret string,
 	isProd bool,
 ) *PublicHandler {
@@ -43,6 +50,7 @@ func NewPublicHandler(
 		intakeService:   intakeService,
 		contactService:  contactService,
 		settingsRepo:    settingsRepo,
+		dbPinger:        dbPinger,
 		turnstileSecret: turnstileSecret,
 		isProd:          isProd,
 	}
@@ -71,6 +79,21 @@ func (h *PublicHandler) HandleAPILang(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("HX-Location", currentURL)
 	w.WriteHeader(http.StatusOK)
+}
+
+func (h *PublicHandler) HandleHealthz(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if h.dbPinger != nil {
+		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+		defer cancel()
+		if err := h.dbPinger.Ping(ctx); err != nil {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			_, _ = w.Write([]byte(`{"status":"error","message":"database unreachable"}`))
+			return
+		}
+	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte(`{"status":"ok","database":"healthy"}`))
 }
 
 func (h *PublicHandler) HandleRobots(w http.ResponseWriter, r *http.Request) {
@@ -172,11 +195,11 @@ func (h *PublicHandler) HandleIntakeCreate(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	companyName := strings.TrimSpace(r.FormValue("company_name"))
-	projectScope := strings.TrimSpace(r.FormValue("project_scope"))
+	companyName := core.SanitizeString(r.FormValue("company_name"))
+	projectScope := core.SanitizeString(r.FormValue("project_scope"))
 	budgetStr := r.FormValue("budget")
-	contactEmail := strings.TrimSpace(r.FormValue("contact_email"))
-	contactInfo := strings.TrimSpace(r.FormValue("contact_info"))
+	contactEmail := core.SanitizeString(r.FormValue("contact_email"))
+	contactInfo := core.SanitizeString(r.FormValue("contact_info"))
 	deadlineNeededStr := r.FormValue("deadline_needed")
 	deadlineNeeded := deadlineNeededStr == "true" || deadlineNeededStr == "on" || deadlineNeededStr == "1"
 
@@ -204,7 +227,7 @@ func (h *PublicHandler) HandleIntakeCreate(w http.ResponseWriter, r *http.Reques
 		ContactEmail:   contactEmail,
 		ContactInfo:    contactInfo,
 		DeadlineNeeded: deadlineNeeded,
-		DeadlineSpec:   strings.TrimSpace(r.FormValue("deadline_spec")),
+		DeadlineSpec:   core.SanitizeString(r.FormValue("deadline_spec")),
 		IsCustomBudget: budgetStr == "other",
 		ClientStatus:   "pending",
 		InternalStatus: "pending",
@@ -239,9 +262,9 @@ func (h *PublicHandler) HandleContactCreate(w http.ResponseWriter, r *http.Reque
 	}
 
 	msg := &core.ContactMessage{
-		Email:     strings.TrimSpace(r.FormValue("email")),
-		Topic:     strings.TrimSpace(r.FormValue("topic")),
-		Message:   strings.TrimSpace(r.FormValue("message")),
+		Email:     core.SanitizeString(r.FormValue("email")),
+		Topic:     core.SanitizeString(r.FormValue("topic")),
+		Message:   core.SanitizeString(r.FormValue("message")),
 		Status:    "new",
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),

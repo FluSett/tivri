@@ -525,7 +525,7 @@ input:disabled {
     @apply py-3 px-4 text-left border-b border-white/5 bg-white/5 text-neutral-400 text-xs font-semibold uppercase tracking-wider;
 }
 .table-body-row {
-    @apply hover:bg-white/5 transition-colors duration-200 border-b border-white/5 h-[72px];
+    @apply hover:bg-white/5 transition-colors duration-200 border-b border-white/5 h-18;
 }
 .table-body-row:last-child {
     @apply border-b-0;

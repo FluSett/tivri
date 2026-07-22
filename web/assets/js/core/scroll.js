@@ -1,63 +1,163 @@
 import { bindRefs } from './state.js';
+import { setStorageItem, getStorageItem, setStorageJSON, getStorageJSON, removeStorageKey } from './storage.js';
 
 export function tivriHandleLocaleChange(onNormalLoad) {
-    const isLocaleChange = sessionStorage.getItem('locale_change') === 'true';
+    const isLocaleChange = getStorageItem('locale_change') === 'true';
     if (!isLocaleChange) {
         if (typeof onNormalLoad === 'function') onNormalLoad();
     } else {
-        setTimeout(() => sessionStorage.removeItem('locale_change'), 500);
+        setTimeout(() => removeStorageKey('locale_change'), 500);
     }
 }
 window.tivriHandleLocaleChange = tivriHandleLocaleChange;
 
+function savePreservedScroll(isLocaleChange = false) {
+    const sections = Array.from(document.querySelectorAll('section[id], main[id], .admin-panel-box[id], #stepper-container, #messages-container, #leads-container')).filter((el) => {
+        const rect = el.getBoundingClientRect();
+        return rect.bottom > 0 && rect.top < window.innerHeight;
+    });
+
+    let bestEl = null;
+    let bestDist = Infinity;
+    sections.forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        const dist = Math.abs(rect.top - 80);
+        if (dist < bestDist) {
+            bestDist = dist;
+            bestEl = el;
+        }
+    });
+
+    const data = {
+        id: bestEl ? bestEl.id : null,
+        offsetTop: bestEl ? bestEl.getBoundingClientRect().top : 0,
+        scrollY: window.scrollY
+    };
+
+    setStorageJSON('tivri_preserved_scroll', data);
+    if (isLocaleChange) {
+        setStorageItem('locale_change', 'true');
+    }
+}
+
+function restorePreservedScroll() {
+    const data = getStorageJSON('tivri_preserved_scroll');
+    if (!data) return false;
+    removeStorageKey('tivri_preserved_scroll');
+
+    try {
+        const html = document.documentElement;
+        html.style.scrollBehavior = 'auto';
+        html.classList.remove('scroll-smooth');
+
+        const doScroll = () => {
+            let restored = false;
+            if (data.id) {
+                const el = document.getElementById(data.id);
+                if (el) {
+                    const rect = el.getBoundingClientRect();
+                    const targetY = window.scrollY + rect.top - data.offsetTop;
+                    window.scrollTo(0, Math.max(0, targetY));
+                    restored = true;
+                }
+            }
+            if (!restored && typeof data.scrollY === 'number') {
+                window.scrollTo(0, data.scrollY);
+            }
+        };
+
+        doScroll();
+        requestAnimationFrame(() => {
+            doScroll();
+            setTimeout(() => {
+                doScroll();
+                html.style.scrollBehavior = '';
+                html.classList.add('scroll-smooth');
+            }, 100);
+        });
+        return true;
+    } catch (e) {
+        console.error('Failed to restore scroll:', e);
+        return false;
+    }
+}
+
+if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+}
+
 export function initScroll() {
     const teardowns = [];
 
-    const localeChange = sessionStorage.getItem('locale_change');
-    const tivriScroll = sessionStorage.getItem('tivri_scroll');
-    const htmxNav = sessionStorage.getItem('tivri_htmx_nav');
+    const isReload = (performance.getEntriesByType && performance.getEntriesByType('navigation')[0] && performance.getEntriesByType('navigation')[0].type === 'reload') || performance.navigation?.type === 1;
+    const localeChange = getStorageItem('locale_change');
+    const preservedScroll = getStorageItem('tivri_preserved_scroll');
+    const isRealRefresh = isReload && localeChange !== 'true';
 
-    sessionStorage.clear();
+    const hasHash = Boolean(window.location.hash && window.location.hash !== '#');
 
-    if (localeChange) sessionStorage.setItem('locale_change', localeChange);
-    if (tivriScroll) sessionStorage.setItem('tivri_scroll', tivriScroll);
-    if (htmxNav) sessionStorage.setItem('tivri_htmx_nav', htmxNav);
+    if (!hasHash) {
+        if (isRealRefresh || (!preservedScroll && localeChange !== 'true')) {
+            removeStorageKey('tivri_preserved_scroll');
+            removeStorageKey('tivri_htmx_nav');
+            removeStorageKey('locale_change');
 
-    if (!localeChange && !tivriScroll) {
-        if ('scrollRestoration' in history) {
-            history.scrollRestoration = 'manual';
+            const html = document.documentElement;
+            html.style.scrollBehavior = 'auto';
+            html.classList.remove('scroll-smooth');
+
+            window.scrollTo(0, 0);
+            requestAnimationFrame(() => {
+                window.scrollTo(0, 0);
+                setTimeout(() => {
+                    window.scrollTo(0, 0);
+                    html.style.scrollBehavior = '';
+                    html.classList.add('scroll-smooth');
+                }, 50);
+            });
+        } else {
+            restorePreservedScroll();
         }
-        window.scrollTo({ top: 0, behavior: 'instant' });
     }
 
     const clickPreserveHandler = function (e) {
-        if (e.target.closest('[data-preserve-scroll]')) {
-            sessionStorage.setItem('tivri_scroll', window.scrollY);
+        const preserveEl = e.target.closest('[data-preserve-scroll]') || e.target.closest('.lang-switch-btn') || e.target.closest('.lang-switch-desktop');
+        if (preserveEl) {
+            savePreservedScroll(true);
         }
     };
     document.addEventListener('click', clickPreserveHandler);
     teardowns.push(() => document.removeEventListener('click', clickPreserveHandler));
 
+    const beforeRequestHandler = function (e) {
+        const target = e.target;
+        if (target && (target.closest('[data-preserve-scroll]') || target.getAttribute('hx-swap') === 'none' || target.getAttribute('hx-target') === 'this')) {
+            savePreservedScroll(false);
+        }
+    };
+    document.addEventListener('htmx:beforeRequest', beforeRequestHandler);
+    teardowns.push(() => document.removeEventListener('htmx:beforeRequest', beforeRequestHandler));
+
     const beforeSwapHandler = function (e) {
         document.documentElement.classList.add('no-transition');
-        sessionStorage.setItem('tivri_htmx_nav', 'true');
+        setStorageItem('tivri_htmx_nav', 'true');
 
-        if (sessionStorage.getItem('tivri_scroll') !== null) {
+        if (getStorageItem('tivri_preserved_scroll') !== null) {
             document.documentElement.style.minHeight = document.documentElement.scrollHeight + 'px';
         }
 
         if (e.detail.serverResponse) {
             try {
-                var parser = new DOMParser();
-                var doc = parser.parseFromString(e.detail.serverResponse, 'text/html');
-                var oldHeader = document.querySelector('[data-ref="header"]');
-                var newHeader = doc.querySelector('[data-ref="header"]');
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(e.detail.serverResponse, 'text/html');
+                const oldHeader = document.querySelector('[data-ref="header"]');
+                const newHeader = doc.querySelector('[data-ref="header"]');
                 if (oldHeader && newHeader) {
                     newHeader.className = oldHeader.className;
                 }
 
-                var oldFooter = document.querySelector('[data-ref="footer"]');
-                var newFooter = doc.querySelector('[data-ref="footer"]');
+                const oldFooter = document.querySelector('[data-ref="footer"]');
+                const newFooter = doc.querySelector('[data-ref="footer"]');
                 if (oldFooter && newFooter) {
                     newFooter.className = oldFooter.className;
                 }
@@ -71,28 +171,14 @@ export function initScroll() {
     document.addEventListener('htmx:beforeSwap', beforeSwapHandler);
     teardowns.push(() => document.removeEventListener('htmx:beforeSwap', beforeSwapHandler));
 
-    const afterSettleHandler = function (e) {
-        const s = sessionStorage.getItem('tivri_scroll');
-        if (s !== null) {
-            setTimeout(function () {
-                const html = document.documentElement;
-                const hadSmooth = html.classList.contains('scroll-smooth');
-                if (hadSmooth) html.classList.remove('scroll-smooth');
-
-                window.scrollTo({ top: parseInt(s), behavior: 'instant' });
-                sessionStorage.removeItem('tivri_scroll');
-
-                if (hadSmooth) {
-                    setTimeout(function () {
-                        html.classList.add('scroll-smooth');
-                    }, 50);
-                }
-                html.style.minHeight = '';
-            }, 50);
-        }
+    const handleHtmxRestore = function () {
+        restorePreservedScroll();
     };
-    document.addEventListener('htmx:afterSettle', afterSettleHandler);
-    teardowns.push(() => document.removeEventListener('htmx:afterSettle', afterSettleHandler));
+    document.addEventListener('htmx:afterSettle', handleHtmxRestore);
+    teardowns.push(() => document.removeEventListener('htmx:afterSettle', handleHtmxRestore));
+
+    document.addEventListener('htmx:afterRequest', handleHtmxRestore);
+    teardowns.push(() => document.removeEventListener('htmx:afterRequest', handleHtmxRestore));
 
     let footerActive = false;
 
@@ -112,10 +198,10 @@ export function initScroll() {
 
         const footer = refs.footer;
         if (footer) {
-            var scrollY = window.pageYOffset || window.scrollY;
-            var maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-            var threshold = footerActive ? 155 : 135;
-            var isAtBottom = maxScroll - scrollY <= threshold;
+            const scrollY = window.pageYOffset || window.scrollY;
+            const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+            const threshold = footerActive ? 155 : 135;
+            const isAtBottom = maxScroll - scrollY <= threshold;
 
             if (isAtBottom && !footerActive) {
                 footerActive = true;

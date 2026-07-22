@@ -3,11 +3,15 @@ package datastore
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type txKey struct{}
+
+const defaultQueryTimeout = 3 * time.Second
 
 type Store struct {
 	pool *pgxpool.Pool
@@ -21,46 +25,64 @@ func (s *Store) Pool() *pgxpool.Pool {
 	return s.pool
 }
 
-// WithTx executes the provided function within a transaction.
-// It injects the pgx.Tx into the context so repositories can use it.
+func ensureTimeout(ctx context.Context) (context.Context, context.CancelFunc) {
+	if _, ok := ctx.Deadline(); ok {
+		return ctx, func() {}
+	}
+	return context.WithTimeout(ctx, defaultQueryTimeout)
+}
+
 func (s *Store) WithTx(ctx context.Context, fn func(ctx context.Context) error) error {
-	tx, err := s.pool.Begin(ctx)
+	reqCtx, cancel := ensureTimeout(ctx)
+	defer cancel()
+
+	tx, err := s.pool.Begin(reqCtx)
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
 	}
 
 	defer func() {
-		_ = tx.Rollback(ctx)
+		_ = tx.Rollback(reqCtx)
 	}()
 
-	txCtx := context.WithValue(ctx, txKey{}, tx)
+	txCtx := context.WithValue(reqCtx, txKey{}, tx)
 
 	if err := fn(txCtx); err != nil {
 		return err
 	}
 
-	if err := tx.Commit(ctx); err != nil {
+	if err := tx.Commit(reqCtx); err != nil {
 		return fmt.Errorf("commit tx: %w", err)
 	}
 
 	return nil
 }
 
-// Exec takes a context and executes the query on the transaction if it exists in the context,
-// otherwise it falls back to the pool.
 func (s *Store) Exec(ctx context.Context, sql string, arguments ...any) error {
-	if tx, ok := ctx.Value(txKey{}).(pgx.Tx); ok {
-		_, err := tx.Exec(ctx, sql, arguments...)
+	reqCtx, cancel := ensureTimeout(ctx)
+	defer cancel()
+
+	if tx, ok := reqCtx.Value(txKey{}).(pgx.Tx); ok {
+		_, err := tx.Exec(reqCtx, sql, arguments...)
 		return err
 	}
-	_, err := s.pool.Exec(ctx, sql, arguments...)
+	_, err := s.pool.Exec(reqCtx, sql, arguments...)
 	return err
 }
 
-// QueryRow runs the query on the transaction if it exists in the context, otherwise on the pool.
 func (s *Store) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
 	if tx, ok := ctx.Value(txKey{}).(pgx.Tx); ok {
 		return tx.QueryRow(ctx, sql, args...)
 	}
 	return s.pool.QueryRow(ctx, sql, args...)
+}
+
+func (s *Store) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
+	reqCtx, cancel := ensureTimeout(ctx)
+	defer cancel()
+
+	if tx, ok := reqCtx.Value(txKey{}).(pgx.Tx); ok {
+		return tx.Query(reqCtx, sql, args...)
+	}
+	return s.pool.Query(reqCtx, sql, args...)
 }

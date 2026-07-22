@@ -26,6 +26,7 @@ type BaseData struct {
 	CloudflareInsightsToken string
 	Error                   string
 	CSRFToken               template.HTML
+	CSRFTokenVal            string
 	MaintenanceActive       bool
 	HighQueueActive         bool
 }

@@ -111,7 +111,7 @@ func Load() (*Config, error) {
 		}
 	}
 
-	return &Config{
+	cfg := &Config{
 		Env:                     env,
 		DBDSN:                   dbDSN,
 		DBMaxConns:              dbMaxConns,
@@ -128,7 +128,28 @@ func Load() (*Config, error) {
 		ContactEmail:            contactEmail,
 		CloudflareInsightsToken: cloudflareInsightsToken,
 		CSRFAuthKey:             csrfAuthKey,
-	}, nil
+	}
+
+	if err := cfg.Validate(); err != nil {
+		slog.Warn("config validation warning", "error", err)
+	}
+
+	return cfg, nil
+}
+
+func (c *Config) Validate() error {
+	if c.DBDSN == "" {
+		return errors.New("config: DB_DSN cannot be empty")
+	}
+	if len(c.CSRFAuthKey) != 32 {
+		return errors.New("config: CSRF_AUTH_KEY must be exactly 32 bytes")
+	}
+	if c.Env == "production" {
+		if c.AdminPassword == "" || c.AdminPassword == "secret" {
+			return errors.New("config: ADMIN_PASSWORD must be changed from default in production")
+		}
+	}
+	return nil
 }
 
 func loadEnvFile(filename string) error {
