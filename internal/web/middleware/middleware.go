@@ -160,7 +160,11 @@ func MaintenanceMiddleware(settingsRepo core.SettingsRepository, renderer *rende
 					return
 				}
 
-				w.WriteHeader(http.StatusServiceUnavailable)
+				if r.Header.Get("HX-Request") == "true" {
+					w.WriteHeader(http.StatusOK)
+				} else {
+					w.WriteHeader(http.StatusServiceUnavailable)
+				}
 				baseData := GetBaseData(r.Context())
 
 				data := struct {

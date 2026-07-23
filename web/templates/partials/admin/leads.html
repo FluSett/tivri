@@ -6,28 +6,44 @@
     <input type="hidden" name="service_type" value="{{if .Leads.Params.ServiceType}}{{.Leads.Params.ServiceType}}{{else}}all{{end}}" data-ref="serviceTypeInput">
     <input type="hidden" name="sort_by" value="{{if .Leads.Params.SortBy}}{{.Leads.Params.SortBy}}{{else}}date_desc{{end}}" data-ref="sortInput">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="flex items-center justify-between bg-black/40 border border-white/8 p-5 rounded-2xl">
-            <div class="space-y-1">
+        <div class="flex items-center justify-between gap-6 bg-black/40 border border-white/8 p-5.5 rounded-2xl hover:border-white/15 transition-all shadow-lg">
+            <div class="space-y-1 grow min-w-0 pr-2">
                 <h4 class="text-sm font-bold text-white uppercase tracking-wider">{{.T.Get "AdminHighQueueLabel"}}</h4>
-                <p class="text-xs text-neutral-400">{{.T.Get "AdminHighQueueHint"}}</p>
+                <p class="text-xs text-neutral-400 leading-normal">{{.T.Get "AdminHighQueueHint"}}</p>
             </div>
-            <div hx-post="/admin/settings/high-queue" hx-trigger="change" hx-swap="none" hx-include="find input" class="flex items-center">
-                <label class="relative inline-flex items-center cursor-pointer bg-white/10 rounded-full">
-                    <input type="checkbox" name="high_queue" value="true" class="sr-only peer" {{if .HighQueueActive}}checked{{end}}>
-                    <div class="w-11 h-6 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+            <div class="flex items-center shrink-0">
+                <label class="relative inline-flex items-center cursor-pointer select-none">
+                    <input type="checkbox"
+                           name="high_queue"
+                           hx-post="/admin/settings/high-queue"
+                           hx-trigger="change"
+                           hx-swap="none"
+                           hx-on:change="event.stopPropagation()"
+                           hx-vals='js:{high_queue: event.target.checked ? "true" : "false"}'
+                           class="sr-only peer"
+                           {{if .HighQueueActive}}checked{{end}}>
+                    <div class="w-12 h-6.5 bg-white/10 border border-white/10 rounded-full peer peer-checked:bg-primary peer-checked:border-primary transition-colors duration-300 ease-in-out relative after:content-[''] after:absolute after:top-0.75 after:left-0.75 after:bg-white after:rounded-full after:h-5 after:w-5 after:shadow-md after:transition-transform after:duration-300 after:ease-in-out peer-checked:after:translate-x-5.5"></div>
                 </label>
             </div>
         </div>
 
-        <div class="flex items-center justify-between bg-black/40 border border-white/8 p-5 rounded-2xl">
-            <div class="space-y-1">
+        <div class="flex items-center justify-between gap-6 bg-black/40 border border-white/8 p-5.5 rounded-2xl hover:border-white/15 transition-all shadow-lg">
+            <div class="space-y-1 grow min-w-0 pr-2">
                 <h4 class="text-sm font-bold text-white uppercase tracking-wider">{{.T.Get "AdminMaintenanceLabel"}}</h4>
-                <p class="text-xs text-neutral-400">{{.T.Get "AdminMaintenanceHint"}}</p>
+                <p class="text-xs text-neutral-400 leading-normal">{{.T.Get "AdminMaintenanceHint"}}</p>
             </div>
-            <div hx-post="/admin/settings/maintenance" hx-trigger="change" hx-swap="none" hx-include="find input" class="flex items-center">
-                <label class="relative inline-flex items-center cursor-pointer bg-white/10 rounded-full">
-                    <input type="checkbox" name="maintenance" value="true" class="sr-only peer" {{if .MaintenanceActive}}checked{{end}}>
-                    <div class="w-11 h-6 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+            <div class="flex items-center shrink-0">
+                <label class="relative inline-flex items-center cursor-pointer select-none">
+                    <input type="checkbox"
+                           name="maintenance"
+                           hx-post="/admin/settings/maintenance"
+                           hx-trigger="change"
+                           hx-swap="none"
+                           hx-on:change="event.stopPropagation()"
+                           hx-vals='js:{maintenance: event.target.checked ? "true" : "false"}'
+                           class="sr-only peer"
+                           {{if .MaintenanceActive}}checked{{end}}>
+                    <div class="w-12 h-6.5 bg-white/10 border border-white/10 rounded-full peer peer-checked:bg-primary peer-checked:border-primary transition-colors duration-300 ease-in-out relative after:content-[''] after:absolute after:top-0.75 after:left-0.75 after:bg-white after:rounded-full after:h-5 after:w-5 after:shadow-md after:transition-transform after:duration-300 after:ease-in-out peer-checked:after:translate-x-5.5"></div>
                 </label>
             </div>
         </div>
