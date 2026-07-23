@@ -110,7 +110,7 @@ export function delegate(container, eventName, selector, handler) {
     return () => container.removeEventListener(eventName, fn);
 }
 
-import { getStorageItem } from './storage.js';
+import { getSessionItem } from './storage.js';
 
 /**
  * Initializes global state persistence logic.
@@ -119,7 +119,7 @@ import { getStorageItem } from './storage.js';
 export function initStatePersistence() {
     document.addEventListener('htmx:beforeSwap', (e) => {
         const isMainNavigation = e.detail.target && e.detail.target.id === 'app-body';
-        if (isMainNavigation && getStorageItem('locale_change') !== 'true') {
+        if (isMainNavigation && getSessionItem('locale_change') !== 'true') {
             window.__tivriPersistedStates = {};
         }
     });

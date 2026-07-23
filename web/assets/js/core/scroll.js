@@ -1,12 +1,12 @@
 import { bindRefs } from './state.js';
-import { setStorageItem, getStorageItem, setStorageJSON, getStorageJSON, removeStorageKey } from './storage.js';
+import { setSessionItem, getSessionItem, setSessionJSON, getSessionJSON, removeSessionKey } from './storage.js';
 
 export function tivriHandleLocaleChange(onNormalLoad) {
-    const isLocaleChange = getStorageItem('locale_change') === 'true';
+    const isLocaleChange = getSessionItem('locale_change') === 'true';
     if (!isLocaleChange) {
         if (typeof onNormalLoad === 'function') onNormalLoad();
     } else {
-        setTimeout(() => removeStorageKey('locale_change'), 500);
+        setTimeout(() => removeSessionKey('locale_change'), 500);
     }
 }
 window.tivriHandleLocaleChange = tivriHandleLocaleChange;
@@ -34,16 +34,16 @@ function savePreservedScroll(isLocaleChange = false) {
         scrollY: window.scrollY
     };
 
-    setStorageJSON('tivri_preserved_scroll', data);
+    setSessionJSON('tivri_preserved_scroll', data);
     if (isLocaleChange) {
-        setStorageItem('locale_change', 'true');
+        setSessionItem('locale_change', 'true');
     }
 }
 
 function restorePreservedScroll() {
-    const data = getStorageJSON('tivri_preserved_scroll');
+    const data = getSessionJSON('tivri_preserved_scroll');
     if (!data) return false;
-    removeStorageKey('tivri_preserved_scroll');
+    removeSessionKey('tivri_preserved_scroll');
 
     try {
         const html = document.documentElement;
@@ -90,17 +90,17 @@ export function initScroll() {
     const teardowns = [];
 
     const isReload = (performance.getEntriesByType && performance.getEntriesByType('navigation')[0] && performance.getEntriesByType('navigation')[0].type === 'reload') || performance.navigation?.type === 1;
-    const localeChange = getStorageItem('locale_change');
-    const preservedScroll = getStorageItem('tivri_preserved_scroll');
+    const localeChange = getSessionItem('locale_change');
+    const preservedScroll = getSessionItem('tivri_preserved_scroll');
     const isRealRefresh = isReload && localeChange !== 'true';
 
     const hasHash = Boolean(window.location.hash && window.location.hash !== '#');
 
     if (!hasHash) {
         if (isRealRefresh || (!preservedScroll && localeChange !== 'true')) {
-            removeStorageKey('tivri_preserved_scroll');
-            removeStorageKey('tivri_htmx_nav');
-            removeStorageKey('locale_change');
+            removeSessionKey('tivri_preserved_scroll');
+            removeSessionKey('tivri_htmx_nav');
+            removeSessionKey('locale_change');
 
             const html = document.documentElement;
             html.style.scrollBehavior = 'auto';
@@ -140,9 +140,9 @@ export function initScroll() {
 
     const beforeSwapHandler = function (e) {
         document.documentElement.classList.add('no-transition');
-        setStorageItem('tivri_htmx_nav', 'true');
+        setSessionItem('tivri_htmx_nav', 'true');
 
-        if (getStorageItem('tivri_preserved_scroll') !== null) {
+        if (getSessionItem('tivri_preserved_scroll') !== null) {
             document.documentElement.style.minHeight = document.documentElement.scrollHeight + 'px';
         }
 

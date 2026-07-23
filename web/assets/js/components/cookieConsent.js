@@ -1,9 +1,11 @@
+import { delegate } from '../core/state.js';
+import { getLocalItem, setLocalItem } from '../core/storage.js';
+
 export function initCookieConsent() {
     const banner = document.getElementById('cookie-banner');
     if (!banner) return;
 
-    const acceptBtn = document.getElementById('cookie-accept-btn');
-    const accepted = localStorage.getItem('tivri_cookies_accepted') === 'true';
+    const accepted = getLocalItem('tivri_cookies_accepted') === 'true';
 
     const token = banner.getAttribute('data-cf-token');
     const nonce = banner.getAttribute('data-nonce');
@@ -29,17 +31,13 @@ export function initCookieConsent() {
         banner.classList.remove('hidden');
     }
 
-    const handleClick = () => {
-        localStorage.setItem('tivri_cookies_accepted', 'true');
+    const cleanup = delegate(banner, 'click', '[data-action="acceptCookies"]', () => {
+        setLocalItem('tivri_cookies_accepted', 'true');
         banner.classList.add('hidden');
         loadAnalytics();
-    };
-
-    if (acceptBtn) {
-        acceptBtn.addEventListener('click', handleClick);
-    }
+    });
 
     return () => {
-        if (acceptBtn) acceptBtn.removeEventListener('click', handleClick);
+        cleanup();
     };
 }

@@ -20,3 +20,8 @@ Use this skill when developing or refactoring frontend JavaScript in `web/assets
 
 ### 3. HTMX Lifecycle Integration
 - Reserve Vanilla JS for visual micro-interactions (e.g. scroll effects, theme toggles, widget management) and listening to HTMX lifecycle events (`htmx:afterSwap`, `htmx:configRequest`).
+
+### 4. Mandatory Unified Storage Helpers
+- Never call `localStorage` or `sessionStorage` APIs directly inside UI components or handlers.
+- Use `getLocalItem`, `setLocalItem`, `getSessionItem`, `setSessionItem` from `web/assets/js/core/storage.js` to ensure uniform error boundaries and state persistence.
+

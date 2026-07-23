@@ -20,3 +20,8 @@ Defines absolute runtime behavior and constraints. No exceptions.
 
 ## 5. 🎯 Domain Execution Skills
 - Refer to active skills in `.agents/skills/` (`go-handler-db`, `htmx-component`, `vanilla-js-module`, `i18n-locale-management`, `security-form-protection`, `sql-migration-indexing`, `container-ci-hardening`) for domain-specific implementation rules and invariants.
+
+## 6. 🔄 Unification & Standardization
+- **Zero Raw Storage Calls**: Never invoke `localStorage` or `sessionStorage` methods directly in components or handlers. Always use unified wrapper functions from `web/assets/js/core/storage.js` (`setLocalItem`, `getLocalItem`, `setSessionItem`, `getSessionItem`).
+- **Unified Abstractions**: Always use centralized helper modules (`core/storage.js`, `core/dom.js`, `core/state.js`, `core/validators.js`) instead of re-implementing DOM manipulation, storage lookups, or validation routines.
+
