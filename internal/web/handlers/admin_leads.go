@@ -22,6 +22,7 @@ func (h *AdminHandler) HandleAdminLeadsPartial(w http.ResponseWriter, r *http.Re
 		SortBy:         r.URL.Query().Get("sort_by"),
 		ClientStatus:   r.URL.Query().Get("client_status"),
 		InternalStatus: r.URL.Query().Get("internal_status"),
+		ServiceType:    r.URL.Query().Get("service_type"),
 		SearchQuery:    r.URL.Query().Get("search_query"),
 	}
 
