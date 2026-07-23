@@ -17,6 +17,7 @@ Defines absolute runtime behavior and constraints. No exceptions.
 - **Compact Git Data**: Keep commit messages, branch names, merge titles, and merge descriptions extremely compact and filler-free. Use ultra-concise Conventional Commits (e.g., `feat: short desc`) under 50 characters. Use short `kebab-case` for branches.
 - **Single Source of Truth**: Docs must reflect current production state.
 - **Structured Logging (`slog`)**: Use Go 1.21+ `log/slog` for all application logging with contextual attributes (`slog.Info`, `slog.Error`), prohibiting raw `fmt.Printf` or unstructured `log.Printf` calls.
+- **Explicit Version Pinning**: Never use dynamic or floating version specifiers (e.g. `latest`, `@latest`). Always pin exact versions across Dockerfiles, package scripts, and dependencies (e.g. `npm@12.0.1`).
 
 ## 4. 🚫 No Magical Variables
 - **Dynamic Configuration**: Never hardcode domains (e.g. `tivri.cc`), emails, ports, or API endpoints. Inject them via environment variables and pass them down into handlers/templates.
