@@ -385,14 +385,6 @@ input:disabled {
 }
 
 .cookie-banner-box {
-    background-color: rgba(15, 15, 15, 0.95);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(12px);
-    border-radius: 1rem;
-    padding: 1.5rem;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    position: relative;
-    overflow: hidden;
     animation: cookieSlideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     transform-origin: bottom center;
 }
@@ -411,11 +403,12 @@ input:disabled {
 .btn-accept {
     width: 100%;
     padding: 0.75rem 1rem;
-    background-color: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     color: #ffffff;
     font-weight: 600;
     font-size: 0.875rem;
+    letter-spacing: 0.01em;
     border-radius: 0.75rem;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
@@ -423,19 +416,20 @@ input:disabled {
     justify-content: center;
     align-items: center;
     gap: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .btn-accept:hover {
-    background-color: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    background-color: rgba(255, 51, 102, 0.15);
+    border-color: rgba(255, 51, 102, 0.45);
     color: #ffffff;
+    transform: translateY(-1.5px);
+    box-shadow: 0 4px 20px rgba(255, 51, 102, 0.25);
 }
 
 .btn-accept:active {
-    transform: translateY(0);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transform: translateY(0) scale(0.98);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .admin-panel-box {

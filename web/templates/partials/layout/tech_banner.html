@@ -1,13 +1,13 @@
 {{define "layout.tech_banner"}}
 <div id="tech-banner" data-ref="techBanner" class="fixed bottom-4 left-4 md:bottom-8 md:left-8 z-40 w-[calc(100%-2rem)] max-w-sm transition-all duration-500 translate-y-8 opacity-0 pointer-events-none">
-    <div class="bg-neutral-900/90 backdrop-blur-md border border-white/10 rounded-2xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.4)] relative overflow-hidden pointer-events-auto group">
+    <div class="bg-neutral-900/90 backdrop-blur-md border border-white/10 hover:border-primary/40 rounded-2xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.4)] hover:shadow-[0_20px_50px_rgba(255,51,102,0.25)] relative overflow-hidden pointer-events-auto group transition-all duration-500 ease-out hover:-translate-y-2 hover:scale-[1.02]">
         <!-- Glow effect -->
-        <div class="absolute -top-12 -left-12 w-32 h-32 bg-primary/10 rounded-full blur-3xl pointer-events-none transition-all duration-700 group-hover:scale-150 group-hover:bg-primary/20"></div>
+        <div class="absolute -top-12 -left-12 w-36 h-36 bg-primary/15 rounded-full blur-3xl pointer-events-none transition-all duration-700 group-hover:scale-180 group-hover:bg-primary/30"></div>
         
         <div class="relative z-10">
             <div class="flex items-start justify-between gap-3 mb-3">
                 <div class="flex items-center gap-2 text-primary font-bold text-sm tracking-wide uppercase">
-                    <svg class="w-4 h-4 drop-shadow-[0_0_8px_rgba(255,51,102,0.5)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4 drop-shadow-[0_0_8px_rgba(255,51,102,0.5)] transition-transform duration-500 group-hover:scale-125 group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                     <span>{{.T.Get "TechBannerTitle"}}</span>
@@ -44,6 +44,10 @@
                     <li class="flex items-start gap-2">
                         <svg class="w-4 h-4 text-primary shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                         <span>{{.T.Get "TechBannerBenefit3"}}</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <svg class="w-4 h-4 text-primary shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <span>{{.T.Get "TechBannerBenefit4"}}</span>
                     </li>
                 </ul>
             </div>
