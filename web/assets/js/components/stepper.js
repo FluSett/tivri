@@ -1,9 +1,7 @@
 import { createReactiveState, bindRefs, delegate } from '../core/state.js';
 import { initTurnstile, resetTurnstile, destroyTurnstile } from '../core/turnstile.js';
-import { isValidName, isValidScope, isValidDeadline, isValidEmail, isValidBudget } from '../core/validators.js';
+import { isValidName, isValidServiceType, isValidScope, isValidDeadline, isValidEmail, isValidBudget } from '../core/validators.js';
 import { toggleVisibility, toggleClasses, setButtonSubmittingState } from '../core/dom.js';
-
-// Removed STORAGE_MAP
 
 export function initStepper() {
     const container = document.getElementById('stepper-container');
@@ -11,7 +9,7 @@ export function initStepper() {
 
     const highQueueActive = container.getAttribute('data-high-queue') === 'true';
     const refs = bindRefs(container);
-    refs.budgetBtns = Array.from(container.querySelectorAll('.stepper-budget-btn'));
+    refs.serviceBtns = Array.from(container.querySelectorAll('.stepper-service-btn'));
 
     let turnstileTimeout;
 
@@ -20,20 +18,22 @@ export function initStepper() {
         {
             openStepper: false,
             step: 1,
-            budget: '',
-            customBudget: '',
-            scopeText: '',
+            serviceType: 'full_project',
             nameText: '',
+            scopeText: '',
+            existingUrl: '',
+            techStack: '',
             deadlineNeeded: false,
             deadlineSpec: '',
+            budget: '',
             contactEmail: '',
             contactInfo: '',
             submitted: false,
             nameTouched: false,
             scopeTouched: false,
+            deadlineTouched: false,
             budgetTouched: false,
             emailTouched: false,
-            deadlineTouched: false,
             submitStatus: 'idle',
             turnstileToken: '',
             turnstileId: null,
@@ -41,7 +41,7 @@ export function initStepper() {
         },
         { ephemeralKeys: ['turnstileId', 'turnstileToken', 'isVerified'] },
         (newState) => {
-            if (newState.step === 5 && !newState.submitted && newState.openStepper) {
+            if (newState.step === 6 && !newState.submitted && newState.openStepper) {
                 clearTimeout(turnstileTimeout);
                 turnstileTimeout = setTimeout(renderTurnstile, 300);
             }
@@ -87,10 +87,11 @@ export function initStepper() {
     }
 
     function canGoNext(currentStep) {
-        if (currentStep === 1) return isValidName(state.nameText);
+        if (currentStep === 1) return isValidServiceType(state.serviceType);
         if (currentStep === 2) return isValidScope(state.scopeText);
-        if (currentStep === 3) return state.deadlineNeeded ? isValidDeadline(state.deadlineSpec) : true;
-        if (currentStep === 4) return isValidBudget(state.budget, state.customBudget);
+        if (currentStep === 3) return true;
+        if (currentStep === 4) return state.deadlineNeeded ? isValidDeadline(state.deadlineSpec) : true;
+        if (currentStep === 5) return isValidBudget(state.budget);
         return true;
     }
 
@@ -122,15 +123,19 @@ export function initStepper() {
         );
 
         if (refs.progressTextStep) refs.progressTextStep.textContent = state.step;
-        if (refs.progressBar) refs.progressBar.style.width = (state.step / 5) * 100 + '%';
+        if (refs.progressBar) refs.progressBar.style.width = (state.step / 6) * 100 + '%';
 
-        [refs.step1, refs.step2, refs.step3, refs.step4, refs.step5].forEach((el, idx) => {
-            toggleVisibility(el, state.step === idx + 1);
+        [refs.step1, refs.step2, refs.step3, refs.step4, refs.step5, refs.step6].forEach((el, idx) => {
+            if (el) toggleVisibility(el, state.step === idx + 1);
         });
 
-        refs.nameCount.textContent = state.nameText.length + ' / 150';
-        toggleVisibility(refs.nameError, state.nameTouched && !isValidName(state.nameText));
-        refs.nameNext.disabled = !canGoNext(1);
+        if (refs.serviceBtns) {
+            refs.serviceBtns.forEach((btn) => {
+                toggleClasses(btn, btn.getAttribute('data-service') === state.serviceType, ['btn-choice-active'], []);
+            });
+        }
+        if (refs.serviceTypeHidden) refs.serviceTypeHidden.value = state.serviceType;
+        if (refs.serviceNext) refs.serviceNext.disabled = !canGoNext(1);
 
         refs.scopeCount.textContent = state.scopeText.length + ' / 2000';
         toggleVisibility(refs.scopeError, state.scopeTouched && !isValidScope(state.scopeText));
@@ -149,28 +154,23 @@ export function initStepper() {
             refs.deadlineError,
             state.deadlineTouched && state.deadlineNeeded && !isValidDeadline(state.deadlineSpec)
         );
-        refs.deadlineNext.disabled = !canGoNext(3);
+        refs.deadlineNext.disabled = !canGoNext(4);
 
-        refs.budgetHidden.value = state.budget;
-        refs.customBudgetHidden.value = state.budget === 'other' ? state.customBudget : '';
         refs.deadlineNeededHidden.value = state.deadlineNeeded ? 'true' : 'false';
         refs.deadlineSpecHidden.value = state.deadlineNeeded ? state.deadlineSpec : '';
 
-        if (refs.budgetBtns) {
-            refs.budgetBtns.forEach((btn) => {
-                toggleClasses(btn, btn.getAttribute('data-val') === state.budget, ['btn-choice-active'], []);
-            });
-        }
-        toggleVisibility(refs.customBudgetContainer, state.budget === 'other');
-
-        const cBudgetValid = state.customBudget.trim() !== '' && parseInt(state.customBudget, 10) >= 100;
+        const bValid = isValidBudget(state.budget);
         toggleClasses(
-            refs.customBudgetError,
-            state.budgetTouched && !cBudgetValid && state.budget === 'other',
+            refs.budgetError,
+            state.budgetTouched && !bValid,
             ['opacity-100', 'flex'],
             ['opacity-0', 'hidden']
         );
-        refs.budgetNext.disabled = !canGoNext(4);
+        refs.budgetNext.disabled = !canGoNext(5);
+
+        const nValid = isValidName(state.nameText);
+        refs.nameCount.textContent = state.nameText.length + ' / 150';
+        toggleVisibility(refs.nameError, state.nameTouched && !nValid);
 
         const eValid = isValidEmail(state.contactEmail);
         toggleClasses(
@@ -189,16 +189,18 @@ export function initStepper() {
             refs.submitText,
             refs.submitSpinner,
             state.submitStatus !== 'idle',
-            !eValid || (window.tivriTurnstileSiteKey && !state.isVerified)
+            !nValid || !eValid || (window.tivriTurnstileSiteKey && !state.isVerified)
         );
     }
 
-    refs.name.value = state.nameText;
-    refs.scope.value = state.scopeText;
-    refs.deadlineSpec.value = state.deadlineSpec;
-    refs.customBudget.value = state.customBudget;
-    refs.contactEmail.value = state.contactEmail;
-    refs.contactInfo.value = state.contactInfo;
+    if (refs.name) refs.name.value = state.nameText;
+    if (refs.scope) refs.scope.value = state.scopeText;
+    if (refs.existingUrl) refs.existingUrl.value = state.existingUrl;
+    if (refs.techStack) refs.techStack.value = state.techStack;
+    if (refs.deadlineSpec) refs.deadlineSpec.value = state.deadlineSpec;
+    if (refs.budget) refs.budget.value = state.budget;
+    if (refs.contactEmail) refs.contactEmail.value = state.contactEmail;
+    if (refs.contactInfo) refs.contactInfo.value = state.contactInfo;
 
     const teardowns = [];
 
@@ -210,34 +212,38 @@ export function initStepper() {
                     break;
                 case 'close':
                     state.step = 1;
-                    state.budget = '';
-                    state.customBudget = '';
-                    state.scopeText = '';
+                    state.serviceType = 'full_project';
                     state.nameText = '';
+                    state.scopeText = '';
+                    state.existingUrl = '';
+                    state.techStack = '';
                     state.deadlineNeeded = false;
                     state.deadlineSpec = '';
+                    state.budget = '';
                     state.contactEmail = '';
                     state.contactInfo = '';
                     state.submitted = false;
                     state.nameTouched = false;
                     state.scopeTouched = false;
+                    state.deadlineTouched = false;
                     state.budgetTouched = false;
                     state.emailTouched = false;
-                    state.deadlineTouched = false;
                     state.submitStatus = 'idle';
                     state.openStepper = false;
 
-                    refs.name.value = '';
-                    refs.scope.value = '';
-                    refs.deadlineSpec.value = '';
-                    refs.customBudget.value = '';
-                    refs.contactEmail.value = '';
-                    refs.contactInfo.value = '';
+                    if (refs.name) refs.name.value = '';
+                    if (refs.scope) refs.scope.value = '';
+                    if (refs.existingUrl) refs.existingUrl.value = '';
+                    if (refs.techStack) refs.techStack.value = '';
+                    if (refs.deadlineSpec) refs.deadlineSpec.value = '';
+                    if (refs.budget) refs.budget.value = '';
+                    if (refs.contactEmail) refs.contactEmail.value = '';
+                    if (refs.contactInfo) refs.contactInfo.value = '';
                     refs.form.reset();
                     doResetTurnstile();
                     break;
                 case 'next':
-                    if (state.step < 5) state.step++;
+                    if (state.step < 6) state.step++;
                     break;
                 case 'prev':
                     if (state.step > 1) state.step--;
@@ -246,11 +252,10 @@ export function initStepper() {
         })
     );
 
-    if (refs.budgetBtns) {
-        refs.budgetBtns.forEach((btn) => {
+    if (refs.serviceBtns) {
+        refs.serviceBtns.forEach((btn) => {
             const h = () => {
-                state.budget = btn.getAttribute('data-val');
-                if (state.budget !== 'other') state.customBudget = '';
+                state.serviceType = btn.getAttribute('data-service') || 'full_project';
             };
             btn.addEventListener('click', h);
             teardowns.push(() => btn.removeEventListener('click', h));
@@ -296,12 +301,16 @@ export function initStepper() {
             } else if (ref === 'scope') {
                 state.scopeText = target.value;
                 onInputDebounced('scope');
+            } else if (ref === 'existingUrl') {
+                state.existingUrl = target.value;
+            } else if (ref === 'techStack') {
+                state.techStack = target.value;
             } else if (ref === 'deadlineSpec') {
                 state.deadlineSpec = target.value;
                 onInputDebounced('deadline');
-            } else if (ref === 'customBudget') {
+            } else if (ref === 'budget') {
                 target.value = target.value.replace(/[^0-9]/g, '');
-                state.customBudget = target.value;
+                state.budget = target.value;
                 onInputDebounced('budget');
             } else if (ref === 'contactEmail') {
                 state.contactEmail = target.value;
@@ -320,7 +329,7 @@ export function initStepper() {
             if (ref === 'name') state.nameTouched = true;
             else if (ref === 'scope') state.scopeTouched = true;
             else if (ref === 'deadlineSpec') state.deadlineTouched = true;
-            else if (ref === 'customBudget') state.budgetTouched = true;
+            else if (ref === 'budget') state.budgetTouched = true;
             else if (ref === 'contactEmail') state.emailTouched = true;
         })
     );

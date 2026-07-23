@@ -97,6 +97,7 @@ export function initLeadsTable() {
     }
 
     function renderUI() {
+        toggleDropdownVisibility(refs.serviceFilterDropdown, state.activeDropdown === 'serviceFilter');
         toggleDropdownVisibility(refs.clientFilterDropdown, state.activeDropdown === 'clientFilter');
         toggleDropdownVisibility(refs.internalFilterDropdown, state.activeDropdown === 'internalFilter');
         toggleDropdownVisibility(refs.sortDropdown, state.activeDropdown === 'sort');
@@ -111,6 +112,13 @@ export function initLeadsTable() {
     }
 
     const teardowns = [];
+
+    teardowns.push(
+        delegate(container, 'click', '[data-action="toggleServiceFilter"]', (e) => {
+            e.stopPropagation();
+            state.activeDropdown = state.activeDropdown === 'serviceFilter' ? null : 'serviceFilter';
+        })
+    );
 
     teardowns.push(
         delegate(container, 'click', '[data-action="toggleClientFilter"]', (e) => {
@@ -138,7 +146,10 @@ export function initLeadsTable() {
             e.stopPropagation();
             const action = target.getAttribute('data-action');
             const val = target.getAttribute('data-val');
-            if (action === 'setClientFilter') {
+            if (action === 'setServiceFilter') {
+                if (refs.serviceTypeInput) refs.serviceTypeInput.value = val;
+                if (refs.serviceFilterText) refs.serviceFilterText.textContent = target.textContent.trim();
+            } else if (action === 'setClientFilter') {
                 if (refs.clientStatusInput) refs.clientStatusInput.value = val;
                 if (refs.clientFilterText) refs.clientFilterText.textContent = target.textContent.trim();
             } else if (action === 'setInternalFilter') {
@@ -149,7 +160,7 @@ export function initLeadsTable() {
                 if (refs.sortText) refs.sortText.textContent = target.textContent.trim();
             }
 
-            if (['setClientFilter', 'setInternalFilter', 'setSort'].includes(action)) {
+            if (['setServiceFilter', 'setClientFilter', 'setInternalFilter', 'setSort'].includes(action)) {
                 if (refs.pageInput) refs.pageInput.value = '1';
                 state.activeDropdown = null;
                 if (window.htmx) {
