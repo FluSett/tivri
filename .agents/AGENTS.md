@@ -12,7 +12,7 @@ Defines absolute runtime behavior and constraints. No exceptions.
 
 ## 3. 📄 Standards, Docs & Git
 - **Sync Docs**: Update `README.md` concurrently with feature or architecture changes.
-- **Compact Git**: Keep commit messages ultra-concise using Conventional Commits under 50 characters (e.g. `feat: short desc`). Exclude compiled assets and binaries from git tracking.
+- **Granular & Compact Git**: Always split work into multiple logical, atomic commits rather than one monolithic commit. Keep commit messages ultra-concise using Conventional Commits under 50 characters (e.g. `feat: short desc`). Exclude compiled assets and binaries from git tracking.
 
 ## 4. 🚫 Dynamic Configuration & Named Constants
 - **No Magical Variables**: Never hardcode domains, ports, emails, or API endpoints. Inject dynamic parameters via environment variables.
