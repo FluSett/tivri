@@ -12,7 +12,7 @@ High-performance client intake and portfolio management platform. Built with **G
 ## 🛠️ Tech Stack
 
 - **Backend**: Go 1.26+, `net/http`, `log/slog` structured logging, `pgxpool` PostgreSQL driver.
-- **Frontend**: HTMX server-driven HTML partials, Vanilla JS ES modules, Tailwind CSS v4.
+- **Frontend**: HTMX server-driven HTML partials, Vanilla JS ES modules, Tailwind CSS v4 (processed via Bun & esbuild).
 - **Security**: Nginx CSP headers, Gorilla CSRF (`X-CSRF-Token`), Cloudflare Turnstile bot protection.
 - **Deployment**: Minimal ~22MB Docker image (`scratch` runtime).
 
