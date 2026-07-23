@@ -26,3 +26,21 @@ func TestStore_Connect(t *testing.T) {
 		t.Fatal("expected non-nil pool from store")
 	}
 }
+
+func TestStore_RoleContext(t *testing.T) {
+	ctx := context.Background()
+
+	if role := RoleFrom(ctx); role != RolePublic {
+		t.Fatalf("expected default role %q, got %q", RolePublic, role)
+	}
+
+	adminCtx := WithRole(ctx, RoleAdmin)
+	if role := RoleFrom(adminCtx); role != RoleAdmin {
+		t.Fatalf("expected admin role %q, got %q", RoleAdmin, role)
+	}
+
+	systemCtx := WithRole(ctx, RoleSystem)
+	if role := RoleFrom(systemCtx); role != RoleSystem {
+		t.Fatalf("expected system role %q, got %q", RoleSystem, role)
+	}
+}

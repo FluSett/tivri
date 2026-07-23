@@ -32,24 +32,18 @@ func (r *ContactRepo) List(ctx context.Context, params core.MessageListParams) (
 
 	whereClause := "WHERE 1=1"
 	var args []interface{}
-	argId := 1
+	argID := 1
 
 	if params.Status != "" && params.Status != "all" {
-		whereClause += fmt.Sprintf(" AND status = $%d", argId)
+		whereClause += fmt.Sprintf(" AND status = $%d", argID)
 		args = append(args, params.Status)
-		argId++
+		argID++
 	}
 
 	if params.SearchQuery != "" {
-		whereClause += fmt.Sprintf(" AND (email ILIKE $%d OR topic ILIKE $%d)", argId, argId+1)
+		whereClause += fmt.Sprintf(" AND (email ILIKE $%d OR topic ILIKE $%d)", argID, argID+1)
 		args = append(args, "%"+params.SearchQuery+"%", "%"+params.SearchQuery+"%")
-		argId += 2
-	}
-
-	var totalItems int
-	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM contact_messages %s", whereClause)
-	if err := r.store.QueryRow(ctx, countQuery, args...).Scan(&totalItems); err != nil {
-		return core.PaginatedMessages{}, fmt.Errorf("messaging: count failed: %w", err)
+		argID += 2
 	}
 
 	orderBy := "ORDER BY created_at DESC"
@@ -65,32 +59,41 @@ func (r *ContactRepo) List(ctx context.Context, params core.MessageListParams) (
 	}
 
 	offset := (params.Page - 1) * params.PageSize
-	query := fmt.Sprintf("SELECT id, email, topic, message, status, created_at, updated_at FROM contact_messages %s %s LIMIT $%d OFFSET $%d", whereClause, orderBy, argId, argId+1)
-
+	query := fmt.Sprintf("SELECT id, email, topic, message, status, created_at, updated_at, COUNT(*) OVER() AS full_count FROM contact_messages %s %s LIMIT $%d OFFSET $%d", whereClause, orderBy, argID, argID+1)
 	args = append(args, params.PageSize, offset)
 
-	rows, err := r.store.Pool().Query(ctx, query, args...)
-	if err != nil {
-		return core.PaginatedMessages{}, fmt.Errorf("messaging: query failed: %w", err)
-	}
-	defer rows.Close()
-
 	var list []core.ContactMessage
-	for rows.Next() {
-		var m core.ContactMessage
-		if err := rows.Scan(&m.ID, &m.Email, &m.Topic, &m.Message, &m.Status, &m.CreatedAt, &m.UpdatedAt); err != nil {
-			return core.PaginatedMessages{}, fmt.Errorf("messaging: scan failed: %w", err)
+	var totalItems int
+
+	err := r.store.WithTx(ctx, func(txCtx context.Context) error {
+		rows, err := r.store.Query(txCtx, query, args...)
+		if err != nil {
+			return fmt.Errorf("messaging: query failed: %w", err)
 		}
-		list = append(list, m)
+		defer rows.Close()
+
+		for rows.Next() {
+			var m core.ContactMessage
+			var fullCount int
+			if err := rows.Scan(&m.ID, &m.Email, &m.Topic, &m.Message, &m.Status, &m.CreatedAt, &m.UpdatedAt, &fullCount); err != nil {
+				return fmt.Errorf("messaging: scan failed: %w", err)
+			}
+			totalItems = fullCount
+			list = append(list, m)
+		}
+
+		return rows.Err()
+	})
+	if err != nil {
+		return core.PaginatedMessages{}, err
 	}
 
-	if err := rows.Err(); err != nil {
-		return core.PaginatedMessages{}, fmt.Errorf("messaging: row iteration failed: %w", err)
-	}
-
-	totalPages := totalItems / params.PageSize
-	if totalItems%params.PageSize > 0 {
-		totalPages++
+	totalPages := 0
+	if totalItems > 0 {
+		totalPages = totalItems / params.PageSize
+		if totalItems%params.PageSize > 0 {
+			totalPages++
+		}
 	}
 
 	return core.PaginatedMessages{

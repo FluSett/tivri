@@ -43,36 +43,30 @@ func (r *IntakeRepo) List(ctx context.Context, params core.LeadListParams) (core
 
 	whereClause := "WHERE 1=1"
 	var args []interface{}
-	argId := 1
+	argID := 1
 
 	if params.ClientStatus != "" && params.ClientStatus != "all" {
-		whereClause += fmt.Sprintf(" AND client_status = $%d", argId)
+		whereClause += fmt.Sprintf(" AND client_status = $%d", argID)
 		args = append(args, params.ClientStatus)
-		argId++
+		argID++
 	}
 
 	if params.InternalStatus != "" && params.InternalStatus != "all" {
-		whereClause += fmt.Sprintf(" AND internal_status = $%d", argId)
+		whereClause += fmt.Sprintf(" AND internal_status = $%d", argID)
 		args = append(args, params.InternalStatus)
-		argId++
+		argID++
 	}
 
 	if params.ServiceType != "" && params.ServiceType != "all" {
-		whereClause += fmt.Sprintf(" AND service_type = $%d", argId)
+		whereClause += fmt.Sprintf(" AND service_type = $%d", argID)
 		args = append(args, params.ServiceType)
-		argId++
+		argID++
 	}
 
 	if params.SearchQuery != "" {
-		whereClause += fmt.Sprintf(" AND (company_name ILIKE $%d OR contact_email ILIKE $%d OR project_scope ILIKE $%d)", argId, argId+1, argId+2)
+		whereClause += fmt.Sprintf(" AND (company_name ILIKE $%d OR contact_email ILIKE $%d OR project_scope ILIKE $%d)", argID, argID+1, argID+2)
 		args = append(args, "%"+params.SearchQuery+"%", "%"+params.SearchQuery+"%", "%"+params.SearchQuery+"%")
-		argId += 3
-	}
-
-	var totalItems int
-	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM intake_leads %s", whereClause)
-	if err := r.store.QueryRow(ctx, countQuery, args...).Scan(&totalItems); err != nil {
-		return core.PaginatedLeads{}, fmt.Errorf("project_intake: count leads failed: %w", err)
+		argID += 3
 	}
 
 	orderBy := "ORDER BY created_at DESC"
@@ -92,32 +86,41 @@ func (r *IntakeRepo) List(ctx context.Context, params core.LeadListParams) (core
 	}
 
 	offset := (params.Page - 1) * params.PageSize
-	query := fmt.Sprintf("SELECT id, company_name, service_type, project_scope, existing_url, tech_stack, budget, contact_email, contact_info, deadline_needed, deadline_spec, client_status, internal_status, created_at, updated_at FROM intake_leads %s %s LIMIT $%d OFFSET $%d", whereClause, orderBy, argId, argId+1)
-
+	query := fmt.Sprintf("SELECT id, company_name, service_type, project_scope, existing_url, tech_stack, budget, contact_email, contact_info, deadline_needed, deadline_spec, client_status, internal_status, created_at, updated_at, COUNT(*) OVER() AS full_count FROM intake_leads %s %s LIMIT $%d OFFSET $%d", whereClause, orderBy, argID, argID+1)
 	args = append(args, params.PageSize, offset)
 
-	rows, err := r.store.Pool().Query(ctx, query, args...)
-	if err != nil {
-		return core.PaginatedLeads{}, fmt.Errorf("project_intake: query leads failed: %w", err)
-	}
-	defer rows.Close()
-
 	var list []core.Lead
-	for rows.Next() {
-		var ld core.Lead
-		if err := rows.Scan(&ld.ID, &ld.CompanyName, &ld.ServiceType, &ld.ProjectScope, &ld.ExistingURL, &ld.TechStack, &ld.Budget, &ld.ContactEmail, &ld.ContactInfo, &ld.DeadlineNeeded, &ld.DeadlineSpec, &ld.ClientStatus, &ld.InternalStatus, &ld.CreatedAt, &ld.UpdatedAt); err != nil {
-			return core.PaginatedLeads{}, fmt.Errorf("project_intake: scan lead failed: %w", err)
+	var totalItems int
+
+	err := r.store.WithTx(ctx, func(txCtx context.Context) error {
+		rows, err := r.store.Query(txCtx, query, args...)
+		if err != nil {
+			return fmt.Errorf("project_intake: query leads failed: %w", err)
 		}
-		list = append(list, ld)
+		defer rows.Close()
+
+		for rows.Next() {
+			var ld core.Lead
+			var fullCount int
+			if err := rows.Scan(&ld.ID, &ld.CompanyName, &ld.ServiceType, &ld.ProjectScope, &ld.ExistingURL, &ld.TechStack, &ld.Budget, &ld.ContactEmail, &ld.ContactInfo, &ld.DeadlineNeeded, &ld.DeadlineSpec, &ld.ClientStatus, &ld.InternalStatus, &ld.CreatedAt, &ld.UpdatedAt, &fullCount); err != nil {
+				return fmt.Errorf("project_intake: scan lead failed: %w", err)
+			}
+			totalItems = fullCount
+			list = append(list, ld)
+		}
+
+		return rows.Err()
+	})
+	if err != nil {
+		return core.PaginatedLeads{}, err
 	}
 
-	if err := rows.Err(); err != nil {
-		return core.PaginatedLeads{}, fmt.Errorf("project_intake: row iteration failed: %w", err)
-	}
-
-	totalPages := totalItems / params.PageSize
-	if totalItems%params.PageSize > 0 {
-		totalPages++
+	totalPages := 0
+	if totalItems > 0 {
+		totalPages = totalItems / params.PageSize
+		if totalItems%params.PageSize > 0 {
+			totalPages++
+		}
 	}
 
 	return core.PaginatedLeads{
