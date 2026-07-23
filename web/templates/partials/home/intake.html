@@ -146,12 +146,12 @@
 
                     <div class="grid grid-cols-2 gap-3">
                         <button type="button" id="stepper-deadline-strict" data-ref="deadlineStrict"
-                                class="btn-choice cursor-pointer flex flex-col justify-between min-h-[70px] disabled:opacity-50 disabled:cursor-not-allowed">
+                                class="btn-choice cursor-pointer flex flex-col justify-between min-h-17.5 disabled:opacity-50 disabled:cursor-not-allowed">
                             <span class="text-xs font-bold uppercase tracking-wider">{{.T.Get "DeadlineStrictTitle"}}</span>
                             <span class="text-[10px] text-neutral-500 mt-1">{{.T.Get "DeadlineStrictDesc"}}</span>
                         </button>
                         <button type="button" id="stepper-deadline-standard" data-ref="deadlineStandard"
-                                class="btn-choice cursor-pointer flex flex-col justify-between min-h-[70px] disabled:opacity-50 disabled:cursor-not-allowed">
+                                class="btn-choice cursor-pointer flex flex-col justify-between min-h-17.5 disabled:opacity-50 disabled:cursor-not-allowed">
                             <span class="text-xs font-bold uppercase tracking-wider">{{.T.Get "DeadlineStandardTitle"}}</span>
                             <span class="text-[10px] text-neutral-500 mt-1">{{.T.Get "DeadlineStandardDesc"}}</span>
                         </button>
@@ -295,7 +295,7 @@
                     </div>
 
                     {{if .TurnstileSiteKey}}
-                    <div class="flex justify-center py-2">
+                    <div class="flex justify-center" data-ref="turnstileWrapper">
                         <div id="stepper-turnstile-container" data-ref="turnstileContainer"></div>
                     </div>
                     {{end}}
@@ -306,7 +306,7 @@
                             {{.T.Get "PrevBtn"}}
                         </button>
                         <button type="submit" id="stepper-submit-btn" data-ref="submitBtn" disabled
-                                class="btn-primary flex items-center justify-center space-x-2 min-w-[120px] py-3 px-6">
+                                class="btn-primary flex items-center justify-center space-x-2 min-w-30 py-3 px-6">
                                 <span id="stepper-submit-text" data-ref="submitText">{{.T.Get "FormSubmitBtn"}}</span>
                             <span id="stepper-submit-spinner" data-ref="submitSpinner" class="opacity-0 hidden">
                                 <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24">
