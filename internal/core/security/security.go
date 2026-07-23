@@ -12,6 +12,8 @@ import (
 	"sync"
 	"time"
 
+	"tivri/internal/datastore"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -61,9 +63,16 @@ func (sm *SecurityManager) cleanupLoop(ctx context.Context) {
 			}
 			sm.mu.Unlock()
 
-			_, err := sm.db.Exec(ctx, "DELETE FROM admin_sessions WHERE expires_at < $1", now)
-			if err != nil {
-				sm.logger.Error("security: failed to cleanup expired sessions", slog.Any("error", err))
+			if sm.db != nil {
+				tx, txErr := sm.db.Begin(ctx)
+				if txErr == nil {
+					_, _ = tx.Exec(ctx, "SELECT set_config('app.current_role', 'system', true)")
+					_, err := tx.Exec(ctx, "DELETE FROM admin_sessions WHERE expires_at < $1", now)
+					if err != nil {
+						sm.logger.Error("security: failed to cleanup expired sessions", slog.Any("error", err))
+					}
+					_ = tx.Commit(ctx)
+				}
 			}
 		}
 	}
@@ -128,9 +137,19 @@ func (sm *SecurityManager) GenerateToken(ctx context.Context) (string, error) {
 	expiresAt := time.Now().Add(sessionExpirationDuration)
 
 	if sm.db != nil {
-		_, err = sm.db.Exec(ctx, "INSERT INTO admin_sessions (token, expires_at) VALUES ($1, $2)", token, expiresAt)
+		tx, txErr := sm.db.Begin(ctx)
+		if txErr != nil {
+			return "", fmt.Errorf("security: failed to begin transaction for token: %w", txErr)
+		}
+		defer tx.Rollback(ctx)
+
+		_, _ = tx.Exec(ctx, "SELECT set_config('app.current_role', 'admin', true)")
+		_, err = tx.Exec(ctx, "INSERT INTO admin_sessions (token, expires_at) VALUES ($1, $2)", token, expiresAt)
 		if err != nil {
 			return "", fmt.Errorf("security: failed to store session: %w", err)
+		}
+		if err := tx.Commit(ctx); err != nil {
+			return "", fmt.Errorf("security: failed to commit session token: %w", err)
 		}
 	}
 
@@ -155,8 +174,17 @@ func (sm *SecurityManager) CookieAuth(adminUsername, adminPassword string, next 
 		}
 
 		if sm.db != nil {
+			tx, txErr := sm.db.Begin(r.Context())
+			if txErr != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			defer tx.Rollback(r.Context())
+
+			_, _ = tx.Exec(r.Context(), "SELECT set_config('app.current_role', 'admin', true)")
+
 			var expiresAt time.Time
-			err = sm.db.QueryRow(r.Context(), "SELECT expires_at FROM admin_sessions WHERE token = $1", cookie.Value).Scan(&expiresAt)
+			err = tx.QueryRow(r.Context(), "SELECT expires_at FROM admin_sessions WHERE token = $1", cookie.Value).Scan(&expiresAt)
 
 			if err != nil {
 				if r.Method == http.MethodGet {
@@ -168,7 +196,8 @@ func (sm *SecurityManager) CookieAuth(adminUsername, adminPassword string, next 
 			}
 
 			if time.Now().After(expiresAt) {
-				_, _ = sm.db.Exec(r.Context(), "DELETE FROM admin_sessions WHERE token = $1", cookie.Value)
+				_, _ = tx.Exec(r.Context(), "DELETE FROM admin_sessions WHERE token = $1", cookie.Value)
+				_ = tx.Commit(r.Context())
 				if r.Method == http.MethodGet {
 					http.Redirect(w, r, "/admin/login", http.StatusSeeOther)
 				} else {
@@ -176,9 +205,11 @@ func (sm *SecurityManager) CookieAuth(adminUsername, adminPassword string, next 
 				}
 				return
 			}
+			_ = tx.Commit(r.Context())
 		}
 
-		next(w, r)
+		adminCtx := datastore.WithRole(r.Context(), datastore.RoleAdmin)
+		next(w, r.WithContext(adminCtx))
 	}
 }
 
@@ -202,7 +233,8 @@ func (sm *SecurityManager) BasicAuth(adminUsername, adminPassword string, next h
 		}
 
 		sm.RecordSuccessfulAttempt(r)
-		next(w, r)
+		adminCtx := datastore.WithRole(r.Context(), datastore.RoleAdmin)
+		next(w, r.WithContext(adminCtx))
 	}
 }
 

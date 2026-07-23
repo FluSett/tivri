@@ -1,8 +1,11 @@
 package core
 
-import "strings"
+import (
+	"net/mail"
+	"strings"
+)
 
-// SanitizeString removes NULL bytes and ASCII control characters (0x00-0x1F except newline and tab) from input strings.
+// SanitizeString removes NULL bytes and ASCII control characters from input strings.
 func SanitizeString(s string) string {
 	s = strings.ReplaceAll(s, "\x00", "")
 	var sb strings.Builder
@@ -13,4 +16,30 @@ func SanitizeString(s string) string {
 		}
 	}
 	return strings.TrimSpace(sb.String())
+}
+
+// IsValidEmail uses Go's standard net/mail parser to validate email format per RFC 5322 standards.
+func IsValidEmail(email string) bool {
+	email = strings.TrimSpace(email)
+	if len(email) < 5 || len(email) > 254 {
+		return false
+	}
+	addr, err := mail.ParseAddress(email)
+	if err != nil || addr.Address != email {
+		return false
+	}
+
+	parts := strings.Split(email, "@")
+	if len(parts) != 2 {
+		return false
+	}
+
+	domain := parts[1]
+	if !strings.Contains(domain, ".") || strings.HasPrefix(domain, ".") || strings.HasSuffix(domain, ".") {
+		return false
+	}
+
+	dotParts := strings.Split(domain, ".")
+	lastPart := dotParts[len(dotParts)-1]
+	return len(lastPart) >= 2
 }
