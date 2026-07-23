@@ -4,7 +4,7 @@ High-performance client intake and portfolio management platform. Built with **G
 
 ## 🚀 Key Features
 
-- **Dynamic Intake Wizard**: Multi-step client onboarding with async event processing.
+- **Dynamic Intake Wizard**: Interactive 6-step client request wizard for micro-tasks (<$100), bug fixes, API integrations, code audits, and full custom software projects with async event processing.
 - **Portfolio Showcase**: Filterable project showcase and dynamic media grids.
 - **Admin Dashboard**: Lead management, inquiry tracking, and system configuration.
 - **Multi-Locale (i18n)**: Seamless translation resolution via query, cookie, or `Accept-Language`.
