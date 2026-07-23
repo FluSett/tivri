@@ -25,3 +25,7 @@ Use this skill when editing or creating Go HTML templates in `web/templates/` or
 ### 4. Stateful Tailwind Utilities
 - Keep JavaScript-toggled state utility classes (e.g., `hidden`, `opacity-0`, `translate-x-full`) explicitly inline on HTML elements.
 - Never abstract stateful Tailwind utilities into custom CSS via `@apply`, as JS `classList` manipulations rely on exact class names.
+
+### 5. Event Isolation & Status Handling
+- Use `hx-on:change="event.stopPropagation()"` on inner HTMX input controls (such as switchers nested inside forms) to prevent event bubbling collisions.
+- Respond with `200 OK` on HTMX AJAX requests (`HX-Request == "true"`) even in maintenance mode, allowing localized HTML swaps to settle cleanly without browser console errors.
