@@ -32,6 +32,7 @@
                           hx-post="/api/contact"
                           hx-target="this"
                           hx-swap="none"
+                          novalidate
                           class="space-y-4">
                         {{ .CSRFToken }}
                         <input type="hidden" name="lang" value="{{.Lang}}">

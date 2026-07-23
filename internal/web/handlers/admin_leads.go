@@ -32,12 +32,19 @@ func (h *AdminHandler) HandleAdminLeadsPartial(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	highQueueActive, _ := h.settingsRepo.GetHighQueue(r.Context())
+	maintenanceActive, _ := h.settingsRepo.GetMaintenance(r.Context())
+
 	data := struct {
 		render.BaseData
-		Leads core.PaginatedLeads
+		Leads             core.PaginatedLeads
+		HighQueueActive   bool
+		MaintenanceActive bool
 	}{
-		BaseData: middleware.GetBaseData(r.Context()),
-		Leads:    leadsPaginated,
+		BaseData:          middleware.GetBaseData(r.Context()),
+		Leads:             leadsPaginated,
+		HighQueueActive:   highQueueActive,
+		MaintenanceActive: maintenanceActive,
 	}
 	data.BaseData.IsAdmin = true
 

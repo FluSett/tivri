@@ -204,6 +204,12 @@ func (h *PublicHandler) HandleIntakeCreate(w http.ResponseWriter, r *http.Reques
 	existingURL := core.SanitizeString(r.FormValue("existing_url"))
 	techStack := core.SanitizeString(r.FormValue("tech_stack"))
 	contactEmail := core.SanitizeString(r.FormValue("contact_email"))
+	if !core.IsValidEmail(contactEmail) {
+		lang := r.FormValue("lang")
+		trans := h.translator.Get(lang)
+		response.Error(w, r, nil, http.StatusBadRequest, trans.Get("ValValidEmail"))
+		return
+	}
 	contactInfo := core.SanitizeString(r.FormValue("contact_info"))
 	deadlineNeededStr := r.FormValue("deadline_needed")
 	deadlineNeeded := deadlineNeededStr == "true" || deadlineNeededStr == "on" || deadlineNeededStr == "1"
@@ -258,8 +264,16 @@ func (h *PublicHandler) HandleContactCreate(w http.ResponseWriter, r *http.Reque
 		}
 	}
 
+	email := core.SanitizeString(r.FormValue("email"))
+	if !core.IsValidEmail(email) {
+		lang := r.FormValue("lang")
+		trans := h.translator.Get(lang)
+		response.Error(w, r, nil, http.StatusBadRequest, trans.Get("ValValidEmail"))
+		return
+	}
+
 	msg := &core.ContactMessage{
-		Email:     core.SanitizeString(r.FormValue("email")),
+		Email:     email,
 		Topic:     core.SanitizeString(r.FormValue("topic")),
 		Message:   core.SanitizeString(r.FormValue("message")),
 		Status:    "new",

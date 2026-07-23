@@ -79,6 +79,16 @@ func NewRenderer(webUIFS fs.FS) (*Renderer, error) {
 				return "$0"
 			}
 		},
+		"splitTags": func(s string) []string {
+			var tags []string
+			for _, tag := range strings.Split(s, ",") {
+				trimmed := strings.TrimSpace(tag)
+				if trimmed != "" {
+					tags = append(tags, trimmed)
+				}
+			}
+			return tags
+		},
 	}
 
 	homeTmpl, err := template.New("base.layout.html").Funcs(funcMap).ParseFS(
