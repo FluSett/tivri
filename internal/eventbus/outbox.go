@@ -45,11 +45,25 @@ func (w *OutboxWorker) Start(ctx context.Context) {
 
 func (w *OutboxWorker) cleanupProcessed(ctx context.Context) {
 	sevenDaysAgo := time.Now().Add(-7 * 24 * time.Hour)
-	res, err := w.db.Exec(ctx, "DELETE FROM outbox_events WHERE processed = true AND created_at < $1", sevenDaysAgo)
+	tx, err := w.db.Begin(ctx)
+	if err != nil {
+		w.logger.Error("outbox: begin cleanup transaction failed", slog.Any("error", err))
+		return
+	}
+	defer tx.Rollback(ctx)
+
+	_, _ = tx.Exec(ctx, "SELECT set_config('app.current_role', 'system', true)")
+	res, err := tx.Exec(ctx, "DELETE FROM outbox_events WHERE processed = true AND created_at < $1", sevenDaysAgo)
 	if err != nil {
 		w.logger.Error("outbox: cleanup failed", slog.Any("error", err))
 		return
 	}
+
+	if err := tx.Commit(ctx); err != nil {
+		w.logger.Error("outbox: commit cleanup transaction failed", slog.Any("error", err))
+		return
+	}
+
 	if res.RowsAffected() > 0 {
 		w.logger.Info("outbox: cleanup removed old events", slog.Int64("count", res.RowsAffected()))
 	}
@@ -62,6 +76,12 @@ func (w *OutboxWorker) processPending(ctx context.Context) {
 		return
 	}
 	defer tx.Rollback(ctx)
+
+	_, err = tx.Exec(ctx, "SELECT set_config('app.current_role', 'system', true)")
+	if err != nil {
+		w.logger.Error("outbox: set system role failed", slog.Any("error", err))
+		return
+	}
 
 	query := "SELECT id, type, payload, created_at FROM outbox_events WHERE processed = false ORDER BY id ASC LIMIT 50 FOR UPDATE SKIP LOCKED"
 	rows, err := tx.Query(ctx, query)

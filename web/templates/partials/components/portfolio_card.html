@@ -5,7 +5,7 @@
             <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-black/40 border border-white/8 vanilla-carousel">
                 <div class="carousel-items-container absolute inset-0 w-full h-full" data-active-index="0">
                     {{range $i, $m := .Media}}
-                        <div class="carousel-item absolute inset-0 w-full h-full transition-transform duration-500 ease-in-out" style="transform: translateX({{if eq $i 0}}0{{else}}100{{end}}%);">
+                        <div class="carousel-item absolute inset-0 w-full h-full transition-transform duration-500 ease-in-out {{if eq $i 0}}translate-x-0{{else}}translate-x-full{{end}}">
                             {{if or (strings_has_suffix $m ".mp4") (strings_has_suffix $m ".webm")}}
                                 <video src="{{$m}}" class="w-full h-full object-cover" controls muted playsinline></video>
                             {{else}}
@@ -37,7 +37,10 @@
             <h3 class="text-base font-bold text-white tracking-tight leading-tight wrap-break-word">{{.Title}}</h3>
         </div>
         <p class="text-neutral-400 text-sm leading-relaxed tracking-tight">{{.Description}}</p>
-        <div class="flex flex-wrap gap-2 tags-container" data-tags="{{.TechStack}}">
+        <div class="flex flex-wrap gap-2 tags-container" data-tags="{{.TechStack}}" data-processed="true">
+            {{range $tag := splitTags .TechStack}}
+                <span class="bg-white/4 text-neutral-300 text-xs px-2.5 py-1 rounded-lg border border-white/6 tracking-tight font-medium">{{$tag}}</span>
+            {{end}}
         </div>
     </div>
 </div>

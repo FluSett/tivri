@@ -326,9 +326,6 @@ export function initPortfolioForm() {
             refs.form.reset();
 
             document.body.dispatchEvent(new CustomEvent('tivri:portfolio:added', { bubbles: true }));
-            import('../components/portfolio_card.js').then((module) => {
-                if (module.initPortfolioCards) module.initPortfolioCards();
-            });
             window.dispatchEvent(
                 new CustomEvent('tivri-success', {
                     detail: { title: 'Portfolio Updated', message: 'Item added successfully!' }
@@ -341,6 +338,16 @@ export function initPortfolioForm() {
     };
     refs.form.addEventListener('htmx:afterRequest', hAfterRequest);
     teardowns.push(() => refs.form.removeEventListener('htmx:afterRequest', hAfterRequest));
+
+    const hAfterSettle = (e) => {
+        if (e.detail.successful) {
+            import('../components/portfolio_card.js').then((module) => {
+                if (module.initPortfolioCards) module.initPortfolioCards();
+            });
+        }
+    };
+    refs.form.addEventListener('htmx:afterSettle', hAfterSettle);
+    teardowns.push(() => refs.form.removeEventListener('htmx:afterSettle', hAfterSettle));
 
     updateUI();
 

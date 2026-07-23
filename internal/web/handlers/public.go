@@ -196,39 +196,42 @@ func (h *PublicHandler) HandleIntakeCreate(w http.ResponseWriter, r *http.Reques
 	}
 
 	companyName := core.SanitizeString(r.FormValue("company_name"))
+	serviceType := core.SanitizeString(r.FormValue("service_type"))
+	if serviceType == "" {
+		serviceType = "full_project"
+	}
 	projectScope := core.SanitizeString(r.FormValue("project_scope"))
-	budgetStr := r.FormValue("budget")
+	existingURL := core.SanitizeString(r.FormValue("existing_url"))
+	techStack := core.SanitizeString(r.FormValue("tech_stack"))
 	contactEmail := core.SanitizeString(r.FormValue("contact_email"))
+	if !core.IsValidEmail(contactEmail) {
+		lang := r.FormValue("lang")
+		trans := h.translator.Get(lang)
+		response.Error(w, r, nil, http.StatusBadRequest, trans.Get("ValValidEmail"))
+		return
+	}
 	contactInfo := core.SanitizeString(r.FormValue("contact_info"))
 	deadlineNeededStr := r.FormValue("deadline_needed")
 	deadlineNeeded := deadlineNeededStr == "true" || deadlineNeededStr == "on" || deadlineNeededStr == "1"
 
-	var budget int64
-	var err error
-	if budgetStr == "other" {
-		budget, err = strconv.ParseInt(strings.TrimSpace(r.FormValue("custom_budget")), 10, 64)
-		if err != nil {
-			response.Error(w, r, nil, http.StatusBadRequest, "Invalid custom budget value")
-			return
-		}
-		budget = budget * 100
-	} else {
-		budget, err = strconv.ParseInt(budgetStr, 10, 64)
-		if err != nil {
-			response.Error(w, r, nil, http.StatusBadRequest, "Invalid budget selection")
-			return
-		}
+	budgetStr := strings.TrimSpace(r.FormValue("budget"))
+	budget, err := strconv.ParseInt(budgetStr, 10, 64)
+	if err != nil || budget < 5 {
+		response.Error(w, r, nil, http.StatusBadRequest, "Invalid budget amount (minimum $5 USD)")
+		return
 	}
 
 	ld := &core.Lead{
 		CompanyName:    companyName,
+		ServiceType:    serviceType,
 		ProjectScope:   projectScope,
+		ExistingURL:    existingURL,
+		TechStack:      techStack,
 		Budget:         budget,
 		ContactEmail:   contactEmail,
 		ContactInfo:    contactInfo,
 		DeadlineNeeded: deadlineNeeded,
 		DeadlineSpec:   core.SanitizeString(r.FormValue("deadline_spec")),
-		IsCustomBudget: budgetStr == "other",
 		ClientStatus:   "pending",
 		InternalStatus: "pending",
 		CreatedAt:      time.Now(),
@@ -261,8 +264,16 @@ func (h *PublicHandler) HandleContactCreate(w http.ResponseWriter, r *http.Reque
 		}
 	}
 
+	email := core.SanitizeString(r.FormValue("email"))
+	if !core.IsValidEmail(email) {
+		lang := r.FormValue("lang")
+		trans := h.translator.Get(lang)
+		response.Error(w, r, nil, http.StatusBadRequest, trans.Get("ValValidEmail"))
+		return
+	}
+
 	msg := &core.ContactMessage{
-		Email:     core.SanitizeString(r.FormValue("email")),
+		Email:     email,
 		Topic:     core.SanitizeString(r.FormValue("topic")),
 		Message:   core.SanitizeString(r.FormValue("message")),
 		Status:    "new",

@@ -1,5 +1,5 @@
 import { createReactiveState, bindRefs, delegate } from './state.js';
-import { setStorageItem } from './storage.js';
+import { setSessionItem } from './storage.js';
 
 export function initLayout() {
     const refs = bindRefs(document.body);
@@ -152,7 +152,7 @@ export function initLayout() {
     teardowns.push(
         delegate(document.body, 'click', '.lang-switch-btn', (e, btn) => {
             const lang = btn.getAttribute('data-lang');
-            setStorageItem('locale_change', 'true');
+            setSessionItem('locale_change', 'true');
             state.mobileMenuOpen = false;
             setTimeout(() => {
                 window.htmx.ajax('GET', '/api/lang?lang=' + lang, {
@@ -165,7 +165,7 @@ export function initLayout() {
 
     teardowns.push(
         delegate(document.body, 'click', '.lang-switch-desktop', () => {
-            setStorageItem('locale_change', 'true');
+            setSessionItem('locale_change', 'true');
             state.langDropdownOpen = false;
         })
     );

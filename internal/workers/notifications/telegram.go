@@ -65,19 +65,30 @@ func (w *TelegramWorker) HandleEvent(ctx context.Context, e eventbus.Event) erro
 			priorityStr = "No (Standard Queue)"
 		}
 
+		extraDetails := ""
+		if evt.ExistingURL != "" {
+			extraDetails += fmt.Sprintf("\n*Existing System/URL:* %s", escapeMarkdown(evt.ExistingURL))
+		}
+		if evt.TechStack != "" {
+			extraDetails += fmt.Sprintf("\n*Tech Stack:* %s", escapeMarkdown(evt.TechStack))
+		}
+
 		message = fmt.Sprintf(
 			"🚀 *New Project Intake Received*\n\n"+
 				"*ID:* %d\n"+
-				"*Company:* %s\n"+
+				"*Service Type:* %s\n"+
+				"*Company/Client:* %s\n"+
 				"*Email:* %s\n"+
-				"*Budget:* %s\n"+
+				"*Budget:* %s%s\n"+
 				"*Priority Requested:* %s\n"+
 				"*Additional Contact/Notes:* %s\n\n"+
 				"*Scope:*\n%s",
 			evt.ID,
+			escapeMarkdown(evt.ServiceType),
 			escapeMarkdown(evt.CompanyName),
 			escapeMarkdown(evt.ContactEmail),
-			core.FormatBudgetTier(evt.Budget, evt.IsCustomBudget),
+			core.FormatBudget(evt.Budget),
+			extraDetails,
 			priorityStr,
 			escapeMarkdown(evt.ContactInfo),
 			escapeMarkdown(evt.ProjectScope),

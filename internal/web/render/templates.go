@@ -69,7 +69,26 @@ func NewRenderer(webUIFS fs.FS) (*Renderer, error) {
 		"add":          func(a, b int) int { return a + b },
 		"sub":          func(a, b int) int { return a - b },
 		"mul":          func(a, b int) int { return a * b },
-		"formatBudget": core.FormatBudgetTier,
+		"formatBudget": func(val interface{}, _ ...interface{}) string {
+			switch v := val.(type) {
+			case int64:
+				return core.FormatBudget(v)
+			case int:
+				return core.FormatBudget(int64(v))
+			default:
+				return "$0"
+			}
+		},
+		"splitTags": func(s string) []string {
+			var tags []string
+			for _, tag := range strings.Split(s, ",") {
+				trimmed := strings.TrimSpace(tag)
+				if trimmed != "" {
+					tags = append(tags, trimmed)
+				}
+			}
+			return tags
+		},
 	}
 
 	homeTmpl, err := template.New("base.layout.html").Funcs(funcMap).ParseFS(

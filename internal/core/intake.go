@@ -9,13 +9,15 @@ import (
 type Lead struct {
 	ID             int64     `json:"id"`
 	CompanyName    string    `json:"companyName"`
+	ServiceType    string    `json:"serviceType"`
 	ProjectScope   string    `json:"projectScope"`
+	ExistingURL    string    `json:"existingUrl"`
+	TechStack      string    `json:"techStack"`
 	Budget         int64     `json:"budget"`
 	ContactEmail   string    `json:"contactEmail"`
 	ContactInfo    string    `json:"contactInfo"`
 	DeadlineNeeded bool      `json:"deadlineNeeded"`
 	DeadlineSpec   string    `json:"deadlineSpec"`
-	IsCustomBudget bool      `json:"isCustomBudget"`
 	ClientStatus   string    `json:"clientStatus"`
 	InternalStatus string    `json:"internalStatus"`
 	CreatedAt      time.Time `json:"createdAt"`
@@ -62,6 +64,7 @@ type LeadListParams struct {
 	SortBy         string
 	ClientStatus   string
 	InternalStatus string
+	ServiceType    string
 	SearchQuery    string
 }
 
@@ -84,12 +87,14 @@ type LeadRepository interface {
 type ProjectAppliedEventPayload struct {
 	ID             int64     `json:"id"`
 	CompanyName    string    `json:"companyName"`
+	ServiceType    string    `json:"serviceType"`
 	ProjectScope   string    `json:"projectScope"`
+	ExistingURL    string    `json:"existingUrl"`
+	TechStack      string    `json:"techStack"`
 	Budget         int64     `json:"budget"`
 	ContactEmail   string    `json:"contactEmail"`
 	ContactInfo    string    `json:"contactInfo"`
 	DeadlineNeeded bool      `json:"deadlineNeeded"`
 	DeadlineSpec   string    `json:"deadlineSpec"`
-	IsCustomBudget bool      `json:"isCustomBudget"`
 	Timestamp      time.Time `json:"timestamp"`
 }

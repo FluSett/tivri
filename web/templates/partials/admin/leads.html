@@ -3,30 +3,47 @@
     <input type="hidden" name="page" value="{{.Leads.Params.Page}}" data-ref="pageInput">
     <input type="hidden" name="client_status" value="{{if .Leads.Params.ClientStatus}}{{.Leads.Params.ClientStatus}}{{else}}all{{end}}" data-ref="clientStatusInput">
     <input type="hidden" name="internal_status" value="{{if .Leads.Params.InternalStatus}}{{.Leads.Params.InternalStatus}}{{else}}all{{end}}" data-ref="internalStatusInput">
+    <input type="hidden" name="service_type" value="{{if .Leads.Params.ServiceType}}{{.Leads.Params.ServiceType}}{{else}}all{{end}}" data-ref="serviceTypeInput">
     <input type="hidden" name="sort_by" value="{{if .Leads.Params.SortBy}}{{.Leads.Params.SortBy}}{{else}}date_desc{{end}}" data-ref="sortInput">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="flex items-center justify-between bg-black/40 border border-white/8 p-5 rounded-2xl">
-            <div class="space-y-1">
+        <div class="flex items-center justify-between gap-6 bg-black/40 border border-white/8 p-5.5 rounded-2xl hover:border-white/15 transition-all shadow-lg">
+            <div class="space-y-1 grow min-w-0 pr-2">
                 <h4 class="text-sm font-bold text-white uppercase tracking-wider">{{.T.Get "AdminHighQueueLabel"}}</h4>
-                <p class="text-xs text-neutral-400">{{.T.Get "AdminHighQueueHint"}}</p>
+                <p class="text-xs text-neutral-400 leading-normal">{{.T.Get "AdminHighQueueHint"}}</p>
             </div>
-            <div hx-post="/admin/settings/high-queue" hx-trigger="change" hx-swap="none" hx-include="find input" class="flex items-center">
-                <label class="relative inline-flex items-center cursor-pointer bg-white/10 rounded-full">
-                    <input type="checkbox" name="high_queue" value="true" class="sr-only peer" {{if .HighQueueActive}}checked{{end}}>
-                    <div class="w-11 h-6 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+            <div class="flex items-center shrink-0">
+                <label class="relative inline-flex items-center cursor-pointer select-none">
+                    <input type="checkbox"
+                           name="high_queue"
+                           hx-post="/admin/settings/high-queue"
+                           hx-trigger="change"
+                           hx-swap="none"
+                           hx-on:change="event.stopPropagation()"
+                           hx-vals='js:{high_queue: event.target.checked ? "true" : "false"}'
+                           class="sr-only peer"
+                           {{if .HighQueueActive}}checked{{end}}>
+                    <div class="w-12 h-6.5 bg-white/10 border border-white/10 rounded-full peer peer-checked:bg-primary peer-checked:border-primary transition-colors duration-300 ease-in-out relative after:content-[''] after:absolute after:top-0.75 after:left-0.75 after:bg-white after:rounded-full after:h-5 after:w-5 after:shadow-md after:transition-transform after:duration-300 after:ease-in-out peer-checked:after:translate-x-5.5"></div>
                 </label>
             </div>
         </div>
 
-        <div class="flex items-center justify-between bg-black/40 border border-white/8 p-5 rounded-2xl">
-            <div class="space-y-1">
+        <div class="flex items-center justify-between gap-6 bg-black/40 border border-white/8 p-5.5 rounded-2xl hover:border-white/15 transition-all shadow-lg">
+            <div class="space-y-1 grow min-w-0 pr-2">
                 <h4 class="text-sm font-bold text-white uppercase tracking-wider">{{.T.Get "AdminMaintenanceLabel"}}</h4>
-                <p class="text-xs text-neutral-400">{{.T.Get "AdminMaintenanceHint"}}</p>
+                <p class="text-xs text-neutral-400 leading-normal">{{.T.Get "AdminMaintenanceHint"}}</p>
             </div>
-            <div hx-post="/admin/settings/maintenance" hx-trigger="change" hx-swap="none" hx-include="find input" class="flex items-center">
-                <label class="relative inline-flex items-center cursor-pointer bg-white/10 rounded-full">
-                    <input type="checkbox" name="maintenance" value="true" class="sr-only peer" {{if .MaintenanceActive}}checked{{end}}>
-                    <div class="w-11 h-6 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+            <div class="flex items-center shrink-0">
+                <label class="relative inline-flex items-center cursor-pointer select-none">
+                    <input type="checkbox"
+                           name="maintenance"
+                           hx-post="/admin/settings/maintenance"
+                           hx-trigger="change"
+                           hx-swap="none"
+                           hx-on:change="event.stopPropagation()"
+                           hx-vals='js:{maintenance: event.target.checked ? "true" : "false"}'
+                           class="sr-only peer"
+                           {{if .MaintenanceActive}}checked{{end}}>
+                    <div class="w-12 h-6.5 bg-white/10 border border-white/10 rounded-full peer peer-checked:bg-primary peer-checked:border-primary transition-colors duration-300 ease-in-out relative after:content-[''] after:absolute after:top-0.75 after:left-0.75 after:bg-white after:rounded-full after:h-5 after:w-5 after:shadow-md after:transition-transform after:duration-300 after:ease-in-out peer-checked:after:translate-x-5.5"></div>
                 </label>
             </div>
         </div>
@@ -35,6 +52,35 @@
     <div class="bg-black/40 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl mt-6">
         <!-- Toolbar -->
         <div class="flex flex-wrap items-end gap-4 p-6 border-b border-white/5 bg-white/1">
+            {{$serviceFilterLabel := $.T.Get "All"}}
+            {{if eq .Leads.Params.ServiceType "bug_fix"}}{{$serviceFilterLabel = $.T.Get "ServiceTypeBugFix"}}
+            {{else if eq .Leads.Params.ServiceType "api_integration"}}{{$serviceFilterLabel = $.T.Get "ServiceTypeAPI"}}
+            {{else if eq .Leads.Params.ServiceType "feature_extension"}}{{$serviceFilterLabel = $.T.Get "ServiceTypeFeature"}}
+            {{else if eq .Leads.Params.ServiceType "full_project"}}{{$serviceFilterLabel = $.T.Get "ServiceTypeFullProject"}}
+            {{else if eq .Leads.Params.ServiceType "consulting_audit"}}{{$serviceFilterLabel = $.T.Get "ServiceTypeAudit"}}
+            {{else if eq .Leads.Params.ServiceType "other"}}{{$serviceFilterLabel = $.T.Get "ServiceTypeOther"}}
+            {{end}}
+            {{template "components.dropdown.html" dict
+                "Label" (.T.Get "ServiceTypeLabel")
+                "BtnID" "leads-service-filter-btn"
+                "BtnRef" "serviceFilterBtn"
+                "BtnAction" "toggleServiceFilter"
+                "TextID" "leads-service-filter-text"
+                "TextRef" "serviceFilterText"
+                "DefaultText" $serviceFilterLabel
+                "DropdownID" "leads-service-filter-dropdown"
+                "DropdownRef" "serviceFilterDropdown"
+                "Options" (list 
+                    (dict "Label" (.T.Get "All") "Value" "all" "OptionAction" "setServiceFilter") 
+                    (dict "Label" (.T.Get "ServiceTypeBugFix") "Value" "bug_fix" "OptionAction" "setServiceFilter") 
+                    (dict "Label" (.T.Get "ServiceTypeAPI") "Value" "api_integration" "OptionAction" "setServiceFilter") 
+                    (dict "Label" (.T.Get "ServiceTypeFeature") "Value" "feature_extension" "OptionAction" "setServiceFilter") 
+                    (dict "Label" (.T.Get "ServiceTypeFullProject") "Value" "full_project" "OptionAction" "setServiceFilter") 
+                    (dict "Label" (.T.Get "ServiceTypeAudit") "Value" "consulting_audit" "OptionAction" "setServiceFilter")
+                    (dict "Label" (.T.Get "ServiceTypeOther") "Value" "other" "OptionAction" "setServiceFilter")
+                )
+            }}
+
             {{$clientFilterLabel := $.T.Get "All"}}
             {{if eq .Leads.Params.ClientStatus "pending"}}{{$clientFilterLabel = $.T.Get "Pending"}}
             {{else if eq .Leads.Params.ClientStatus "active"}}{{$clientFilterLabel = $.T.Get "Active"}}
@@ -120,6 +166,7 @@
             <thead>
                 <tr class="border-b border-white/8 text-neutral-400 text-xs font-semibold uppercase tracking-wider">
                     <th class="table-header-cell">{{.T.Get "LeadTitle"}}</th>
+                    <th class="table-header-cell">{{.T.Get "ServiceTypeLabel"}}</th>
                     <th class="table-header-cell">{{.T.Get "ScopeCol"}}</th>
                     <th class="table-header-cell">{{.T.Get "LeadContactEmail"}}</th>
                     <th class="table-header-cell">{{.T.Get "LeadContactInfo"}}</th>
@@ -143,8 +190,25 @@
                     <td class="table-body-cell-highlight group/msg relative min-w-30">
                         <div class="line-clamp-2 cursor-pointer whitespace-pre-wrap transition-all duration-200" data-action="toggleExpand" title="Click to expand">{{.CompanyName}}</div>
                     </td>
+                    <td class="table-body-cell whitespace-nowrap min-w-28">
+                        <span class="badge uppercase tracking-wider text-[10px] font-bold">
+                            {{if eq .ServiceType "bug_fix"}}{{$.T.Get "ServiceTypeBugFix"}}
+                            {{else if eq .ServiceType "api_integration"}}{{$.T.Get "ServiceTypeAPI"}}
+                            {{else if eq .ServiceType "feature_extension"}}{{$.T.Get "ServiceTypeFeature"}}
+                            {{else if eq .ServiceType "consulting_audit"}}{{$.T.Get "ServiceTypeAudit"}}
+                            {{else if eq .ServiceType "other"}}{{$.T.Get "ServiceTypeOther"}}
+                            {{else}}{{$.T.Get "ServiceTypeFullProject"}}
+                            {{end}}
+                        </span>
+                    </td>
                     <td class="table-body-cell break-all group/msg relative min-w-50 w-50">
                         <div class="line-clamp-2 cursor-pointer whitespace-pre-wrap transition-all duration-200" data-action="toggleExpand" title="Click to expand">{{.ProjectScope}}</div>
+                        {{if or .ExistingURL .TechStack}}
+                        <div class="mt-1 space-y-0.5 text-[10px] text-neutral-400">
+                            {{if .ExistingURL}}<div class="truncate">🔗 <a href="{{.ExistingURL}}" target="_blank" rel="noopener" class="underline hover:text-white">{{.ExistingURL}}</a></div>{{end}}
+                            {{if .TechStack}}<div class="truncate">🛠️ {{.TechStack}}</div>{{end}}
+                        </div>
+                        {{end}}
                     </td>
                     <td class="table-body-cell font-mono break-all group/msg relative min-w-37.5">
                         <div class="line-clamp-2 cursor-pointer whitespace-pre-wrap transition-all duration-200" data-action="toggleExpand" title="Click to expand">{{.ContactEmail}}</div>
@@ -214,7 +278,7 @@
                             }}
                         </div>
                     </td>
-                    <td class="table-body-cell whitespace-nowrap font-mono text-right">{{ formatBudget .Budget .IsCustomBudget }}</td>
+                    <td class="table-body-cell whitespace-nowrap font-mono text-right">{{ formatBudget .Budget }}</td>
                     <td class="table-body-cell whitespace-nowrap text-right">{{.CreatedAt.Format "2006-01-02 15:04"}}</td>
                     <td class="table-body-cell whitespace-nowrap text-right">{{.UpdatedAt.Format "2006-01-02 15:04"}}</td>
                 </tr>

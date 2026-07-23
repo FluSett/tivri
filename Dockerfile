@@ -1,11 +1,10 @@
-# Stage 1: Asset Builder (Node 22-alpine)
-FROM node:22-alpine AS asset-builder
+# Stage 1: Asset Builder (Bun 1-alpine)
+FROM oven/bun:1-alpine AS asset-builder
 WORKDIR /app
-RUN npm install -g npm@12.0.1
-COPY package*.json ./
-RUN --mount=type=cache,target=/root/.npm npm ci
+COPY package.json bun.lock ./
+RUN --mount=type=cache,target=/root/.bun/install/cache bun install --frozen-lockfile
 COPY web/ ./web/
-RUN npm run build
+RUN bun run build
 
 # Stage 2: Go App Builder (Go 1.26-alpine)
 FROM golang:1.26-alpine AS builder

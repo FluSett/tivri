@@ -32,29 +32,33 @@ func (r *PortfolioRepo) Save(ctx context.Context, item *core.PortfolioItem) erro
 
 func (r *PortfolioRepo) List(ctx context.Context) ([]core.PortfolioItem, error) {
 	query := "SELECT id, title, description, budget, tech_stack, media FROM portfolio_items ORDER BY id DESC"
-	rows, err := r.store.Pool().Query(ctx, query)
-	if err != nil {
-		return nil, fmt.Errorf("portfolio: query items failed: %w", err)
-	}
-	defer rows.Close()
-
 	var list []core.PortfolioItem
-	for rows.Next() {
-		var item core.PortfolioItem
-		var mediaJSON string
-		if err := rows.Scan(&item.ID, &item.Title, &item.Description, &item.Budget, &item.TechStack, &mediaJSON); err != nil {
-			return nil, fmt.Errorf("portfolio: scan item failed: %w", err)
-		}
-		if mediaJSON != "" {
-			if err := json.Unmarshal([]byte(mediaJSON), &item.Media); err != nil {
-				return nil, fmt.Errorf("portfolio: unmarshal media failed: %w", err)
-			}
-		}
-		list = append(list, item)
-	}
 
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("portfolio: row iteration failed: %w", err)
+	err := r.store.WithTx(ctx, func(txCtx context.Context) error {
+		rows, err := r.store.Query(txCtx, query)
+		if err != nil {
+			return fmt.Errorf("portfolio: query items failed: %w", err)
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var item core.PortfolioItem
+			var mediaJSON string
+			if err := rows.Scan(&item.ID, &item.Title, &item.Description, &item.Budget, &item.TechStack, &mediaJSON); err != nil {
+				return fmt.Errorf("portfolio: scan item failed: %w", err)
+			}
+			if mediaJSON != "" {
+				if err := json.Unmarshal([]byte(mediaJSON), &item.Media); err != nil {
+					return fmt.Errorf("portfolio: unmarshal media failed: %w", err)
+				}
+			}
+			list = append(list, item)
+		}
+
+		return rows.Err()
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return list, nil

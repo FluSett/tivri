@@ -27,13 +27,15 @@ func (s *IntakeService) Apply(ctx context.Context, lead *core.Lead) error {
 		payload := core.ProjectAppliedEventPayload{
 			ID:             lead.ID,
 			CompanyName:    lead.CompanyName,
+			ServiceType:    lead.ServiceType,
 			ProjectScope:   lead.ProjectScope,
+			ExistingURL:    lead.ExistingURL,
+			TechStack:      lead.TechStack,
 			Budget:         lead.Budget,
 			ContactEmail:   lead.ContactEmail,
 			ContactInfo:    lead.ContactInfo,
 			DeadlineNeeded: lead.DeadlineNeeded,
 			DeadlineSpec:   lead.DeadlineSpec,
-			IsCustomBudget: lead.IsCustomBudget,
 			Timestamp:      lead.CreatedAt,
 		}
 

@@ -56,10 +56,18 @@ paths:
               properties:
                 company_name:
                   type: string
+                service_type:
+                  type: string
+                  enum: [bug_fix, api_integration, feature_extension, full_project, consulting_audit, other]
                 project_scope:
+                  type: string
+                existing_url:
+                  type: string
+                tech_stack:
                   type: string
                 budget:
                   type: string
+                  description: Integer USD amount (e.g. 50, 300, 2500)
                 contact_email:
                   type: string
                 contact_info:

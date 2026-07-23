@@ -1,5 +1,3 @@
-import { getStorageItem } from './storage.js';
-
 export function initNavigation() {
     const sections = ['about', 'benefits', 'skills', 'portfolio', 'contact'];
     let isManualScrolling = false;
