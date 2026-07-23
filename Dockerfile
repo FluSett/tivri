@@ -1,6 +1,7 @@
 # Stage 1: Asset Builder (Node 22-alpine)
 FROM node:22-alpine AS asset-builder
 WORKDIR /app
+RUN npm install -g npm@12.0.1
 COPY package*.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci
 COPY web/ ./web/
