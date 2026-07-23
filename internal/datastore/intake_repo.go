@@ -15,8 +15,8 @@ func NewIntakeRepo(store *Store) core.LeadRepository {
 }
 
 func (r *IntakeRepo) Save(ctx context.Context, ld *core.Lead) error {
-	query := "INSERT INTO intake_leads (company_name, project_scope, budget, contact_email, contact_info, deadline_needed, deadline_spec, is_custom_budget, client_status, internal_status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id"
-	err := r.store.QueryRow(ctx, query, ld.CompanyName, ld.ProjectScope, ld.Budget, ld.ContactEmail, ld.ContactInfo, ld.DeadlineNeeded, ld.DeadlineSpec, ld.IsCustomBudget, ld.ClientStatus, ld.InternalStatus).Scan(&ld.ID)
+	query := "INSERT INTO intake_leads (company_name, service_type, project_scope, existing_url, tech_stack, budget, contact_email, contact_info, deadline_needed, deadline_spec, client_status, internal_status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id"
+	err := r.store.QueryRow(ctx, query, ld.CompanyName, ld.ServiceType, ld.ProjectScope, ld.ExistingURL, ld.TechStack, ld.Budget, ld.ContactEmail, ld.ContactInfo, ld.DeadlineNeeded, ld.DeadlineSpec, ld.ClientStatus, ld.InternalStatus).Scan(&ld.ID)
 	if err != nil {
 		return fmt.Errorf("project_intake: save failed: %w", err)
 	}
@@ -24,9 +24,9 @@ func (r *IntakeRepo) Save(ctx context.Context, ld *core.Lead) error {
 }
 
 func (r *IntakeRepo) Get(ctx context.Context, id int64) (*core.Lead, error) {
-	query := "SELECT id, company_name, project_scope, budget, contact_email, contact_info, deadline_needed, deadline_spec, is_custom_budget, client_status, internal_status, created_at, updated_at FROM intake_leads WHERE id = $1"
+	query := "SELECT id, company_name, service_type, project_scope, existing_url, tech_stack, budget, contact_email, contact_info, deadline_needed, deadline_spec, client_status, internal_status, created_at, updated_at FROM intake_leads WHERE id = $1"
 	var ld core.Lead
-	err := r.store.QueryRow(ctx, query, id).Scan(&ld.ID, &ld.CompanyName, &ld.ProjectScope, &ld.Budget, &ld.ContactEmail, &ld.ContactInfo, &ld.DeadlineNeeded, &ld.DeadlineSpec, &ld.IsCustomBudget, &ld.ClientStatus, &ld.InternalStatus, &ld.CreatedAt, &ld.UpdatedAt)
+	err := r.store.QueryRow(ctx, query, id).Scan(&ld.ID, &ld.CompanyName, &ld.ServiceType, &ld.ProjectScope, &ld.ExistingURL, &ld.TechStack, &ld.Budget, &ld.ContactEmail, &ld.ContactInfo, &ld.DeadlineNeeded, &ld.DeadlineSpec, &ld.ClientStatus, &ld.InternalStatus, &ld.CreatedAt, &ld.UpdatedAt)
 	if err != nil {
 		return nil, fmt.Errorf("project_intake: get failed: %w", err)
 	}
@@ -57,10 +57,16 @@ func (r *IntakeRepo) List(ctx context.Context, params core.LeadListParams) (core
 		argId++
 	}
 
+	if params.ServiceType != "" && params.ServiceType != "all" {
+		whereClause += fmt.Sprintf(" AND service_type = $%d", argId)
+		args = append(args, params.ServiceType)
+		argId++
+	}
+
 	if params.SearchQuery != "" {
-		whereClause += fmt.Sprintf(" AND (company_name ILIKE $%d OR contact_email ILIKE $%d)", argId, argId+1)
-		args = append(args, "%"+params.SearchQuery+"%", "%"+params.SearchQuery+"%")
-		argId += 2
+		whereClause += fmt.Sprintf(" AND (company_name ILIKE $%d OR contact_email ILIKE $%d OR project_scope ILIKE $%d)", argId, argId+1, argId+2)
+		args = append(args, "%"+params.SearchQuery+"%", "%"+params.SearchQuery+"%", "%"+params.SearchQuery+"%")
+		argId += 3
 	}
 
 	var totalItems int
@@ -86,7 +92,7 @@ func (r *IntakeRepo) List(ctx context.Context, params core.LeadListParams) (core
 	}
 
 	offset := (params.Page - 1) * params.PageSize
-	query := fmt.Sprintf("SELECT id, company_name, project_scope, budget, contact_email, contact_info, deadline_needed, deadline_spec, is_custom_budget, client_status, internal_status, created_at, updated_at FROM intake_leads %s %s LIMIT $%d OFFSET $%d", whereClause, orderBy, argId, argId+1)
+	query := fmt.Sprintf("SELECT id, company_name, service_type, project_scope, existing_url, tech_stack, budget, contact_email, contact_info, deadline_needed, deadline_spec, client_status, internal_status, created_at, updated_at FROM intake_leads %s %s LIMIT $%d OFFSET $%d", whereClause, orderBy, argId, argId+1)
 
 	args = append(args, params.PageSize, offset)
 
@@ -99,7 +105,7 @@ func (r *IntakeRepo) List(ctx context.Context, params core.LeadListParams) (core
 	var list []core.Lead
 	for rows.Next() {
 		var ld core.Lead
-		if err := rows.Scan(&ld.ID, &ld.CompanyName, &ld.ProjectScope, &ld.Budget, &ld.ContactEmail, &ld.ContactInfo, &ld.DeadlineNeeded, &ld.DeadlineSpec, &ld.IsCustomBudget, &ld.ClientStatus, &ld.InternalStatus, &ld.CreatedAt, &ld.UpdatedAt); err != nil {
+		if err := rows.Scan(&ld.ID, &ld.CompanyName, &ld.ServiceType, &ld.ProjectScope, &ld.ExistingURL, &ld.TechStack, &ld.Budget, &ld.ContactEmail, &ld.ContactInfo, &ld.DeadlineNeeded, &ld.DeadlineSpec, &ld.ClientStatus, &ld.InternalStatus, &ld.CreatedAt, &ld.UpdatedAt); err != nil {
 			return core.PaginatedLeads{}, fmt.Errorf("project_intake: scan lead failed: %w", err)
 		}
 		list = append(list, ld)

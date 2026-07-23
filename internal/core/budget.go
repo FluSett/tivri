@@ -2,31 +2,28 @@ package core
 
 import "fmt"
 
-func FormatBudget(cents int64) string {
-	dollars := cents / 100
-	remainder := cents % 100
-	return fmt.Sprintf("%d.%02d", dollars, remainder)
-}
-
-func FormatBudgetTier(cents int64, isCustom bool) string {
-	if isCustom {
-		return fmt.Sprintf("Custom ($%s)", FormatBudget(cents))
+func FormatBudget(usd int64) string {
+	if usd <= 0 {
+		return "$0"
 	}
 
-	switch cents {
-	case 250000:
-		return "Small ($1,000 - $5,000)"
-	case 750000:
-		return "Starter ($5,000 - $10,000)"
-	case 1750000:
-		return "Growth ($10,000 - $25,000)"
-	case 5000000:
-		return "Scale ($25,000 - $75,000)"
-	case 11250000:
-		return "Enterprise ($75,000 - $150,000)"
-	case 20000000:
-		return "Premium ($150,000+)"
-	default:
-		return fmt.Sprintf("Custom ($%s)", FormatBudget(cents))
+	str := fmt.Sprintf("%d", usd)
+	n := len(str)
+	if n <= 3 {
+		return "$" + str
 	}
+
+	var result []byte
+	for i, c := range str {
+		if i > 0 && (n-i)%3 == 0 {
+			result = append(result, ',')
+		}
+		result = append(result, byte(c))
+	}
+	return "$" + string(result)
 }
+
+func FormatBudgetTier(usd int64, _ bool) string {
+	return FormatBudget(usd)
+}
+
